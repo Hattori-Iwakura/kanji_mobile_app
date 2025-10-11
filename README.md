@@ -1,4 +1,4 @@
-# Kanji Library App
+# Kanji Learning App
 
 A beautiful Flutter application for managing and learning Japanese Kanji characters, connected to a remote REST API backend.
 
