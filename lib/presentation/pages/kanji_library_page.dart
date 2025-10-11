@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:kanji_flutter/domain/entities/kanji_entity.dart';
 import 'package:kanji_flutter/domain/repositories/kanji_repository.dart';
+import 'package:kanji_flutter/data/repositories/kanji_repository_hybrid.dart';
 import '../blocs/kanji_bloc.dart';
 import '../widgets/kanji_card.dart';
 import '../widgets/kanji_search_bar.dart';
 import '../widgets/kanji_detail_dialog.dart';
+import '../widgets/sync_status_widget.dart';
 
 class KanjiLibraryPage extends StatelessWidget {
   final KanjiRepository repo;
@@ -16,13 +18,15 @@ class KanjiLibraryPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (_) => KanjiBloc(repo)..add(LoadKanjis()),
-      child: const KanjiLibraryView(),
+      child: KanjiLibraryView(repo: repo),
     );
   }
 }
 
 class KanjiLibraryView extends StatefulWidget {
-  const KanjiLibraryView({Key? key}) : super(key: key);
+  final KanjiRepository repo;
+
+  const KanjiLibraryView({Key? key, required this.repo}) : super(key: key);
 
   @override
   State<KanjiLibraryView> createState() => _KanjiLibraryViewState();
@@ -78,6 +82,14 @@ class _KanjiLibraryViewState extends State<KanjiLibraryView> {
         backgroundColor: Colors.indigo,
         foregroundColor: Colors.white,
         elevation: 2,
+        actions: [
+          if (widget.repo is KanjiRepositoryHybrid)
+            IconButton(
+              onPressed: () => _showSyncDialog(context),
+              icon: const Icon(Icons.sync),
+              tooltip: 'Sync Status',
+            ),
+        ],
       ),
       body: Column(
         children: [
@@ -232,5 +244,28 @@ class _KanjiLibraryViewState extends State<KanjiLibraryView> {
         child: const Icon(Icons.add, color: Colors.white),
       ),
     );
+  }
+
+  void _showSyncDialog(BuildContext context) {
+    if (widget.repo is KanjiRepositoryHybrid) {
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Sync Status'),
+          content: SizedBox(
+            width: double.maxFinite,
+            child: SyncStatusWidget(
+              repository: widget.repo as KanjiRepositoryHybrid,
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Close'),
+            ),
+          ],
+        ),
+      );
+    }
   }
 }

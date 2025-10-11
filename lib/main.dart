@@ -2,7 +2,9 @@ import 'dart:io' show Platform;
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:kanji_flutter/data/remote/kanji_remote_data_source.dart';
-import 'package:kanji_flutter/data/repositories/kanji_repository_impl.dart';
+import 'package:kanji_flutter/data/repositories/kanji_repository_hybrid.dart';
+import 'package:kanji_flutter/data/datasources/kanji_local_database.dart';
+import 'package:kanji_flutter/domain/repositories/kanji_repository.dart';
 import 'package:kanji_flutter/presentation/pages/kanji_library_page.dart';
 
 Future<void> main() async {
@@ -10,15 +12,19 @@ Future<void> main() async {
 
   final backendHost = _defaultBackendHost();
   final remote = KanjiRemoteDataSource(baseUrl: backendHost);
+  final localDatabase = KanjiLocalDatabase();
 
-  // Sử dụng KanjiRepositoryImpl thay vì interface
-  final repo = KanjiRepositoryImpl(remote: remote);
+  // Sử dụng hybrid repository
+  final repo = KanjiRepositoryHybrid(
+    remoteDataSource: remote,
+    localDatabase: localDatabase,
+  );
 
   runApp(KanjiLibraryApp(repo: repo));
 }
 
 class KanjiLibraryApp extends StatelessWidget {
-  final KanjiRepositoryImpl repo;
+  final KanjiRepository repo;
 
   const KanjiLibraryApp({Key? key, required this.repo}) : super(key: key);
 

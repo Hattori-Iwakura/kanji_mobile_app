@@ -51,4 +51,43 @@ class Kanji {
       'radicals': radicals,
     };
   }
+
+  Kanji copyWith({
+    int? id,
+    String? character,
+    String? meanings,
+    String? onyomi,
+    String? kunyomi,
+    int? strokeCount,
+    int? jlpt,
+    int? grade,
+    int? frequency,
+    String? radicals,
+  }) {
+    return Kanji(
+      id: id ?? this.id,
+      character: character ?? this.character,
+      meanings: meanings ?? this.meanings,
+      onyomi: onyomi ?? this.onyomi,
+      kunyomi: kunyomi ?? this.kunyomi,
+      strokeCount: strokeCount ?? this.strokeCount,
+      jlpt: jlpt ?? this.jlpt,
+      grade: grade ?? this.grade,
+      frequency: frequency ?? this.frequency,
+      radicals: radicals ?? this.radicals,
+    );
+  }
+
+  // Helper methods for search
+  List<String> get meaningsList {
+    return meanings.split(',').map((m) => m.trim()).toList();
+  }
+
+  List<String> get onyomiList {
+    return onyomi?.split(',').map((o) => o.trim()).toList() ?? [];
+  }
+
+  List<String> get kunyomiList {
+    return kunyomi?.split(',').map((k) => k.trim()).toList() ?? [];
+  }
 }

@@ -1,6 +1,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:kanji_flutter/domain/entities/kanji_entity.dart';
 import 'package:kanji_flutter/domain/repositories/kanji_repository.dart';
+import 'package:kanji_flutter/data/repositories/kanji_repository_hybrid.dart';
 
 // State
 class KanjiState {
@@ -67,15 +68,33 @@ class KanjiBloc extends Bloc<KanjiEvent, KanjiState> {
       emit(KanjiState(kanjis: _allKanjis));
     });
 
-    on<SearchKanjiEvent>((event, emit) {
-      final filtered = _allKanjis
-          .where(
-            (k) =>
-                k.character.contains(event.query) ||
-                k.meanings.contains(event.query),
-          )
-          .toList();
-      emit(KanjiState(kanjis: filtered));
+    on<SearchKanjiEvent>((event, emit) async {
+      if (event.query.isEmpty) {
+        emit(KanjiState(kanjis: _allKanjis));
+      } else {
+        List<Kanji> filtered;
+
+        // If using hybrid repository, use its search method
+        if (repo is KanjiRepositoryHybrid) {
+          filtered = await (repo as KanjiRepositoryHybrid).searchKanjis(
+            event.query,
+          );
+        } else {
+          // Fallback to local filtering
+          filtered = _allKanjis
+              .where(
+                (k) =>
+                    k.character.contains(event.query) ||
+                    k.meaningsList.any(
+                      (m) =>
+                          m.toLowerCase().contains(event.query.toLowerCase()),
+                    ),
+              )
+              .toList();
+        }
+
+        emit(KanjiState(kanjis: filtered));
+      }
     });
   }
 }
