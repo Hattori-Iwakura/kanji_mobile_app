@@ -1,4 +1,4 @@
-name: kanji_flutter
+name: kanji_mobile
 description: "A new Flutter project."
 publish_to: 'none'
 version: 0.1.0
@@ -9,21 +9,33 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  flutter_bloc: ^9.1.1
-  equatable: ^2.0.7
-  drift: ^2.20.0
-  sqlite3_flutter_libs: ^0.5.0
-  path_provider: ^2.1.5
-  get_it: ^8.2.0
-  http: ^1.5.0
-  logger: ^2.6.2
+  
+  # State Management
+  flutter_bloc: ^8.1.6
+  equatable: ^2.0.5
+  
+  # Database
+  sqflite: ^2.3.3+1
+  path: ^1.9.0
+  
+  # Dependency Injection
+  get_it: ^7.7.0
+  
+  # Functional Programming
+  dartz: ^0.10.1
+  
+  # JSON
+  json_annotation: ^4.9.0
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^5.0.0
-  drift_dev: ^2.20.0
-  build_runner: ^2.4.13
+  build_runner: ^2.4.12
+  json_serializable: ^6.8.0
 
 flutter:
   uses-material-design: true
+  
+  assets:
+    - assets/kanji-merged.json
