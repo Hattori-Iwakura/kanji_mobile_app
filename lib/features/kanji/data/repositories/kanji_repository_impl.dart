@@ -58,4 +58,17 @@ class KanjiRepositoryImpl implements KanjiRepository {
       return Left(DatabaseFailure());
     }
   }
+
+  @override
+  Future<Either<Failure, List<Kanji>>> getKanjiByFrequency(
+    int minFreq,
+    int maxFreq,
+  ) async {
+    try {
+      final kanji = await localDataSource.getKanjiByFrequency(minFreq, maxFreq);
+      return Right(kanji);
+    } catch (e) {
+      return Left(DatabaseFailure());
+    }
+  }
 }

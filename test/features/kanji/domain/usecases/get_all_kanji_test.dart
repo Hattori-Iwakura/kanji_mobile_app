@@ -53,6 +53,14 @@ class MockKanjiRepository implements KanjiRepository {
   Future<Either<Failure, List<Kanji>>> searchKanji(String query) async {
     throw UnimplementedError();
   }
+
+  @override
+  Future<Either<Failure, List<Kanji>>> getKanjiByFrequency(
+    int minFreq,
+    int maxFreq,
+  ) async {
+    throw UnimplementedError();
+  }
 }
 
 void main() {

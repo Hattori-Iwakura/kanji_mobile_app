@@ -4,8 +4,10 @@ import '../../domain/entities/kanji.dart';
 import '../bloc/kanji_bloc.dart';
 import '../bloc/kanji_event.dart';
 import '../bloc/kanji_state.dart';
+import '../bloc/kanji_list_bloc.dart';
 import 'kanji_detail_page.dart';
 import 'stats_page.dart';
+import 'my_lists_page.dart';
 
 class KanjiListPage extends StatefulWidget {
   const KanjiListPage({super.key});
@@ -58,6 +60,22 @@ class _KanjiListPageState extends State<KanjiListPage> {
         backgroundColor: Colors.indigo,
         foregroundColor: Colors.white,
         actions: [
+          IconButton(
+            icon: const Icon(Icons.folder_special),
+            onPressed: () {
+              final kanjiListBloc = context.read<KanjiListBloc>();
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => BlocProvider.value(
+                    value: kanjiListBloc,
+                    child: const MyListsPage(),
+                  ),
+                ),
+              );
+            },
+            tooltip: 'Danh sách Kanji',
+          ),
           IconButton(
             icon: const Icon(Icons.bar_chart),
             onPressed: () {

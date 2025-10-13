@@ -7,6 +7,7 @@ abstract class KanjiLocalDataSource {
   Future<List<KanjiModel>> getKanjiByGrade(int grade);
   Future<List<KanjiModel>> getKanjiByJlptLevel(int level);
   Future<List<KanjiModel>> searchKanji(String query);
+  Future<List<KanjiModel>> getKanjiByFrequency(int minFreq, int maxFreq);
 }
 
 class KanjiLocalDataSourceImpl implements KanjiLocalDataSource {
@@ -74,6 +75,21 @@ class KanjiLocalDataSourceImpl implements KanjiLocalDataSource {
       'kanji',
       where: 'character LIKE ? OR meanings LIKE ?',
       whereArgs: ['%$query%', '%$query%'],
+    );
+
+    return List.generate(maps.length, (i) {
+      return KanjiModel.fromJson(maps[i]);
+    });
+  }
+
+  @override
+  Future<List<KanjiModel>> getKanjiByFrequency(int minFreq, int maxFreq) async {
+    final db = await databaseHelper.database;
+    final List<Map<String, dynamic>> maps = await db.query(
+      'kanji',
+      where: 'freq >= ? AND freq <= ?',
+      whereArgs: [minFreq, maxFreq],
+      orderBy: 'freq ASC',
     );
 
     return List.generate(maps.length, (i) {
