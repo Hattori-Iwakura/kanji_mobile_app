@@ -72,6 +72,17 @@ class HomePage extends StatelessWidget {
                         icon: const Icon(Icons.school),
                         label: const Text('Start Learning'),
                       ),
+                      const SizedBox(height: 16),
+                      OutlinedButton.icon(
+                        onPressed: () {
+                          Navigator.pushNamed(context, '/admin-kanji');
+                        },
+                        icon: const Icon(Icons.admin_panel_settings),
+                        label: const Text('Admin - Manage Kanji'),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: Colors.orange,
+                        ),
+                      ),
                     ],
                   ),
                 );

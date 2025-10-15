@@ -11,6 +11,9 @@ import 'features/kanji/domain/repositories/kanji_repository.dart';
 import 'features/kanji/domain/usecases/get_all_kanji.dart';
 import 'features/kanji/domain/usecases/get_kanji_by_id.dart';
 import 'features/kanji/domain/usecases/get_kanji_by_character.dart';
+import 'features/kanji/domain/usecases/create_kanji.dart';
+import 'features/kanji/domain/usecases/update_kanji.dart';
+import 'features/kanji/domain/usecases/delete_kanji.dart';
 import 'features/kanji/presentation/bloc/kanji_bloc.dart';
 import 'core/network/api_client.dart';
 
@@ -45,6 +48,9 @@ Future<void> init() async {
       getAllKanjiUseCase: sl(),
       getKanjiByIdUseCase: sl(),
       getKanjiByCharacterUseCase: sl(),
+      createKanjiUseCase: sl(),
+      updateKanjiUseCase: sl(),
+      deleteKanjiUseCase: sl(),
     ),
   );
 
@@ -52,6 +58,9 @@ Future<void> init() async {
   sl.registerLazySingleton(() => GetAllKanji(sl()));
   sl.registerLazySingleton(() => GetKanjiById(sl()));
   sl.registerLazySingleton(() => GetKanjiByCharacter(sl()));
+  sl.registerLazySingleton(() => CreateKanji(sl()));
+  sl.registerLazySingleton(() => UpdateKanji(sl()));
+  sl.registerLazySingleton(() => DeleteKanji(sl()));
 
   // Repository
   sl.registerLazySingleton<KanjiRepository>(

@@ -5,6 +5,7 @@ import 'features/auth/presentation/pages/login_page.dart';
 import 'features/home/presentation/pages/home_page.dart';
 import 'features/kanji/presentation/pages/kanji_list_page.dart';
 import 'features/kanji/presentation/pages/kanji_detail_page.dart';
+import 'features/kanji/presentation/pages/admin_kanji_list_page.dart';
 import 'features/kanji/presentation/bloc/kanji_bloc.dart';
 import 'features/kanji/presentation/bloc/kanji_event.dart';
 
@@ -29,6 +30,7 @@ class MyApp extends StatelessWidget {
               di.sl<KanjiBloc>()..add(const LoadAllKanjiEvent()),
           child: const KanjiListPage(),
         ),
+        '/admin-kanji': (ctx) => const AdminKanjiListPage(),
       },
       onGenerateRoute: (settings) {
         if (settings.name == '/kanji-detail') {

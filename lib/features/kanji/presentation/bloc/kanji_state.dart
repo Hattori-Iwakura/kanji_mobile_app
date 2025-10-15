@@ -60,3 +60,41 @@ class KanjiError extends KanjiState {
   @override
   List<Object?> get props => [message];
 }
+
+// Admin CRUD States
+class KanjiCreated extends KanjiState {
+  final Kanji kanji;
+
+  const KanjiCreated(this.kanji);
+
+  @override
+  List<Object?> get props => [kanji];
+}
+
+class KanjiUpdated extends KanjiState {
+  final Kanji kanji;
+
+  const KanjiUpdated(this.kanji);
+
+  @override
+  List<Object?> get props => [kanji];
+}
+
+class KanjiDeleted extends KanjiState {
+  final Kanji kanji;
+
+  const KanjiDeleted(this.kanji);
+
+  @override
+  List<Object?> get props => [kanji];
+}
+
+class KanjiOperationSuccess extends KanjiState {
+  final String message;
+  final Kanji? kanji;
+
+  const KanjiOperationSuccess(this.message, {this.kanji});
+
+  @override
+  List<Object?> get props => [message, kanji];
+}

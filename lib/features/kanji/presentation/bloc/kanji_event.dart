@@ -1,4 +1,6 @@
 import 'package:equatable/equatable.dart';
+import '../../domain/usecases/create_kanji.dart';
+import '../../domain/usecases/update_kanji.dart';
 
 abstract class KanjiEvent extends Equatable {
   const KanjiEvent();
@@ -54,4 +56,32 @@ class SearchKanjiEvent extends KanjiEvent {
 
   @override
   List<Object?> get props => [query];
+}
+
+// Admin CRUD Events
+class CreateKanjiEvent extends KanjiEvent {
+  final CreateKanjiParams params;
+
+  const CreateKanjiEvent(this.params);
+
+  @override
+  List<Object?> get props => [params];
+}
+
+class UpdateKanjiEvent extends KanjiEvent {
+  final UpdateKanjiParams params;
+
+  const UpdateKanjiEvent(this.params);
+
+  @override
+  List<Object?> get props => [params];
+}
+
+class DeleteKanjiEvent extends KanjiEvent {
+  final int id;
+
+  const DeleteKanjiEvent(this.id);
+
+  @override
+  List<Object?> get props => [id];
 }
