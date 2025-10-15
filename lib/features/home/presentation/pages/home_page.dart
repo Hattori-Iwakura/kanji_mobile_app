@@ -1,0 +1,115 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../auth/presentation/bloc/auth_bloc.dart';
+import '../../../auth/presentation/bloc/auth_event.dart';
+import '../../../auth/presentation/bloc/auth_state.dart';
+import '../../../../injection_container.dart' as di;
+
+class HomePage extends StatelessWidget {
+  const HomePage({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocProvider(
+      create: (_) => di.sl<AuthBloc>()..add(const AuthCheckRequested()),
+      child: BlocListener<AuthBloc, AuthState>(
+        listener: (context, state) {
+          if (state is AuthUnauthenticated) {
+            Navigator.pushReplacementNamed(context, '/');
+          }
+        },
+        child: Scaffold(
+          appBar: AppBar(
+            title: const Text('Home'),
+            actions: [
+              IconButton(
+                icon: const Icon(Icons.logout),
+                onPressed: () {
+                  _showLogoutDialog(context);
+                },
+              ),
+            ],
+          ),
+          body: BlocBuilder<AuthBloc, AuthState>(
+            builder: (context, state) {
+              if (state is AuthLoading) {
+                return const Center(child: CircularProgressIndicator());
+              }
+
+              if (state is AuthAuthenticated) {
+                return Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      CircleAvatar(
+                        radius: 50,
+                        backgroundColor: Theme.of(context).primaryColor,
+                        child: Text(
+                          state.user.account[0].toUpperCase(),
+                          style: const TextStyle(
+                            fontSize: 40,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                      Text(
+                        'Welcome, ${state.user.account}!',
+                        style: Theme.of(context).textTheme.headlineSmall,
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        state.user.email,
+                        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                          color: Colors.grey[600],
+                        ),
+                      ),
+                      const SizedBox(height: 32),
+                      ElevatedButton.icon(
+                        onPressed: () {
+                          // Navigate to kanji list or learning page
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Feature coming soon!'),
+                            ),
+                          );
+                        },
+                        icon: const Icon(Icons.school),
+                        label: const Text('Start Learning'),
+                      ),
+                    ],
+                  ),
+                );
+              }
+
+              return const Center(child: Text('Something went wrong'));
+            },
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showLogoutDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Logout'),
+        content: const Text('Are you sure you want to logout?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(ctx);
+              context.read<AuthBloc>().add(const LogoutRequested());
+            },
+            child: const Text('Logout'),
+          ),
+        ],
+      ),
+    );
+  }
+}
