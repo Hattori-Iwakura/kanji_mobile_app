@@ -67,12 +67,7 @@ class HomePage extends StatelessWidget {
                       const SizedBox(height: 32),
                       ElevatedButton.icon(
                         onPressed: () {
-                          // Navigate to kanji list or learning page
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('Feature coming soon!'),
-                            ),
-                          );
+                          Navigator.pushNamed(context, '/kanji-list');
                         },
                         icon: const Icon(Icons.school),
                         label: const Text('Start Learning'),
