@@ -85,6 +85,18 @@ class HomePage extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(height: 16),
+                      ElevatedButton.icon(
+                        onPressed: () {
+                          Navigator.pushNamed(context, '/flashcard');
+                        },
+                        icon: const Icon(Icons.style),
+                        label: const Text('Flashcards'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.purple,
+                          foregroundColor: Colors.white,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
                       OutlinedButton.icon(
                         onPressed: () {
                           Navigator.pushNamed(context, '/admin-kanji');

@@ -20,6 +20,20 @@ import 'features/kanji_recognition/data/repositories/kanji_recognition_repositor
 import 'features/kanji_recognition/domain/repositories/kanji_recognition_repository.dart';
 import 'features/kanji_recognition/domain/usecases/recognize_kanji.dart';
 import 'features/kanji_recognition/presentation/bloc/kanji_recognition_bloc.dart';
+import 'features/flashcard/data/datasources/flashcard_remote_data_source.dart';
+import 'features/flashcard/data/repositories/flashcard_repository_impl.dart';
+import 'features/flashcard/domain/repositories/flashcard_repository.dart';
+import 'features/flashcard/domain/usecases/create_deck.dart';
+import 'features/flashcard/domain/usecases/get_user_decks.dart';
+import 'features/flashcard/domain/usecases/get_deck_by_id.dart';
+import 'features/flashcard/domain/usecases/start_study_session.dart';
+import 'features/flashcard/domain/usecases/review_card.dart';
+import 'features/flashcard/domain/usecases/add_card_to_deck.dart';
+import 'features/flashcard/domain/usecases/delete_card.dart';
+import 'features/flashcard/domain/usecases/delete_deck.dart';
+import 'features/flashcard/presentation/bloc/flashcard_deck_bloc.dart';
+import 'features/flashcard/presentation/bloc/study_session_bloc.dart';
+import 'features/flashcard/presentation/bloc/deck_detail_bloc.dart';
 import 'core/network/api_client.dart';
 
 final sl = GetIt.instance;
@@ -93,6 +107,53 @@ Future<void> init() async {
   // Data sources
   sl.registerLazySingleton<KanjiRecognitionRemoteDataSource>(
     () => KanjiRecognitionRemoteDataSourceImpl(apiClient: sl()),
+  );
+
+  // ==================== Features - Flashcard ====================
+
+  // BLoCs
+  sl.registerFactory(
+    () => FlashcardDeckBloc(
+      getUserDecks: sl(),
+      createDeck: sl(),
+      repository: sl(),
+    ),
+  );
+
+  sl.registerFactory(
+    () => StudySessionBloc(
+      startStudySession: sl(),
+      reviewCard: sl(),
+      repository: sl(),
+    ),
+  );
+
+  sl.registerFactory(
+    () => DeckDetailBloc(
+      getDeckById: sl(),
+      addCardToDeck: sl(),
+      deleteCard: sl(),
+    ),
+  );
+
+  // Use cases
+  sl.registerLazySingleton(() => CreateDeck(sl()));
+  sl.registerLazySingleton(() => GetUserDecks(sl()));
+  sl.registerLazySingleton(() => GetDeckById(sl()));
+  sl.registerLazySingleton(() => StartStudySession(sl()));
+  sl.registerLazySingleton(() => ReviewCard(sl()));
+  sl.registerLazySingleton(() => AddCardToDeck(sl()));
+  sl.registerLazySingleton(() => DeleteCard(sl()));
+  sl.registerLazySingleton(() => DeleteDeck(sl()));
+
+  // Repository
+  sl.registerLazySingleton<FlashcardRepository>(
+    () => FlashcardRepositoryImpl(remoteDataSource: sl()),
+  );
+
+  // Data sources
+  sl.registerLazySingleton<FlashcardRemoteDataSource>(
+    () => FlashcardRemoteDataSourceImpl(apiClient: sl()),
   );
 
   // ==================== Core ====================

@@ -10,6 +10,9 @@ import 'features/kanji/presentation/bloc/kanji_bloc.dart';
 import 'features/kanji/presentation/bloc/kanji_event.dart';
 import 'features/kanji_recognition/presentation/bloc/kanji_recognition_bloc.dart';
 import 'features/kanji_recognition/presentation/pages/kanji_drawing_page.dart';
+import 'features/flashcard/presentation/bloc/flashcard_deck_bloc.dart';
+import 'features/flashcard/presentation/bloc/flashcard_deck_event.dart';
+import 'features/flashcard/presentation/pages/flashcard_deck_list_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -52,6 +55,11 @@ class MyApp extends StatelessWidget {
         '/kanji-recognition': (ctx) => BlocProvider(
           create: (context) => di.sl<KanjiRecognitionBloc>(),
           child: const KanjiDrawingPage(),
+        ),
+        '/flashcard': (ctx) => BlocProvider(
+          create: (context) =>
+              di.sl<FlashcardDeckBloc>()..add(LoadUserDecksEvent()),
+          child: const FlashcardDeckListPage(),
         ),
       },
       onGenerateRoute: (settings) {
