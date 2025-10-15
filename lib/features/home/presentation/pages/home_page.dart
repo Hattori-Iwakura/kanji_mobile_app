@@ -73,6 +73,18 @@ class HomePage extends StatelessWidget {
                         label: const Text('Start Learning'),
                       ),
                       const SizedBox(height: 16),
+                      ElevatedButton.icon(
+                        onPressed: () {
+                          Navigator.pushNamed(context, '/kanji-recognition');
+                        },
+                        icon: const Icon(Icons.draw),
+                        label: const Text('Kanji Recognition'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.green,
+                          foregroundColor: Colors.white,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
                       OutlinedButton.icon(
                         onPressed: () {
                           Navigator.pushNamed(context, '/admin-kanji');

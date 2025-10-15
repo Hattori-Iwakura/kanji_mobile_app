@@ -8,6 +8,8 @@ import 'features/kanji/presentation/pages/kanji_detail_page.dart';
 import 'features/kanji/presentation/pages/admin_kanji_list_page.dart';
 import 'features/kanji/presentation/bloc/kanji_bloc.dart';
 import 'features/kanji/presentation/bloc/kanji_event.dart';
+import 'features/kanji_recognition/presentation/bloc/kanji_recognition_bloc.dart';
+import 'features/kanji_recognition/presentation/pages/kanji_drawing_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -21,7 +23,23 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Kanji App',
-      theme: ThemeData(primarySwatch: Colors.blue, useMaterial3: true),
+      theme: ThemeData(
+        brightness: Brightness.light,
+        primarySwatch: Colors.blue,
+        useMaterial3: true,
+      ),
+      darkTheme: ThemeData(
+        brightness: Brightness.dark,
+        primarySwatch: Colors.blue,
+        useMaterial3: true,
+        scaffoldBackgroundColor: Colors.black,
+        cardColor: Colors.grey[900],
+        appBarTheme: const AppBarTheme(
+          backgroundColor: Colors.black,
+          foregroundColor: Colors.white,
+        ),
+      ),
+      themeMode: ThemeMode.dark, // Force dark mode
       routes: {
         '/': (ctx) => const LoginPage(),
         '/home': (ctx) => const HomePage(),
@@ -31,6 +49,10 @@ class MyApp extends StatelessWidget {
           child: const KanjiListPage(),
         ),
         '/admin-kanji': (ctx) => const AdminKanjiListPage(),
+        '/kanji-recognition': (ctx) => BlocProvider(
+          create: (context) => di.sl<KanjiRecognitionBloc>(),
+          child: const KanjiDrawingPage(),
+        ),
       },
       onGenerateRoute: (settings) {
         if (settings.name == '/kanji-detail') {

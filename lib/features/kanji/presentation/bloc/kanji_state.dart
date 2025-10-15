@@ -20,25 +20,34 @@ class KanjiListLoaded extends KanjiState {
   final List<Kanji> kanjiList;
   final List<Kanji> filteredList;
   final String? filterType; // 'jlpt', 'grade', 'search', null
+  final String? successMessage; // For showing success after CRUD operations
 
   const KanjiListLoaded({
     required this.kanjiList,
     required this.filteredList,
     this.filterType,
+    this.successMessage,
   });
 
   @override
-  List<Object?> get props => [kanjiList, filteredList, filterType];
+  List<Object?> get props => [
+    kanjiList,
+    filteredList,
+    filterType,
+    successMessage,
+  ];
 
   KanjiListLoaded copyWith({
     List<Kanji>? kanjiList,
     List<Kanji>? filteredList,
     String? filterType,
+    String? successMessage,
   }) {
     return KanjiListLoaded(
       kanjiList: kanjiList ?? this.kanjiList,
       filteredList: filteredList ?? this.filteredList,
       filterType: filterType ?? this.filterType,
+      successMessage: successMessage,
     );
   }
 }

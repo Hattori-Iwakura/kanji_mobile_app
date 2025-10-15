@@ -83,15 +83,26 @@ class _AdminKanjiListPageState extends State<AdminKanjiListPage> {
   Widget _buildKanjiList() {
     return BlocConsumer<KanjiBloc, KanjiState>(
       listener: (context, state) {
-        if (state is KanjiOperationSuccess) {
+        if (state is KanjiListLoaded && state.successMessage != null) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(state.successMessage!),
+              backgroundColor: Colors.green,
+              duration: const Duration(seconds: 2),
+            ),
+          );
+        } else if (state is KanjiOperationSuccess) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(state.message),
               backgroundColor: Colors.green,
+              duration: const Duration(seconds: 2),
             ),
           );
-          // Reload list after delete/create/update
-          context.read<KanjiBloc>().add(const LoadAllKanjiEvent());
+        } else if (state is KanjiError) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(state.message), backgroundColor: Colors.red),
+          );
         }
       },
       builder: (context, state) {
@@ -242,22 +253,19 @@ class _AdminKanjiListPageState extends State<AdminKanjiListPage> {
 
   Future<void> _navigateToCreateKanji(BuildContext context) async {
     final bloc = context.read<KanjiBloc>();
-    final result = await Navigator.push(
+    await Navigator.push(
       context,
       MaterialPageRoute(
         builder: (_) =>
             BlocProvider.value(value: bloc, child: const KanjiFormPage()),
       ),
     );
-    if (result == true && mounted) {
-      // Refresh list
-      bloc.add(const LoadAllKanjiEvent());
-    }
+    // No need to refresh - BLoC handles optimistic update
   }
 
   Future<void> _navigateToEditKanji(BuildContext context, Kanji kanji) async {
     final bloc = context.read<KanjiBloc>();
-    final result = await Navigator.push(
+    await Navigator.push(
       context,
       MaterialPageRoute(
         builder: (_) => BlocProvider.value(
@@ -266,10 +274,7 @@ class _AdminKanjiListPageState extends State<AdminKanjiListPage> {
         ),
       ),
     );
-    if (result == true && mounted) {
-      // Refresh list
-      bloc.add(const LoadAllKanjiEvent());
-    }
+    // No need to refresh - BLoC handles optimistic update
   }
 
   Future<void> _confirmDelete(BuildContext context, Kanji kanji) async {

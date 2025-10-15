@@ -15,6 +15,11 @@ import 'features/kanji/domain/usecases/create_kanji.dart';
 import 'features/kanji/domain/usecases/update_kanji.dart';
 import 'features/kanji/domain/usecases/delete_kanji.dart';
 import 'features/kanji/presentation/bloc/kanji_bloc.dart';
+import 'features/kanji_recognition/data/datasources/kanji_recognition_remote_datasource.dart';
+import 'features/kanji_recognition/data/repositories/kanji_recognition_repository_impl.dart';
+import 'features/kanji_recognition/domain/repositories/kanji_recognition_repository.dart';
+import 'features/kanji_recognition/domain/usecases/recognize_kanji.dart';
+import 'features/kanji_recognition/presentation/bloc/kanji_recognition_bloc.dart';
 import 'core/network/api_client.dart';
 
 final sl = GetIt.instance;
@@ -70,6 +75,24 @@ Future<void> init() async {
   // Data sources
   sl.registerLazySingleton<KanjiRemoteDataSource>(
     () => KanjiRemoteDataSourceImpl(apiClient: sl()),
+  );
+
+  // ==================== Features - Kanji Recognition ====================
+
+  // BLoC
+  sl.registerFactory(() => KanjiRecognitionBloc(recognizeKanji: sl()));
+
+  // Use cases
+  sl.registerLazySingleton(() => RecognizeKanji(sl()));
+
+  // Repository
+  sl.registerLazySingleton<KanjiRecognitionRepository>(
+    () => KanjiRecognitionRepositoryImpl(remoteDataSource: sl()),
+  );
+
+  // Data sources
+  sl.registerLazySingleton<KanjiRecognitionRemoteDataSource>(
+    () => KanjiRecognitionRemoteDataSourceImpl(apiClient: sl()),
   );
 
   // ==================== Core ====================
