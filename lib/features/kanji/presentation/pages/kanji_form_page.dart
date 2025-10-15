@@ -135,9 +135,7 @@ class _KanjiFormPageState extends State<KanjiFormPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(isEditMode ? 'Edit Kanji' : 'Create Kanji'),
-      ),
+      appBar: AppBar(title: Text(isEditMode ? 'Edit Kanji' : 'Create Kanji')),
       body: BlocListener<KanjiBloc, KanjiState>(
         listener: (context, state) {
           if (state is KanjiOperationSuccess) {

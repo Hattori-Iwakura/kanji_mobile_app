@@ -10,7 +10,7 @@ abstract class KanjiRepository {
   Future<Either<Failure, Kanji>> getKanjiByCharacter(String character);
   Future<Either<Failure, List<Kanji>>> getKanjiByJlpt(int level);
   Future<Either<Failure, List<Kanji>>> getKanjiByGrade(int grade);
-  
+
   // CRUD methods for Admin
   Future<Either<Failure, Kanji>> createKanji(CreateKanjiParams params);
   Future<Either<Failure, Kanji>> updateKanji(UpdateKanjiParams params);

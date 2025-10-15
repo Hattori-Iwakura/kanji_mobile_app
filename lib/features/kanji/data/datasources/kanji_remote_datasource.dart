@@ -10,7 +10,7 @@ abstract class KanjiRemoteDataSource {
   Future<List<KanjiModel>> getAllKanji();
   Future<KanjiModel> getKanjiById(int id);
   Future<KanjiModel> getKanjiByCharacter(String character);
-  
+
   // CRUD methods for Admin
   Future<KanjiModel> createKanji(CreateKanjiParams params);
   Future<KanjiModel> updateKanji(UpdateKanjiParams params);
@@ -187,9 +187,7 @@ class KanjiRemoteDataSourceImpl implements KanjiRemoteDataSource {
   @override
   Future<KanjiModel> deleteKanji(int id) async {
     try {
-      final response = await apiClient.delete(
-        '${ApiEndpoints.kanjiList}/$id',
-      );
+      final response = await apiClient.delete('${ApiEndpoints.kanjiList}/$id');
 
       if (response.statusCode == 200) {
         final responseData = response.data as Map<String, dynamic>;

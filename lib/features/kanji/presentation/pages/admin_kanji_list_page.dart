@@ -118,7 +118,8 @@ class _AdminKanjiListPageState extends State<AdminKanjiListPage> {
         }
 
         if (state is KanjiListLoaded) {
-          final kanjiList = state.filteredList.isEmpty && state.filterType == null
+          final kanjiList =
+              state.filteredList.isEmpty && state.filterType == null
               ? state.kanjiList
               : state.filteredList;
 
@@ -182,7 +183,9 @@ class _AdminKanjiListPageState extends State<AdminKanjiListPage> {
                           if (kanji.jlptLevel != null) ...[
                             Container(
                               padding: const EdgeInsets.symmetric(
-                                  horizontal: 6, vertical: 2),
+                                horizontal: 6,
+                                vertical: 2,
+                              ),
                               decoration: BoxDecoration(
                                 color: Colors.blue[100],
                                 borderRadius: BorderRadius.circular(4),
@@ -197,7 +200,9 @@ class _AdminKanjiListPageState extends State<AdminKanjiListPage> {
                           if (kanji.grade != null)
                             Container(
                               padding: const EdgeInsets.symmetric(
-                                  horizontal: 6, vertical: 2),
+                                horizontal: 6,
+                                vertical: 2,
+                              ),
                               decoration: BoxDecoration(
                                 color: Colors.green[100],
                                 borderRadius: BorderRadius.circular(4),
@@ -240,10 +245,8 @@ class _AdminKanjiListPageState extends State<AdminKanjiListPage> {
     final result = await Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) => BlocProvider.value(
-          value: bloc,
-          child: const KanjiFormPage(),
-        ),
+        builder: (_) =>
+            BlocProvider.value(value: bloc, child: const KanjiFormPage()),
       ),
     );
     if (result == true && mounted) {
@@ -304,7 +307,10 @@ class _AdminKanjiListPageState extends State<AdminKanjiListPage> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('JLPT Level:', style: TextStyle(fontWeight: FontWeight.bold)),
+            const Text(
+              'JLPT Level:',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
             Wrap(
               spacing: 8,
               children: List.generate(5, (index) {
