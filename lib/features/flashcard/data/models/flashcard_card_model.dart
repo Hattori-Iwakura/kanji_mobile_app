@@ -9,6 +9,7 @@ class FlashcardCardModel extends FlashcardCard {
     required super.frontContent,
     required super.backContent,
     required super.difficulty,
+    required super.orderIndex,
     required super.nextReviewAt,
     required super.intervalDays,
     required super.easeFactor,
@@ -29,6 +30,7 @@ class FlashcardCardModel extends FlashcardCard {
           ? jsonDecode(json['back_content'] as String)
           : json['back_content'] as Map<String, dynamic>,
       difficulty: json['difficulty'] as int,
+      orderIndex: json['order_index'] as int? ?? 0,
       nextReviewAt: DateTime.parse(json['next_review_at'] as String),
       intervalDays: json['interval_days'] as int,
       easeFactor: (json['ease_factor'] as num).toDouble(),
@@ -50,6 +52,7 @@ class FlashcardCardModel extends FlashcardCard {
       'front_content': frontContent,
       'back_content': jsonEncode(backContent),
       'difficulty': difficulty,
+      'order_index': orderIndex,
       'next_review_at': nextReviewAt.toIso8601String(),
       'interval_days': intervalDays,
       'ease_factor': easeFactor,

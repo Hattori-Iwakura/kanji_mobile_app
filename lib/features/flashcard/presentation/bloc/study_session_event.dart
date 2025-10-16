@@ -7,14 +7,50 @@ abstract class StudySessionEvent extends Equatable {
   List<Object?> get props => [];
 }
 
+class InitializeStudySessionEvent extends StudySessionEvent {
+  final int deckId;
+
+  const InitializeStudySessionEvent(this.deckId);
+
+  @override
+  List<Object> get props => [deckId];
+}
+
 class StartStudySessionEvent extends StudySessionEvent {
   final int deckId;
   final int? maxCards;
+  final String? mode;
+  final bool? randomize;
+  final bool? includeNew;
+  final bool? includeDue;
+  final bool? includeHard;
+  final int? difficultyThreshold;
+  final bool? resumeExisting;
 
-  const StartStudySessionEvent({required this.deckId, this.maxCards});
+  const StartStudySessionEvent({
+    required this.deckId,
+    this.maxCards,
+    this.mode,
+    this.randomize,
+    this.includeNew,
+    this.includeDue,
+    this.includeHard,
+    this.difficultyThreshold,
+    this.resumeExisting,
+  });
 
   @override
-  List<Object?> get props => [deckId, maxCards];
+  List<Object?> get props => [
+    deckId,
+    maxCards,
+    mode,
+    randomize,
+    includeNew,
+    includeDue,
+    includeHard,
+    difficultyThreshold,
+    resumeExisting,
+  ];
 }
 
 class ReviewCardEvent extends StudySessionEvent {
@@ -34,10 +70,6 @@ class ReviewCardEvent extends StudySessionEvent {
   List<Object> get props => [sessionId, cardId, rating, timeSpent];
 }
 
-class NextCardEvent extends StudySessionEvent {
-  const NextCardEvent();
-}
-
 class CompleteSessionEvent extends StudySessionEvent {
   final int sessionId;
 
@@ -49,4 +81,23 @@ class CompleteSessionEvent extends StudySessionEvent {
 
 class ResetSessionEvent extends StudySessionEvent {
   const ResetSessionEvent();
+}
+
+class ResumeExistingSessionEvent extends StudySessionEvent {
+  final int sessionId;
+  final int? deckId;
+
+  const ResumeExistingSessionEvent(this.sessionId, {this.deckId});
+
+  @override
+  List<Object?> get props => [sessionId, deckId];
+}
+
+class PauseCurrentSessionEvent extends StudySessionEvent {
+  final int sessionId;
+
+  const PauseCurrentSessionEvent(this.sessionId);
+
+  @override
+  List<Object> get props => [sessionId];
 }

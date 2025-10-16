@@ -4,6 +4,7 @@ import '../bloc/study_session_bloc.dart';
 import '../bloc/study_session_event.dart';
 import '../bloc/study_session_state.dart';
 import '../../../../injection_container.dart' as di;
+import '../../domain/entities/study_session.dart';
 
 class StudySessionPage extends StatelessWidget {
   final int deckId;
@@ -14,8 +15,7 @@ class StudySessionPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (context) =>
-          di.sl<StudySessionBloc>()
-            ..add(StartStudySessionEvent(deckId: deckId, maxCards: 20)),
+          di.sl<StudySessionBloc>()..add(InitializeStudySessionEvent(deckId)),
       child: _StudySessionView(deckId: deckId),
     );
   }
@@ -33,11 +33,27 @@ class _StudySessionView extends StatefulWidget {
 class _StudySessionViewState extends State<_StudySessionView> {
   bool _showAnswer = false;
   DateTime? _cardStartTime;
+  final TextEditingController _maxCardsController = TextEditingController(
+    text: '20',
+  );
+  String _selectedMode = 'mixed';
+  bool _randomize = false;
+  bool _includeNew = true;
+  bool _includeDue = true;
+  bool _includeHard = false;
+  double _difficultyThreshold = 2;
+  bool _resumeExisting = true;
 
   @override
   void initState() {
     super.initState();
     _cardStartTime = DateTime.now();
+  }
+
+  @override
+  void dispose() {
+    _maxCardsController.dispose();
+    super.dispose();
   }
 
   @override
@@ -51,13 +67,38 @@ class _StudySessionViewState extends State<_StudySessionView> {
           BlocBuilder<StudySessionBloc, StudySessionState>(
             builder: (context, state) {
               if (state is StudySessionStarted) {
-                return Center(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: Text(
-                      '${state.currentCardIndex + 1}/${state.cards.length}',
-                      style: const TextStyle(color: Colors.white, fontSize: 16),
+                final total = state.cards.length;
+                final current = total == 0 ? 0 : state.currentCardIndex + 1;
+                return Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.only(right: 8),
+                      child: Text(
+                        '$current/$total',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 16,
+                        ),
+                      ),
                     ),
+                    IconButton(
+                      tooltip: 'Pause session',
+                      icon: const Icon(Icons.pause_circle_filled),
+                      onPressed: () => context.read<StudySessionBloc>().add(
+                        PauseCurrentSessionEvent(state.session.id),
+                      ),
+                    ),
+                  ],
+                );
+              }
+
+              if (state is StudySessionSetup) {
+                return IconButton(
+                  tooltip: 'Refresh sessions',
+                  icon: const Icon(Icons.refresh),
+                  onPressed: () => context.read<StudySessionBloc>().add(
+                    InitializeStudySessionEvent(state.deckId),
                   ),
                 );
               }
@@ -68,6 +109,12 @@ class _StudySessionViewState extends State<_StudySessionView> {
       ),
       body: BlocConsumer<StudySessionBloc, StudySessionState>(
         listener: (context, state) {
+          if (state is StudySessionSetup) {
+            setState(() {
+              _showAnswer = false;
+            });
+          }
+
           if (state is StudySessionStarted) {
             setState(() {
               _showAnswer = state.showAnswer;
@@ -95,6 +142,14 @@ class _StudySessionViewState extends State<_StudySessionView> {
             );
           }
 
+          if (state is StudySessionSetup) {
+            return _buildSessionSetup(context, state);
+          }
+
+          if (state is StudySessionError) {
+            return _buildErrorState(context, state);
+          }
+
           if (state is StudySessionEmpty) {
             return Center(
               child: Column(
@@ -120,21 +175,116 @@ class _StudySessionViewState extends State<_StudySessionView> {
                     onPressed: () => Navigator.pop(context),
                     child: const Text('Back to Decks'),
                   ),
+                  const SizedBox(height: 12),
+                  OutlinedButton(
+                    onPressed: () => context.read<StudySessionBloc>().add(
+                      InitializeStudySessionEvent(widget.deckId),
+                    ),
+                    child: const Text('Adjust Session Options'),
+                  ),
                 ],
               ),
             );
           }
 
           if (state is StudySessionStarted) {
+            // Safe check for cards
+            if (state.cards.isEmpty) {
+              return const Center(
+                child: Text(
+                  'No cards available',
+                  style: TextStyle(color: Colors.white),
+                ),
+              );
+            }
+
+            // Safe check for current index
+            if (state.currentCardIndex >= state.cards.length) {
+              return const Center(
+                child: CircularProgressIndicator(color: Colors.blue),
+              );
+            }
+
             final card = state.currentCard;
+            final meta = state.session.meta;
+            final settings = state.session.settings;
+            final fallbackProgress = state.cards.isEmpty
+                ? 0.0
+                : (state.currentCardIndex + 1) / state.cards.length;
+            final progressValue = meta.totalCards > 0
+                ? meta.progress
+                : fallbackProgress;
+            final boundedProgress = progressValue.clamp(0.0, 1.0).toDouble();
+            final minutesSpent = (state.session.totalTime / 60).toStringAsFixed(
+              1,
+            );
+            final statusRaw = state.session.status;
+            final statusLabel = statusRaw.isEmpty
+                ? 'Active'
+                : '${statusRaw[0].toUpperCase()}${statusRaw.substring(1).toLowerCase()}';
 
             return Column(
               children: [
                 // Progress bar
                 LinearProgressIndicator(
-                  value: (state.currentCardIndex + 1) / state.cards.length,
+                  value: boundedProgress,
                   backgroundColor: Colors.grey[800],
                   valueColor: const AlwaysStoppedAnimation<Color>(Colors.blue),
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: [
+                          _buildChip(
+                            Icons.school,
+                            '${meta.reviewed}/${meta.totalCards} reviewed',
+                          ),
+                          _buildChip(
+                            Icons.pending_actions,
+                            '${meta.remaining} remaining',
+                          ),
+                          _buildChip(Icons.timer, '$minutesSpent min spent'),
+                          _buildChip(Icons.bolt, statusLabel),
+                        ],
+                      ),
+                      if (settings != null) ...[
+                        const SizedBox(height: 12),
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          children: [
+                            _buildChip(Icons.tune, 'Mode: ${settings.mode}'),
+                            _buildChip(
+                              Icons.shuffle,
+                              settings.randomize ? 'Randomized' : 'Ordered',
+                            ),
+                            _buildChip(
+                              Icons.fiber_new,
+                              settings.includeNew
+                                  ? 'New cards'
+                                  : 'No new cards',
+                            ),
+                            _buildChip(
+                              Icons.schedule,
+                              settings.includeDue ? 'Due cards' : 'Skip due',
+                            ),
+                            _buildChip(
+                              Icons.star,
+                              settings.includeHard ? 'Hard focus' : 'Standard',
+                            ),
+                          ],
+                        ),
+                      ],
+                    ],
+                  ),
                 ),
 
                 Expanded(
@@ -189,7 +339,7 @@ class _StudySessionViewState extends State<_StudySessionView> {
                                     // Back (meanings and readings)
                                     if (card.backContent['meanings'] != null)
                                       Text(
-                                        card.backContent['meanings'],
+                                        card.backContent['meanings'].toString(),
                                         style: const TextStyle(
                                           color: Colors.white,
                                           fontSize: 20,
@@ -212,7 +362,8 @@ class _StudySessionViewState extends State<_StudySessionView> {
                                             ),
                                           ),
                                           Text(
-                                            card.backContent['onyomi'],
+                                            card.backContent['onyomi']
+                                                .toString(),
                                             style: const TextStyle(
                                               color: Colors.blue,
                                               fontSize: 16,
@@ -236,7 +387,8 @@ class _StudySessionViewState extends State<_StudySessionView> {
                                             ),
                                           ),
                                           Text(
-                                            card.backContent['kunyomi'],
+                                            card.backContent['kunyomi']
+                                                .toString(),
                                             style: const TextStyle(
                                               color: Colors.green,
                                               fontSize: 16,
@@ -329,6 +481,344 @@ class _StudySessionViewState extends State<_StudySessionView> {
     );
   }
 
+  Widget _buildErrorState(BuildContext context, StudySessionError state) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.error_outline, color: Colors.red, size: 64),
+            const SizedBox(height: 16),
+            Text(
+              'Something went wrong',
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              state.message,
+              textAlign: TextAlign.center,
+              style: const TextStyle(color: Colors.grey),
+            ),
+            const SizedBox(height: 24),
+            ElevatedButton.icon(
+              icon: const Icon(Icons.refresh),
+              label: const Text('Try again'),
+              onPressed: () => context.read<StudySessionBloc>().add(
+                InitializeStudySessionEvent(widget.deckId),
+              ),
+            ),
+            const SizedBox(height: 12),
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Back to Decks'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSessionSetup(BuildContext context, StudySessionSetup state) {
+    final theme = Theme.of(context);
+    final deckId = state.deckId;
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Configure Your Session',
+            style: theme.textTheme.headlineSmall?.copyWith(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'Fine-tune which cards you would like to study and how the session behaves.',
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: Colors.grey[400],
+            ),
+          ),
+          const SizedBox(height: 24),
+          _buildSessionOptionsCard(theme),
+          const SizedBox(height: 24),
+          if (state.hasActiveSessions) ...[
+            Text(
+              'Active Sessions',
+              style: theme.textTheme.titleLarge?.copyWith(
+                color: Colors.white,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(height: 12),
+            ...state.activeSessions
+                .map((session) => _buildActiveSessionCard(context, session))
+                .toList(),
+            const SizedBox(height: 24),
+          ],
+          Row(
+            children: [
+              Expanded(
+                child: ElevatedButton.icon(
+                  icon: const Icon(Icons.play_arrow),
+                  label: const Text('Start Session'),
+                  onPressed: () {
+                    FocusScope.of(context).unfocus();
+                    final maxCards = int.tryParse(
+                      _maxCardsController.text.trim(),
+                    );
+                    final difficulty = _difficultyThreshold.round();
+
+                    context.read<StudySessionBloc>().add(
+                      StartStudySessionEvent(
+                        deckId: deckId,
+                        maxCards: maxCards == null || maxCards <= 0
+                            ? null
+                            : maxCards,
+                        mode: _selectedMode,
+                        randomize: _randomize,
+                        includeNew: _includeNew,
+                        includeDue: _includeDue,
+                        includeHard: _includeHard,
+                        difficultyThreshold: difficulty,
+                        resumeExisting: _resumeExisting,
+                      ),
+                    );
+                  },
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 16,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSessionOptionsCard(ThemeData theme) {
+    return Card(
+      color: Colors.grey[900],
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Session Options',
+              style: theme.textTheme.titleMedium?.copyWith(
+                color: Colors.white,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: _maxCardsController,
+              keyboardType: TextInputType.number,
+              style: const TextStyle(color: Colors.white),
+              decoration: InputDecoration(
+                labelText: 'Maximum cards',
+                labelStyle: const TextStyle(color: Colors.grey),
+                helperText: 'Leave empty for all available cards',
+                helperStyle: const TextStyle(color: Colors.grey),
+                filled: true,
+                fillColor: Colors.grey[850],
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide.none,
+                ),
+              ),
+            ),
+            const SizedBox(height: 20),
+            DropdownButtonFormField<String>(
+              value: _selectedMode,
+              dropdownColor: Colors.grey[900],
+              decoration: InputDecoration(
+                labelText: 'Priority mode',
+                labelStyle: const TextStyle(color: Colors.grey),
+                filled: true,
+                fillColor: Colors.grey[850],
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide.none,
+                ),
+              ),
+              style: const TextStyle(color: Colors.white),
+              items: const [
+                DropdownMenuItem(value: 'mixed', child: Text('Mixed')),
+                DropdownMenuItem(value: 'due', child: Text('Due first')),
+                DropdownMenuItem(value: 'new', child: Text('New first')),
+                DropdownMenuItem(value: 'hard', child: Text('Focus on hard')),
+              ],
+              onChanged: (value) {
+                if (value == null) return;
+                setState(() => _selectedMode = value);
+              },
+            ),
+            const SizedBox(height: 20),
+            _buildToggle(
+              title: 'Randomize order',
+              value: _randomize,
+              onChanged: (value) => setState(() => _randomize = value),
+            ),
+            _buildToggle(
+              title: 'Include new cards',
+              value: _includeNew,
+              onChanged: (value) => setState(() => _includeNew = value),
+            ),
+            _buildToggle(
+              title: 'Include due cards',
+              value: _includeDue,
+              onChanged: (value) => setState(() => _includeDue = value),
+            ),
+            _buildToggle(
+              title: 'Include hard cards',
+              value: _includeHard,
+              onChanged: (value) => setState(() => _includeHard = value),
+            ),
+            _buildToggle(
+              title: 'Resume existing session if available',
+              value: _resumeExisting,
+              onChanged: (value) => setState(() => _resumeExisting = value),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              'Difficulty threshold: ${_difficultyThreshold.round()}',
+              style: const TextStyle(color: Colors.white),
+            ),
+            Slider(
+              value: _difficultyThreshold,
+              min: 1,
+              max: 5,
+              divisions: 4,
+              label: _difficultyThreshold.round().toString(),
+              onChanged: (value) =>
+                  setState(() => _difficultyThreshold = value),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildToggle({
+    required String title,
+    required bool value,
+    required ValueChanged<bool> onChanged,
+  }) {
+    return SwitchListTile(
+      contentPadding: EdgeInsets.zero,
+      title: Text(title, style: const TextStyle(color: Colors.white)),
+      value: value,
+      onChanged: onChanged,
+      activeColor: Colors.blue,
+    );
+  }
+
+  Widget _buildActiveSessionCard(BuildContext context, StudySession session) {
+    final meta = session.meta;
+    final theme = Theme.of(context);
+    final progress = meta.progress.clamp(0.0, 1.0).toDouble();
+    final percent = (progress * 100).clamp(0, 100).toStringAsFixed(0);
+
+    return Card(
+      color: Colors.grey[900],
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+      margin: const EdgeInsets.only(bottom: 16),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Session #${session.id}',
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 6,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.blueGrey[700],
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Text(
+                    session.status,
+                    style: const TextStyle(color: Colors.white, fontSize: 12),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            LinearProgressIndicator(
+              value: progress,
+              backgroundColor: Colors.grey[800],
+              valueColor: const AlwaysStoppedAnimation<Color>(Colors.blue),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              '$percent% complete • ${meta.reviewed}/${meta.totalCards} reviewed',
+              style: const TextStyle(color: Colors.grey),
+            ),
+            const SizedBox(height: 12),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                _buildChip(Icons.list_alt, '${session.cardsTotal} cards'),
+                _buildChip(
+                  Icons.check_circle,
+                  '${session.cardsCorrect} correct',
+                ),
+                _buildChip(
+                  Icons.access_time,
+                  '${(session.totalTime / 60).toStringAsFixed(1)} min',
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Align(
+              alignment: Alignment.centerRight,
+              child: TextButton.icon(
+                icon: const Icon(Icons.play_arrow),
+                label: const Text('Resume'),
+                onPressed: () => context.read<StudySessionBloc>().add(
+                  ResumeExistingSessionEvent(session.id, deckId: widget.deckId),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildChip(IconData icon, String label) {
+    return Chip(
+      avatar: Icon(icon, size: 16, color: Colors.blueGrey[100]),
+      backgroundColor: Colors.grey[850],
+      label: Text(label, style: const TextStyle(color: Colors.white)),
+    );
+  }
+
   Widget _buildRatingButton(
     BuildContext context,
     String label,
@@ -402,6 +892,15 @@ class _StudySessionViewState extends State<_StudySessionView> {
           ],
         ),
         actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.pop(dialogContext);
+              context.read<StudySessionBloc>().add(
+                InitializeStudySessionEvent(state.session.deckId),
+              );
+            },
+            child: const Text('New Session'),
+          ),
           TextButton(
             onPressed: () {
               Navigator.pop(dialogContext);

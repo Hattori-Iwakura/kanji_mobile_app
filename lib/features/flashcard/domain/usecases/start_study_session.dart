@@ -11,10 +11,24 @@ class StartStudySession {
   Future<Either<Failure, StudySession>> call({
     required int deckId,
     int? maxCards,
+    String? mode,
+    bool? randomize,
+    bool? includeNew,
+    bool? includeDue,
+    bool? includeHard,
+    int? difficultyThreshold,
+    bool? resumeExisting,
   }) async {
     return await repository.startStudySession(
       deckId: deckId,
       maxCards: maxCards,
+      mode: mode,
+      randomize: randomize,
+      includeNew: includeNew,
+      includeDue: includeDue,
+      includeHard: includeHard,
+      difficultyThreshold: difficultyThreshold,
+      resumeExisting: resumeExisting,
     );
   }
 }

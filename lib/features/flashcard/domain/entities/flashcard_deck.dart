@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'flashcard_card.dart';
 
 class FlashcardDeck extends Equatable {
   final int id;
@@ -13,6 +14,7 @@ class FlashcardDeck extends Equatable {
   final int cardsNew;
   final DateTime createAt;
   final DateTime updateAt;
+  final List<FlashcardCard>? cards;
 
   const FlashcardDeck({
     required this.id,
@@ -27,6 +29,7 @@ class FlashcardDeck extends Equatable {
     required this.cardsNew,
     required this.createAt,
     required this.updateAt,
+    this.cards,
   });
 
   @override
@@ -43,5 +46,6 @@ class FlashcardDeck extends Equatable {
     cardsNew,
     createAt,
     updateAt,
+    cards,
   ];
 }

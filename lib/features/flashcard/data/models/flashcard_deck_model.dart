@@ -1,4 +1,5 @@
 import '../../domain/entities/flashcard_deck.dart';
+import 'flashcard_card_model.dart';
 
 class FlashcardDeckModel extends FlashcardDeck {
   const FlashcardDeckModel({
@@ -14,6 +15,7 @@ class FlashcardDeckModel extends FlashcardDeck {
     required super.cardsNew,
     required super.createAt,
     required super.updateAt,
+    super.cards,
   });
 
   factory FlashcardDeckModel.fromJson(Map<String, dynamic> json) {
@@ -30,7 +32,24 @@ class FlashcardDeckModel extends FlashcardDeck {
       cardsNew: json['cards_new'] as int,
       createAt: DateTime.parse(json['create_at'] as String),
       updateAt: DateTime.parse(json['update_at'] as String),
+      cards: _parseCards(json['Cards']),
     );
+  }
+
+  static List<FlashcardCardModel>? _parseCards(dynamic cardsJson) {
+    if (cardsJson is! List || cardsJson.isEmpty) {
+      return null;
+    }
+
+    final parsed = cardsJson
+        .whereType<Map<String, dynamic>>()
+        .where(
+          (card) => card.containsKey('deck_id') && card.containsKey('kanji_id'),
+        )
+        .map(FlashcardCardModel.fromJson)
+        .toList();
+
+    return parsed.isEmpty ? null : parsed;
   }
 
   Map<String, dynamic> toJson() {
@@ -47,6 +66,9 @@ class FlashcardDeckModel extends FlashcardDeck {
       'cards_new': cardsNew,
       'create_at': createAt.toIso8601String(),
       'update_at': updateAt.toIso8601String(),
+      'Cards': cards
+          ?.map((card) => (card as FlashcardCardModel).toJson())
+          .toList(),
     };
   }
 }

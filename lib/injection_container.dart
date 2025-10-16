@@ -28,12 +28,23 @@ import 'features/flashcard/domain/usecases/get_user_decks.dart';
 import 'features/flashcard/domain/usecases/get_deck_by_id.dart';
 import 'features/flashcard/domain/usecases/start_study_session.dart';
 import 'features/flashcard/domain/usecases/review_card.dart';
+import 'features/flashcard/domain/usecases/pause_study_session.dart';
+import 'features/flashcard/domain/usecases/resume_study_session.dart';
+import 'features/flashcard/domain/usecases/get_active_sessions.dart';
+import 'features/flashcard/domain/usecases/get_session_detail.dart';
 import 'features/flashcard/domain/usecases/add_card_to_deck.dart';
 import 'features/flashcard/domain/usecases/delete_card.dart';
 import 'features/flashcard/domain/usecases/delete_deck.dart';
+import 'features/flashcard/domain/usecases/update_deck.dart';
+import 'features/flashcard/domain/usecases/bulk_add_cards.dart';
+import 'features/flashcard/domain/usecases/reorder_cards.dart';
+import 'features/flashcard/domain/usecases/get_card_detail.dart';
+import 'features/flashcard/domain/usecases/get_flashcard_stats.dart';
 import 'features/flashcard/presentation/bloc/flashcard_deck_bloc.dart';
 import 'features/flashcard/presentation/bloc/study_session_bloc.dart';
 import 'features/flashcard/presentation/bloc/deck_detail_bloc.dart';
+import 'features/flashcard/presentation/bloc/card_detail_cubit.dart';
+import 'features/flashcard/presentation/bloc/flashcard_stats_cubit.dart';
 import 'core/network/api_client.dart';
 
 final sl = GetIt.instance;
@@ -125,6 +136,10 @@ Future<void> init() async {
       startStudySession: sl(),
       reviewCard: sl(),
       repository: sl(),
+      pauseSession: sl(),
+      resumeSession: sl(),
+      getActiveSessions: sl(),
+      getSessionDetail: sl(),
     ),
   );
 
@@ -133,8 +148,15 @@ Future<void> init() async {
       getDeckById: sl(),
       addCardToDeck: sl(),
       deleteCard: sl(),
+      updateDeck: sl(),
+      bulkAddCards: sl(),
+      reorderCards: sl(),
     ),
   );
+
+  sl.registerFactory(() => CardDetailCubit(getCardDetail: sl()));
+
+  sl.registerFactory(() => FlashcardStatsCubit(getFlashcardStats: sl()));
 
   // Use cases
   sl.registerLazySingleton(() => CreateDeck(sl()));
@@ -142,9 +164,18 @@ Future<void> init() async {
   sl.registerLazySingleton(() => GetDeckById(sl()));
   sl.registerLazySingleton(() => StartStudySession(sl()));
   sl.registerLazySingleton(() => ReviewCard(sl()));
+  sl.registerLazySingleton(() => PauseStudySession(sl()));
+  sl.registerLazySingleton(() => ResumeStudySession(sl()));
+  sl.registerLazySingleton(() => GetActiveSessions(sl()));
+  sl.registerLazySingleton(() => GetSessionDetail(sl()));
   sl.registerLazySingleton(() => AddCardToDeck(sl()));
   sl.registerLazySingleton(() => DeleteCard(sl()));
   sl.registerLazySingleton(() => DeleteDeck(sl()));
+  sl.registerLazySingleton(() => UpdateDeck(sl()));
+  sl.registerLazySingleton(() => BulkAddCards(sl()));
+  sl.registerLazySingleton(() => ReorderCards(sl()));
+  sl.registerLazySingleton(() => GetCardDetail(sl()));
+  sl.registerLazySingleton(() => GetFlashcardStats(sl()));
 
   // Repository
   sl.registerLazySingleton<FlashcardRepository>(

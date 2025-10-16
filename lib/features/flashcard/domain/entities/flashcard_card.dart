@@ -7,6 +7,7 @@ class FlashcardCard extends Equatable {
   final String frontContent;
   final Map<String, dynamic> backContent;
   final int difficulty;
+  final int orderIndex;
   final DateTime nextReviewAt;
   final int intervalDays;
   final double easeFactor;
@@ -23,6 +24,7 @@ class FlashcardCard extends Equatable {
     required this.frontContent,
     required this.backContent,
     required this.difficulty,
+    required this.orderIndex,
     required this.nextReviewAt,
     required this.intervalDays,
     required this.easeFactor,
@@ -41,6 +43,7 @@ class FlashcardCard extends Equatable {
     frontContent,
     backContent,
     difficulty,
+    orderIndex,
     nextReviewAt,
     intervalDays,
     easeFactor,

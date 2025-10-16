@@ -3,6 +3,8 @@ import '../../../../core/error/failures.dart';
 import '../entities/flashcard_deck.dart';
 import '../entities/flashcard_card.dart';
 import '../entities/study_session.dart';
+import '../entities/flashcard_card_detail.dart';
+import '../entities/flashcard_stats.dart';
 
 abstract class FlashcardRepository {
   // Deck operations
@@ -17,6 +19,8 @@ abstract class FlashcardRepository {
   Future<Either<Failure, List<FlashcardDeck>>> getUserDecks();
 
   Future<Either<Failure, FlashcardDeck>> getDeckById(int deckId);
+
+  Future<Either<Failure, FlashcardCardDetail>> getCardDetail(int cardId);
 
   Future<Either<Failure, FlashcardDeck>> updateDeck({
     required int deckId,
@@ -35,10 +39,27 @@ abstract class FlashcardRepository {
 
   Future<Either<Failure, void>> removeCardFromDeck(int cardId);
 
+  Future<Either<Failure, void>> bulkAddCards({
+    required int deckId,
+    required List<int> kanjiIds,
+  });
+
+  Future<Either<Failure, void>> reorderCards({
+    required int deckId,
+    required List<int> cardIds,
+  });
+
   // Study session operations
   Future<Either<Failure, StudySession>> startStudySession({
     required int deckId,
     int? maxCards,
+    String? mode,
+    bool? randomize,
+    bool? includeNew,
+    bool? includeDue,
+    bool? includeHard,
+    int? difficultyThreshold,
+    bool? resumeExisting,
   });
 
   Future<Either<Failure, Map<String, dynamic>>> reviewCard({
@@ -50,5 +71,15 @@ abstract class FlashcardRepository {
 
   Future<Either<Failure, StudySession>> completeSession(int sessionId);
 
+  Future<Either<Failure, StudySession>> pauseSession(int sessionId);
+
+  Future<Either<Failure, StudySession>> resumeSession(int sessionId);
+
+  Future<Either<Failure, StudySession>> getSessionDetail(int sessionId);
+
+  Future<Either<Failure, List<StudySession>>> getActiveSessions({int? deckId});
+
   Future<Either<Failure, List<StudySession>>> getStudyHistory({int? deckId});
+
+  Future<Either<Failure, FlashcardStats>> getStats({int? deckId});
 }

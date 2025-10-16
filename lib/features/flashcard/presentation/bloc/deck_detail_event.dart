@@ -43,3 +43,40 @@ class RefreshDeckDetailEvent extends DeckDetailEvent {
   @override
   List<Object?> get props => [deckId];
 }
+
+class UpdateDeckInfoEvent extends DeckDetailEvent {
+  final int deckId;
+  final String name;
+  final String? description;
+  final bool isPublic;
+
+  const UpdateDeckInfoEvent({
+    required this.deckId,
+    required this.name,
+    this.description,
+    required this.isPublic,
+  });
+
+  @override
+  List<Object?> get props => [deckId, name, description, isPublic];
+}
+
+class BulkAddCardsEvent extends DeckDetailEvent {
+  final int deckId;
+  final List<int> kanjiIds;
+
+  const BulkAddCardsEvent({required this.deckId, required this.kanjiIds});
+
+  @override
+  List<Object?> get props => [deckId, kanjiIds];
+}
+
+class ReorderCardsEvent extends DeckDetailEvent {
+  final int deckId;
+  final List<int> orderedCardIds;
+
+  const ReorderCardsEvent({required this.deckId, required this.orderedCardIds});
+
+  @override
+  List<Object?> get props => [deckId, orderedCardIds];
+}

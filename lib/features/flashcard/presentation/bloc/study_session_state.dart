@@ -17,6 +17,21 @@ class StudySessionLoading extends StudySessionState {
   const StudySessionLoading();
 }
 
+class StudySessionSetup extends StudySessionState {
+  final int deckId;
+  final List<StudySession> activeSessions;
+
+  const StudySessionSetup({
+    required this.deckId,
+    this.activeSessions = const [],
+  });
+
+  bool get hasActiveSessions => activeSessions.isNotEmpty;
+
+  @override
+  List<Object> get props => [deckId, activeSessions];
+}
+
 class StudySessionStarted extends StudySessionState {
   final StudySession session;
   final List<FlashcardCard> cards;
@@ -30,9 +45,18 @@ class StudySessionStarted extends StudySessionState {
     this.showAnswer = false,
   });
 
-  FlashcardCard get currentCard => cards[currentCardIndex];
+  FlashcardCard get currentCard {
+    if (cards.isEmpty || currentCardIndex >= cards.length) {
+      throw StateError('No card available at index $currentCardIndex');
+    }
+    return cards[currentCardIndex];
+  }
+
   bool get hasMoreCards => currentCardIndex < cards.length - 1;
-  int get remainingCards => cards.length - currentCardIndex;
+  int get remainingCards {
+    final remaining = cards.length - currentCardIndex - 1;
+    return remaining < 0 ? 0 : remaining;
+  }
 
   StudySessionStarted copyWith({
     StudySession? session,
@@ -50,21 +74,6 @@ class StudySessionStarted extends StudySessionState {
 
   @override
   List<Object> get props => [session, cards, currentCardIndex, showAnswer];
-}
-
-class StudySessionReviewSubmitted extends StudySessionState {
-  final Map<String, dynamic> reviewResult;
-  final int currentCardIndex;
-  final int totalCards;
-
-  const StudySessionReviewSubmitted({
-    required this.reviewResult,
-    required this.currentCardIndex,
-    required this.totalCards,
-  });
-
-  @override
-  List<Object> get props => [reviewResult, currentCardIndex, totalCards];
 }
 
 class StudySessionCompleted extends StudySessionState {
