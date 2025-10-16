@@ -14,7 +14,16 @@ import 'features/kanji/domain/usecases/get_kanji_by_character.dart';
 import 'features/kanji/domain/usecases/create_kanji.dart';
 import 'features/kanji/domain/usecases/update_kanji.dart';
 import 'features/kanji/domain/usecases/delete_kanji.dart';
+import 'features/kanji/domain/usecases/search_kanji.dart';
+import 'features/kanji/domain/usecases/get_kanji_detail.dart';
+import 'features/kanji/domain/usecases/get_kanji_examples.dart';
+import 'features/kanji/domain/usecases/kanji_list_usecases.dart';
+import 'features/kanji/domain/usecases/kanji_progress_usecases.dart';
 import 'features/kanji/presentation/bloc/kanji_bloc.dart';
+import 'features/kanji/presentation/bloc/search/kanji_search_bloc.dart';
+import 'features/kanji/presentation/bloc/detail/kanji_detail_bloc.dart';
+import 'features/kanji/presentation/bloc/lists/kanji_lists_bloc.dart';
+import 'features/kanji/presentation/bloc/progress/kanji_progress_bloc.dart';
 import 'features/kanji_recognition/data/datasources/kanji_recognition_remote_datasource.dart';
 import 'features/kanji_recognition/data/repositories/kanji_recognition_repository_impl.dart';
 import 'features/kanji_recognition/domain/repositories/kanji_recognition_repository.dart';
@@ -84,6 +93,34 @@ Future<void> init() async {
     ),
   );
 
+  // New BLoCs
+  sl.registerFactory(() => KanjiSearchBloc(searchKanji: sl()));
+
+  sl.registerFactory(
+    () => KanjiDetailBloc(getKanjiDetail: sl(), getKanjiExamples: sl()),
+  );
+
+  sl.registerFactory(
+    () => KanjiListsBloc(
+      createKanjiList: sl(),
+      getUserLists: sl(),
+      getListDetail: sl(),
+      addKanjiToList: sl(),
+      removeKanjiFromList: sl(),
+      deleteKanjiList: sl(),
+      reorderKanjiList: sl(),
+    ),
+  );
+
+  sl.registerFactory(
+    () => KanjiProgressBloc(
+      getProgressSummary: sl(),
+      getKanjiProgress: sl(),
+      updateKanjiProgress: sl(),
+      recordKanjiReview: sl(),
+    ),
+  );
+
   // Use cases
   sl.registerLazySingleton(() => GetAllKanji(sl()));
   sl.registerLazySingleton(() => GetKanjiById(sl()));
@@ -91,6 +128,26 @@ Future<void> init() async {
   sl.registerLazySingleton(() => CreateKanji(sl()));
   sl.registerLazySingleton(() => UpdateKanji(sl()));
   sl.registerLazySingleton(() => DeleteKanji(sl()));
+
+  // New use cases - Search & Detail
+  sl.registerLazySingleton(() => SearchKanjiUseCase(sl()));
+  sl.registerLazySingleton(() => GetKanjiDetailUseCase(sl()));
+  sl.registerLazySingleton(() => GetKanjiExamplesUseCase(sl()));
+
+  // New use cases - Lists
+  sl.registerLazySingleton(() => CreateKanjiListUseCase(sl()));
+  sl.registerLazySingleton(() => GetUserListsUseCase(sl()));
+  sl.registerLazySingleton(() => GetListDetailUseCase(sl()));
+  sl.registerLazySingleton(() => AddKanjiToListUseCase(sl()));
+  sl.registerLazySingleton(() => RemoveKanjiFromListUseCase(sl()));
+  sl.registerLazySingleton(() => DeleteKanjiListUseCase(sl()));
+  sl.registerLazySingleton(() => ReorderKanjiListUseCase(sl()));
+
+  // New use cases - Progress
+  sl.registerLazySingleton(() => GetProgressSummaryUseCase(sl()));
+  sl.registerLazySingleton(() => GetKanjiProgressUseCase(sl()));
+  sl.registerLazySingleton(() => UpdateKanjiProgressUseCase(sl()));
+  sl.registerLazySingleton(() => RecordKanjiReviewUseCase(sl()));
 
   // Repository
   sl.registerLazySingleton<KanjiRepository>(
