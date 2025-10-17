@@ -54,6 +54,10 @@ import 'features/flashcard/presentation/bloc/study_session_bloc.dart';
 import 'features/flashcard/presentation/bloc/deck_detail_bloc.dart';
 import 'features/flashcard/presentation/bloc/card_detail_cubit.dart';
 import 'features/flashcard/presentation/bloc/flashcard_stats_cubit.dart';
+import 'features/quiz/data/datasources/quiz_remote_datasource.dart';
+import 'features/quiz/data/repositories/quiz_repository_impl.dart';
+import 'features/quiz/domain/repositories/quiz_repository.dart';
+import 'features/quiz/presentation/bloc/quiz_list/quiz_list_bloc.dart';
 import 'core/network/api_client.dart';
 
 final sl = GetIt.instance;
@@ -242,6 +246,21 @@ Future<void> init() async {
   // Data sources
   sl.registerLazySingleton<FlashcardRemoteDataSource>(
     () => FlashcardRemoteDataSourceImpl(apiClient: sl()),
+  );
+
+  // ==================== Features - Quiz ====================
+
+  // BLoC
+  sl.registerFactory(() => QuizListBloc(repository: sl()));
+
+  // Repository
+  sl.registerLazySingleton<QuizRepository>(
+    () => QuizRepositoryImpl(remoteDataSource: sl()),
+  );
+
+  // Data sources
+  sl.registerLazySingleton<QuizRemoteDataSource>(
+    () => QuizRemoteDataSourceImpl(apiClient: sl()),
   );
 
   // ==================== Core ====================

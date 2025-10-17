@@ -16,6 +16,9 @@ class ProgressSummary extends Equatable {
   // Get total kanji being tracked
   int get totalCount => newCount + learningCount + knownCount + masteredCount;
 
+  // Get total kanji learned (excluding new)
+  int get totalKanjiLearned => learningCount + knownCount + masteredCount;
+
   // Calculate completion percentage
   double get completionPercentage {
     if (totalCount == 0) return 0.0;

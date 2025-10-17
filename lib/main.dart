@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'injection_container.dart' as di;
+import 'core/constants/app_theme.dart';
 import 'features/auth/presentation/pages/login_page.dart';
-import 'features/home/presentation/pages/home_page.dart';
+import 'features/home/presentation/pages/main_home_page.dart';
 import 'features/kanji/presentation/pages/kanji_list_page.dart';
 import 'features/kanji/presentation/pages/kanji_detail_page.dart';
 import 'features/kanji/presentation/pages/admin_kanji_list_page.dart';
@@ -26,27 +27,14 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Kanji App',
-      theme: ThemeData(
-        brightness: Brightness.light,
-        primarySwatch: Colors.blue,
-        useMaterial3: true,
-      ),
-      darkTheme: ThemeData(
-        brightness: Brightness.dark,
-        primarySwatch: Colors.blue,
-        useMaterial3: true,
-        scaffoldBackgroundColor: Colors.black,
-        cardColor: Colors.grey[900],
-        appBarTheme: const AppBarTheme(
-          backgroundColor: Colors.black,
-          foregroundColor: Colors.white,
-        ),
-      ),
-      themeMode: ThemeMode.dark, // Force dark mode
+      title: 'Kanji Learning App',
+      debugShowCheckedModeBanner: false,
+      theme: AppTheme.lightTheme,
+      darkTheme: AppTheme.darkTheme,
+      themeMode: ThemeMode.system, // Auto dark mode based on system
       routes: {
         '/': (ctx) => const LoginPage(),
-        '/home': (ctx) => const HomePage(),
+        '/home': (ctx) => const MainHomePage(),
         '/kanji-list': (ctx) => BlocProvider(
           create: (context) =>
               di.sl<KanjiBloc>()..add(const LoadAllKanjiEvent()),
