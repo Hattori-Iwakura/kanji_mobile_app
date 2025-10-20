@@ -1,16 +1,19 @@
 import 'package:dio/dio.dart';
 import 'package:pretty_dio_logger/pretty_dio_logger.dart';
 import 'endpoint.dart';
+import '../config/env_config.dart';
 
 class ApiClient {
   late final Dio dio;
 
   ApiClient({String? baseUrl}) {
+    final timeoutDuration = Duration(milliseconds: EnvConfig.apiTimeout);
+
     dio = Dio(
       BaseOptions(
         baseUrl: baseUrl ?? ApiEndpoints.baseUrl,
-        connectTimeout: const Duration(seconds: 30),
-        receiveTimeout: const Duration(seconds: 30),
+        connectTimeout: timeoutDuration,
+        receiveTimeout: timeoutDuration,
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
@@ -43,7 +46,7 @@ class ApiClient {
   }
 
   // POST request
-  Future<Response> post(String path, Map<String, dynamic> data) async {
+  Future<Response> post(String path, dynamic data) async {
     try {
       return await dio.post(path, data: data);
     } on DioException catch (e) {
@@ -81,6 +84,15 @@ class ApiClient {
     }
   }
 
+  // PATCH request
+  Future<Response> patch(String path, dynamic data) async {
+    try {
+      return await dio.patch(path, data: data);
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
   // Error handler
   Exception _handleError(DioException error) {
     switch (error.type) {
@@ -90,13 +102,12 @@ class ApiClient {
         return Exception('Connection timeout');
       case DioExceptionType.badResponse:
         final statusCode = error.response?.statusCode;
-        final message = error.response?.data['message'] ?? 'Server error';
-        if (statusCode == 401) {
-          return Exception('Unauthorized: $message');
-        } else if (statusCode == 404) {
-          return Exception('Not found: $message');
-        }
-        return Exception('Server error: $message');
+        final message =
+            error.response?.data['error'] ??
+            error.response?.data['message'] ??
+            'Server error';
+        // Include status code in exception message for better error handling
+        return Exception('[$statusCode] $message');
       case DioExceptionType.cancel:
         return Exception('Request cancelled');
       default:

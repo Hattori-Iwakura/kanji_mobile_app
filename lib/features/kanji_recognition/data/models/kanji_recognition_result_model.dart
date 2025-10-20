@@ -1,4 +1,4 @@
-import '../../domain/entities/kanji_recognition_result.dart';
+import '../../models/kanji_recognition_result.dart';
 
 // Data Model
 class KanjiRecognitionResultModel extends KanjiRecognitionResult {

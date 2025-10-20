@@ -1,32 +1,39 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../domain/entities/flashcard_deck.dart';
-import '../bloc/deck_detail_bloc.dart';
-import '../bloc/deck_detail_event.dart';
+import '../../../../injection_container.dart' as di;
+import '../bloc/flashcard_bloc.dart';
+import '../bloc/flashcard_event.dart';
+import '../bloc/flashcard_state.dart';
 
-class DeckEditPage extends StatefulWidget {
-  final FlashcardDeck deck;
+class DeckEditPage extends StatelessWidget {
+  final int deckId;
 
-  const DeckEditPage({super.key, required this.deck});
+  const DeckEditPage({Key? key, required this.deckId}) : super(key: key);
 
   @override
-  State<DeckEditPage> createState() => _DeckEditPageState();
+  Widget build(BuildContext context) {
+    return BlocProvider(
+      create: (_) => di.sl<FlashcardBloc>()..add(LoadDeckByIdEvent(deckId)),
+      child: _DeckEditView(deckId: deckId),
+    );
+  }
 }
 
-class _DeckEditPageState extends State<DeckEditPage> {
-  late final TextEditingController _nameController;
-  late final TextEditingController _descriptionController;
-  late bool _isPublic;
+class _DeckEditView extends StatefulWidget {
+  final int deckId;
+
+  const _DeckEditView({required this.deckId});
 
   @override
-  void initState() {
-    super.initState();
-    _nameController = TextEditingController(text: widget.deck.name);
-    _descriptionController = TextEditingController(
-      text: widget.deck.description ?? '',
-    );
-    _isPublic = widget.deck.isPublic;
-  }
+  State<_DeckEditView> createState() => _DeckEditViewState();
+}
+
+class _DeckEditViewState extends State<_DeckEditView> {
+  final _formKey = GlobalKey<FormState>();
+  final _nameController = TextEditingController();
+  final _descriptionController = TextEditingController();
+  bool _isPublic = false;
+  bool _isLoading = true;
 
   @override
   void dispose() {
@@ -38,99 +45,156 @@ class _DeckEditPageState extends State<DeckEditPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.black,
       appBar: AppBar(
         title: const Text('Edit Deck'),
-        backgroundColor: Colors.grey[900],
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.save),
+            onPressed: _saveDeck,
+          ),
+        ],
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          children: [
-            TextField(
-              controller: _nameController,
-              style: const TextStyle(color: Colors.white),
-              decoration: InputDecoration(
-                labelText: 'Name',
-                labelStyle: const TextStyle(color: Colors.grey),
-                filled: true,
-                fillColor: Colors.grey[900],
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
+      body: BlocConsumer<FlashcardBloc, FlashcardState>(
+        listener: (context, state) {
+          if (state is DeckDetailLoaded && _isLoading) {
+            setState(() {
+              _nameController.text = state.deck.name;
+              _descriptionController.text = state.deck.description ?? '';
+              _isPublic = state.deck.isPublic;
+              _isLoading = false;
+            });
+          } else if (state is DeckUpdated) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Deck updated successfully'),
+                backgroundColor: Colors.green,
+              ),
+            );
+            Navigator.pop(context, true);
+          } else if (state is FlashcardError) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(state.message),
+                backgroundColor: Colors.red,
+              ),
+            );
+          }
+        },
+        builder: (context, state) {
+          if (state is FlashcardLoading && _isLoading) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          return SingleChildScrollView(
+            padding: const EdgeInsets.all(16),
+            child: Form(
+              key: _formKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Name Field
+                  TextFormField(
+                    controller: _nameController,
+                    decoration: const InputDecoration(
+                      labelText: 'Deck Name',
+                      hintText: 'Enter deck name',
+                      prefixIcon: Icon(Icons.style),
+                      border: OutlineInputBorder(),
+                    ),
+                    validator: (value) {
+                      if (value == null || value.trim().isEmpty) {
+                        return 'Please enter a deck name';
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Description Field
+                  TextFormField(
+                    controller: _descriptionController,
+                    decoration: const InputDecoration(
+                      labelText: 'Description (optional)',
+                      hintText: 'Enter deck description',
+                      prefixIcon: Icon(Icons.description),
+                      border: OutlineInputBorder(),
+                    ),
+                    maxLines: 3,
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Public/Private Switch
+                  Card(
+                    child: SwitchListTile(
+                      title: const Text('Public Deck'),
+                      subtitle: Text(
+                        _isPublic
+                            ? 'This deck is visible to everyone'
+                            : 'This deck is private',
+                      ),
+                      value: _isPublic,
+                      onChanged: (value) {
+                        setState(() {
+                          _isPublic = value;
+                        });
+                      },
+                      secondary: Icon(
+                        _isPublic ? Icons.public : Icons.lock,
+                        color: Theme.of(context).primaryColor,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+
+                  // Save Button
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      onPressed: _saveDeck,
+                      icon: const Icon(Icons.save),
+                      label: const Text('Save Changes'),
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        backgroundColor: Theme.of(context).primaryColor,
+                        foregroundColor: Colors.white,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+
+                  // Cancel Button
+                  SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton.icon(
+                      onPressed: () => Navigator.pop(context),
+                      icon: const Icon(Icons.cancel),
+                      label: const Text('Cancel'),
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: _descriptionController,
-              style: const TextStyle(color: Colors.white),
-              maxLines: 4,
-              decoration: InputDecoration(
-                labelText: 'Description',
-                labelStyle: const TextStyle(color: Colors.grey),
-                hintText: 'Optional description',
-                hintStyle: TextStyle(color: Colors.grey[600]),
-                filled: true,
-                fillColor: Colors.grey[900],
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-            SwitchListTile.adaptive(
-              value: _isPublic,
-              onChanged: (value) => setState(() => _isPublic = value),
-              title: const Text(
-                'Public deck',
-                style: TextStyle(color: Colors.white),
-              ),
-              subtitle: const Text(
-                'Allow other users to browse this deck',
-                style: TextStyle(color: Colors.white70),
-              ),
-              activeColor: Colors.blue,
-              tileColor: Colors.grey[900],
-              contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-            ),
-            const Spacer(),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: _onSave,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blue,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                ),
-                child: const Text('Save Changes'),
-              ),
-            ),
-          ],
-        ),
+          );
+        },
       ),
     );
   }
 
-  void _onSave() {
-    final name = _nameController.text.trim();
-    if (name.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Deck name cannot be empty')),
-      );
-      return;
+  void _saveDeck() {
+    if (_formKey.currentState?.validate() ?? false) {
+      context.read<FlashcardBloc>().add(
+            UpdateDeckEvent(
+              id: widget.deckId,
+              name: _nameController.text.trim(),
+              description: _descriptionController.text.trim().isEmpty
+                  ? null
+                  : _descriptionController.text.trim(),
+              isPublic: _isPublic,
+            ),
+          );
     }
-
-    context.read<DeckDetailBloc>().add(
-      UpdateDeckInfoEvent(
-        deckId: widget.deck.id,
-        name: name,
-        description: _descriptionController.text.trim().isEmpty
-            ? null
-            : _descriptionController.text.trim(),
-        isPublic: _isPublic,
-      ),
-    );
-
-    Navigator.pop(context);
   }
 }

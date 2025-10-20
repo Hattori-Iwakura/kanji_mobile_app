@@ -1,0 +1,431 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../../injection_container.dart' as di;
+import '../bloc/flashcard_bloc.dart';
+import '../bloc/flashcard_event.dart';
+import '../bloc/flashcard_state.dart';
+
+class DeckListPage extends StatelessWidget {
+  const DeckListPage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocProvider(
+      create: (_) => di.sl<FlashcardBloc>()..add(const GetAllDecksEvent()),
+      child: const _DeckListView(),
+    );
+  }
+}
+
+class _DeckListView extends StatelessWidget {
+  const _DeckListView();
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Flashcard Decks'),
+        elevation: 2,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            onPressed: () {
+              context.read<FlashcardDeckBloc>().add(const RefreshDecksEvent());
+            },
+            tooltip: 'Refresh',
+          ),
+        ],
+      ),
+      body: BlocBuilder<FlashcardDeckBloc, FlashcardDeckState>(
+        builder: (context, state) {
+          if (state is FlashcardDeckLoading) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          if (state is FlashcardDeckError) {
+            return _buildErrorState(context, state.message);
+          }
+
+          if (state is FlashcardDeckLoaded) {
+            if (state.decks.isEmpty) {
+              return _buildEmptyState(context);
+            }
+
+            return RefreshIndicator(
+              onRefresh: () async {
+                context.read<FlashcardDeckBloc>().add(
+                  const RefreshDecksEvent(),
+                );
+              },
+              child: ListView.builder(
+                padding: const EdgeInsets.all(16),
+                itemCount: state.decks.length,
+                itemBuilder: (context, index) {
+                  final deck = state.decks[index];
+                  return _DeckCard(deck: deck);
+                },
+              ),
+            );
+          }
+
+          return const Center(child: CircularProgressIndicator());
+        },
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () => _showCreateDeckDialog(context),
+        icon: const Icon(Icons.add),
+        label: const Text('New Deck'),
+      ),
+    );
+  }
+
+  Widget _buildErrorState(BuildContext context, String message) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Icons.error_outline, size: 64, color: Colors.red),
+            const SizedBox(height: 16),
+            const Text(
+              'Failed to load decks',
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              message,
+              textAlign: TextAlign.center,
+              style: TextStyle(color: Colors.grey[600]),
+            ),
+            const SizedBox(height: 24),
+            ElevatedButton.icon(
+              onPressed: () {
+                context.read<FlashcardDeckBloc>().add(
+                  const RefreshDecksEvent(),
+                );
+              },
+              icon: const Icon(Icons.refresh),
+              label: const Text('Retry'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEmptyState(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(32.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.style, size: 80, color: Colors.grey[400]),
+            const SizedBox(height: 24),
+            const Text(
+              'No Flashcard Decks',
+              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              'Create your first deck to start studying with flashcards',
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 16, color: Colors.grey[600]),
+            ),
+            const SizedBox(height: 32),
+            ElevatedButton.icon(
+              onPressed: () => _showCreateDeckDialog(context),
+              icon: const Icon(Icons.add),
+              label: const Text('Create Deck'),
+              style: ElevatedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 32,
+                  vertical: 16,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showCreateDeckDialog(BuildContext context) {
+    final nameController = TextEditingController();
+    final descController = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Create New Deck'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: nameController,
+              decoration: const InputDecoration(
+                labelText: 'Deck Name',
+                hintText: 'e.g., JLPT N5 Kanji',
+                border: OutlineInputBorder(),
+              ),
+              autofocus: true,
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: descController,
+              decoration: const InputDecoration(
+                labelText: 'Description (Optional)',
+                hintText: 'Brief description of this deck',
+                border: OutlineInputBorder(),
+              ),
+              maxLines: 3,
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () {
+              final name = nameController.text.trim();
+              if (name.isEmpty) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Please enter a deck name')),
+                );
+                return;
+              }
+
+              context.read<FlashcardDeckBloc>().add(
+                CreateDeckEvent(
+                  name: name,
+                  description: descController.text.trim().isEmpty
+                      ? null
+                      : descController.text.trim(),
+                  sourceType: 'manual',
+                ),
+              );
+
+              Navigator.pop(dialogContext);
+            },
+            child: const Text('Create'),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _DeckCard extends StatelessWidget {
+  final FlashcardDeck deck;
+
+  const _DeckCard({required this.deck});
+
+  @override
+  Widget build(BuildContext context) {
+    final totalCards = deck.totalCards;
+    final dueCards = _dueCards;
+    final newCards = _newCards;
+    final masteredCards = _masteredCards;
+
+    return Card(
+      margin: const EdgeInsets.only(bottom: 16),
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: InkWell(
+        onTap: () {
+          Navigator.pushNamed(
+            context,
+            AppRoutes.flashcardDeckDetail,
+            arguments: deck.id,
+          );
+        },
+        borderRadius: BorderRadius.circular(16),
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Deck name and menu
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      deck.name,
+                      style: const TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                  PopupMenuButton(
+                    itemBuilder: (context) => [
+                      const PopupMenuItem(
+                        value: 'edit',
+                        child: Row(
+                          children: [
+                            Icon(Icons.edit, size: 20),
+                            SizedBox(width: 8),
+                            Text('Edit'),
+                          ],
+                        ),
+                      ),
+                      const PopupMenuItem(
+                        value: 'delete',
+                        child: Row(
+                          children: [
+                            Icon(Icons.delete, size: 20, color: Colors.red),
+                            SizedBox(width: 8),
+                            Text('Delete', style: TextStyle(color: Colors.red)),
+                          ],
+                        ),
+                      ),
+                    ],
+                    onSelected: (value) {
+                      if (value == 'delete') {
+                        _showDeleteConfirmation(context, deck);
+                      }
+                      // TODO: Handle edit
+                    },
+                  ),
+                ],
+              ),
+
+              // Description
+              if (deck.description != null && deck.description!.isNotEmpty) ...[
+                const SizedBox(height: 8),
+                Text(
+                  deck.description!,
+                  style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+
+              const SizedBox(height: 16),
+
+              // Stats row
+              Row(
+                children: [
+                  _buildStat(Icons.style, '$totalCards', 'Total'),
+                  const SizedBox(width: 16),
+                  _buildStat(Icons.schedule, '$dueCards', 'Due', Colors.orange),
+                  const SizedBox(width: 16),
+                  _buildStat(Icons.fiber_new, '$newCards', 'New', Colors.blue),
+                  const SizedBox(width: 16),
+                  _buildStat(
+                    Icons.check_circle,
+                    '$masteredCards',
+                    'Mastered',
+                    Colors.green,
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 16),
+
+              // Study button
+              SizedBox(
+                width: double.infinity,
+                child: FilledButton.icon(
+                  onPressed: dueCards + newCards > 0
+                      ? () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => BlocProvider(
+                                create: (_) => di.sl<StudySessionBloc>(),
+                                child: StudySessionPage(deckId: deck.id),
+                              ),
+                            ),
+                          );
+                        }
+                      : null,
+                  icon: const Icon(Icons.school),
+                  label: Text(
+                    dueCards + newCards > 0
+                        ? 'Study Now (${dueCards + newCards})'
+                        : 'All Caught Up!',
+                  ),
+                  style: FilledButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStat(IconData icon, String value, String label, [Color? color]) {
+    return Expanded(
+      child: Column(
+        children: [
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(icon, size: 18, color: color ?? Colors.grey[600]),
+              const SizedBox(width: 4),
+              Text(
+                value,
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: color,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          Text(label, style: TextStyle(fontSize: 12, color: Colors.grey[600])),
+        ],
+      ),
+    );
+  }
+
+  int get _dueCards {
+    final now = DateTime.now();
+    return deck.cards
+            ?.where(
+              (c) =>
+                  c.nextReviewAt.isBefore(now) ||
+                  c.nextReviewAt.isAtSameMomentAs(now),
+            )
+            .length ??
+        0;
+  }
+
+  int get _newCards => deck.cards?.where((c) => c.isNew).length ?? 0;
+  int get _masteredCards =>
+      deck.cards?.where((c) => c.difficulty >= 4).length ?? 0;
+
+  void _showDeleteConfirmation(BuildContext context, FlashcardDeck deck) {
+    showDialog(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Delete Deck?'),
+        content: Text(
+          'Are you sure you want to delete "${deck.name}"? This will also delete all ${deck.totalCards} cards in this deck. This action cannot be undone.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () {
+              context.read<FlashcardDeckBloc>().add(DeleteDeckEvent(deck.id));
+              Navigator.pop(dialogContext);
+            },
+            style: FilledButton.styleFrom(backgroundColor: Colors.red),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+  }
+}

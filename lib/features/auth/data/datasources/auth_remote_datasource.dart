@@ -1,97 +1,83 @@
 import 'package:dio/dio.dart';
 import '../../../../core/network/api_client.dart';
 import '../../../../core/network/endpoint.dart';
-import '../../../../core/error/exceptions.dart';
-import '../models/auth_response_model.dart';
+import '../../domain/entities/auth_exception.dart';
+import '../models/user_model.dart';
 
 abstract class AuthRemoteDataSource {
-  Future<AuthResponseModel> login(String account, String password);
-  Future<AuthResponseModel> refreshToken(String sessionId, String refreshToken);
-  Future<void> logout(String sessionId);
+  Future<UserModel> login({required String email, required String password});
+  Future<UserModel> register({
+    required String email,
+    required String username,
+    required String password,
+  });
+  Future<UserModel> getProfile();
 }
 
 class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
-  final ApiClient apiClient;
+  final ApiClient _apiClient;
 
-  AuthRemoteDataSourceImpl({required this.apiClient});
+  AuthRemoteDataSourceImpl(this._apiClient);
 
   @override
-  Future<AuthResponseModel> login(String account, String password) async {
+  Future<UserModel> login({
+    required String email,
+    required String password,
+  }) async {
     try {
-      final response = await apiClient.post(ApiEndpoints.login, {
-        'account': account,
+      final response = await _apiClient.post(ApiEndpoints.login, {
+        'account': email, // Backend expects 'account' field, not 'email'
         'password': password,
       });
 
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        final responseData = response.data as Map<String, dynamic>;
-
-        // Check if response is wrapped in a data field
-        final data = responseData.containsKey('data')
-            ? responseData['data'] as Map<String, dynamic>
-            : responseData;
-
-        return AuthResponseModel.fromJson(data);
-      } else {
-        throw ServerException(
-          'Login failed with status: ${response.statusCode}',
-        );
-      }
+      // Backend wraps response: { statusCode, data: { user, accessToken }, timestamp }
+      final data = response.data['data'] ?? response.data;
+      return UserModel.fromJson(data['user'] as Map<String, dynamic>);
     } on DioException catch (e) {
-      if (e.response?.statusCode == 401) {
-        throw UnauthorizedException(
-          e.response?.data['message'] ?? 'Invalid credentials',
-        );
-      }
-      throw ServerException(
-        e.response?.data['message'] ?? 'Server error occurred',
-      );
+      final message = e.response?.data['message'] ?? 'Login failed';
+      throw AuthException(message);
     } catch (e) {
-      throw ServerException('Unexpected error: $e');
+      throw AuthException('An unexpected error occurred: $e');
     }
   }
 
   @override
-  Future<AuthResponseModel> refreshToken(
-    String sessionId,
-    String refreshToken,
-  ) async {
+  Future<UserModel> register({
+    required String email,
+    required String username,
+    required String password,
+  }) async {
     try {
-      final response = await apiClient.post(ApiEndpoints.refreshMobile, {
-        'sessionId': sessionId,
-        'refreshToken': refreshToken,
+      final response = await _apiClient.post(ApiEndpoints.register, {
+        'email': email,
+        'username': username,
+        'password': password,
       });
 
-      if (response.statusCode == 200) {
-        final responseData = response.data as Map<String, dynamic>;
-
-        // Check if response is wrapped in a data field
-        final data = responseData.containsKey('data')
-            ? responseData['data'] as Map<String, dynamic>
-            : responseData;
-
-        return AuthResponseModel.fromJson(data);
-      } else {
-        throw ServerException(
-          'Refresh failed with status: ${response.statusCode}',
-        );
-      }
+      // Backend wraps response: { statusCode, data: { user, accessToken }, timestamp }
+      final data = response.data['data'] ?? response.data;
+      return UserModel.fromJson(data['user'] as Map<String, dynamic>);
     } on DioException catch (e) {
-      if (e.response?.statusCode == 401) {
-        throw UnauthorizedException('Session expired');
-      }
-      throw ServerException(
-        e.response?.data['message'] ?? 'Server error occurred',
-      );
+      final message = e.response?.data['message'] ?? 'Registration failed';
+      throw AuthException(message);
+    } catch (e) {
+      throw AuthException('An unexpected error occurred: $e');
     }
   }
 
   @override
-  Future<void> logout(String sessionId) async {
+  Future<UserModel> getProfile() async {
     try {
-      await apiClient.post(ApiEndpoints.logout, {'sessionId': sessionId});
+      final response = await _apiClient.get(ApiEndpoints.profile);
+
+      // Backend wraps response: { statusCode, data: user, timestamp }
+      final data = response.data['data'] ?? response.data;
+      return UserModel.fromJson(data as Map<String, dynamic>);
     } on DioException catch (e) {
-      throw ServerException(e.response?.data['message'] ?? 'Logout failed');
+      final message = e.response?.data['message'] ?? 'Failed to get profile';
+      throw AuthException(message);
+    } catch (e) {
+      throw AuthException('An unexpected error occurred: $e');
     }
   }
 }

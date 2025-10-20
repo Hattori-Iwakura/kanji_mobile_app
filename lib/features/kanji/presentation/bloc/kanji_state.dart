@@ -1,109 +1,77 @@
 import 'package:equatable/equatable.dart';
-import '../../domain/entities/kanji.dart';
+import '../../domain/entities/kanji_entity.dart';
 
 abstract class KanjiState extends Equatable {
-  const KanjiState();
-
   @override
   List<Object?> get props => [];
 }
 
-class KanjiInitial extends KanjiState {
-  const KanjiInitial();
-}
+class KanjiInitial extends KanjiState {}
 
-class KanjiLoading extends KanjiState {
-  const KanjiLoading();
-}
+class KanjiLoading extends KanjiState {}
 
 class KanjiListLoaded extends KanjiState {
-  final List<Kanji> kanjiList;
-  final List<Kanji> filteredList;
-  final String? filterType; // 'jlpt', 'grade', 'search', null
-  final String? successMessage; // For showing success after CRUD operations
+  final List<KanjiEntity> kanjiList;
+  final int currentPage;
+  final bool hasMore;
+  final String? appliedJlptFilter;
+  final int? appliedGradeFilter;
+  final String? appliedSearch;
 
-  const KanjiListLoaded({
+  KanjiListLoaded({
     required this.kanjiList,
-    required this.filteredList,
-    this.filterType,
-    this.successMessage,
+    required this.currentPage,
+    required this.hasMore,
+    this.appliedJlptFilter,
+    this.appliedGradeFilter,
+    this.appliedSearch,
   });
 
   @override
   List<Object?> get props => [
     kanjiList,
-    filteredList,
-    filterType,
-    successMessage,
+    currentPage,
+    hasMore,
+    appliedJlptFilter,
+    appliedGradeFilter,
+    appliedSearch,
   ];
-
-  KanjiListLoaded copyWith({
-    List<Kanji>? kanjiList,
-    List<Kanji>? filteredList,
-    String? filterType,
-    String? successMessage,
-  }) {
-    return KanjiListLoaded(
-      kanjiList: kanjiList ?? this.kanjiList,
-      filteredList: filteredList ?? this.filteredList,
-      filterType: filterType ?? this.filterType,
-      successMessage: successMessage,
-    );
-  }
 }
 
 class KanjiDetailLoaded extends KanjiState {
-  final Kanji kanji;
+  final KanjiEntity kanji;
 
-  const KanjiDetailLoaded(this.kanji);
+  KanjiDetailLoaded(this.kanji);
 
   @override
   List<Object?> get props => [kanji];
 }
 
-class KanjiError extends KanjiState {
-  final String message;
-
-  const KanjiError(this.message);
-
-  @override
-  List<Object?> get props => [message];
-}
-
-// Admin CRUD States
 class KanjiCreated extends KanjiState {
-  final Kanji kanji;
+  final KanjiEntity kanji;
 
-  const KanjiCreated(this.kanji);
+  KanjiCreated(this.kanji);
 
   @override
   List<Object?> get props => [kanji];
 }
 
 class KanjiUpdated extends KanjiState {
-  final Kanji kanji;
+  final KanjiEntity kanji;
 
-  const KanjiUpdated(this.kanji);
-
-  @override
-  List<Object?> get props => [kanji];
-}
-
-class KanjiDeleted extends KanjiState {
-  final Kanji kanji;
-
-  const KanjiDeleted(this.kanji);
+  KanjiUpdated(this.kanji);
 
   @override
   List<Object?> get props => [kanji];
 }
 
-class KanjiOperationSuccess extends KanjiState {
+class KanjiDeleted extends KanjiState {}
+
+class KanjiError extends KanjiState {
   final String message;
-  final Kanji? kanji;
 
-  const KanjiOperationSuccess(this.message, {this.kanji});
+  KanjiError(this.message);
 
   @override
-  List<Object?> get props => [message, kanji];
+  List<Object?> get props => [message];
 }

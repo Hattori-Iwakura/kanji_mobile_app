@@ -1,8 +1,6 @@
-import '../../domain/entities/quiz.dart';
-import '../../domain/entities/question.dart';
-import '../../domain/entities/quiz_attempt.dart';
-import '../../domain/entities/quiz_answer.dart';
-import '../../domain/entities/quiz_enums.dart';
+import '../../domain/entities/quiz_entity.dart';
+import '../../domain/entities/quiz_question_entity.dart';
+import '../../domain/entities/quiz_attempt_entity.dart';
 import '../../domain/repositories/quiz_repository.dart';
 import '../datasources/quiz_remote_datasource.dart';
 
@@ -12,129 +10,167 @@ class QuizRepositoryImpl implements QuizRepository {
   QuizRepositoryImpl({required this.remoteDataSource});
 
   @override
-  Future<List<Quiz>> getQuizzes({
-    bool? myQuizzes,
-    bool? isPublic,
-    String? category,
-    QuizDifficulty? difficulty,
+  Future<List<QuizEntity>> getAllQuizzes({
+    String? search,
+    int? limit,
+    int? offset,
   }) async {
-    try {
-      final quizzes = await remoteDataSource.getQuizzes(
-        myQuizzes: myQuizzes,
-        isPublic: isPublic,
-        category: category,
-        difficulty: difficulty?.value,
-      );
-      return quizzes.map((q) => q.toEntity()).toList();
-    } catch (e) {
-      throw Exception('Failed to load quizzes: $e');
-    }
+    final quizzes = await remoteDataSource.getAllQuizzes(
+      search: search,
+      limit: limit,
+      offset: offset,
+    );
+    return quizzes.map((quiz) => quiz.toEntity()).toList();
   }
 
   @override
-  Future<Quiz> getQuizById(int quizId) async {
-    try {
-      final quiz = await remoteDataSource.getQuizById(quizId);
-      return quiz.toEntity();
-    } catch (e) {
-      throw Exception('Failed to load quiz: $e');
-    }
+  Future<QuizEntity> getQuizById(int id) async {
+    final quiz = await remoteDataSource.getQuizById(id);
+    return quiz.toEntity();
   }
 
   @override
-  Future<Quiz> createQuiz(Map<String, dynamic> data) async {
-    try {
-      final quiz = await remoteDataSource.createQuiz(data);
-      return quiz.toEntity();
-    } catch (e) {
-      throw Exception('Failed to create quiz: $e');
-    }
+  Future<QuizEntity> createQuiz({
+    required String title,
+    String? description,
+  }) async {
+    final quiz = await remoteDataSource.createQuiz(
+      title: title,
+      description: description,
+    );
+    return quiz.toEntity();
   }
 
   @override
-  Future<Quiz> updateQuiz(int quizId, Map<String, dynamic> data) async {
-    try {
-      final quiz = await remoteDataSource.updateQuiz(quizId, data);
-      return quiz.toEntity();
-    } catch (e) {
-      throw Exception('Failed to update quiz: $e');
-    }
+  Future<QuizEntity> updateQuiz({
+    required int id,
+    String? title,
+    String? description,
+    bool? isPublic,
+  }) async {
+    final quiz = await remoteDataSource.updateQuiz(
+      id: id,
+      title: title,
+      description: description,
+      isPublic: isPublic,
+    );
+    return quiz.toEntity();
   }
 
   @override
-  Future<void> deleteQuiz(int quizId) async {
-    try {
-      await remoteDataSource.deleteQuiz(quizId);
-    } catch (e) {
-      throw Exception('Failed to delete quiz: $e');
-    }
+  Future<void> deleteQuiz(int id) async {
+    await remoteDataSource.deleteQuiz(id);
   }
 
   @override
-  Future<Question> addQuestion(int quizId, Map<String, dynamic> data) async {
-    try {
-      final question = await remoteDataSource.addQuestion(quizId, data);
-      return question.toEntity();
-    } catch (e) {
-      throw Exception('Failed to add question: $e');
-    }
+  Future<QuizQuestionEntity> addQuestion({
+    required int quizId,
+    required int kanjiId,
+    required String questionText,
+    required String questionType,
+    required List<String> options,
+    required String correctAnswer,
+  }) async {
+    final question = await remoteDataSource.addQuestion(
+      quizId: quizId,
+      kanjiId: kanjiId,
+      questionText: questionText,
+      questionType: questionType,
+      options: options,
+      correctAnswer: correctAnswer,
+    );
+    return question.toEntity();
   }
 
   @override
-  Future<void> deleteQuestion(int questionId) async {
-    try {
-      await remoteDataSource.deleteQuestion(questionId);
-    } catch (e) {
-      throw Exception('Failed to delete question: $e');
-    }
+  Future<QuizQuestionEntity> updateQuestion({
+    required int quizId,
+    required int questionId,
+    String? questionText,
+    String? questionType,
+    List<String>? options,
+    String? correctAnswer,
+  }) async {
+    final question = await remoteDataSource.updateQuestion(
+      quizId: quizId,
+      questionId: questionId,
+      questionText: questionText,
+      questionType: questionType,
+      options: options,
+      correctAnswer: correctAnswer,
+    );
+    return question.toEntity();
   }
 
   @override
-  Future<QuizAttempt> startQuiz(int quizId) async {
-    try {
-      final attempt = await remoteDataSource.startQuiz(quizId);
-      return attempt.toEntity();
-    } catch (e) {
-      throw Exception('Failed to start quiz: $e');
-    }
+  Future<void> deleteQuestion({
+    required int quizId,
+    required int questionId,
+  }) async {
+    await remoteDataSource.deleteQuestion(
+      quizId: quizId,
+      questionId: questionId,
+    );
   }
 
   @override
-  Future<QuizAnswer> submitAnswer(Map<String, dynamic> data) async {
-    try {
-      final answer = await remoteDataSource.submitAnswer(data);
-      return answer.toEntity();
-    } catch (e) {
-      throw Exception('Failed to submit answer: $e');
-    }
+  Future<void> reorderQuestions({
+    required int quizId,
+    required List<Map<String, int>> questionOrders,
+  }) async {
+    await remoteDataSource.reorderQuestions(
+      quizId: quizId,
+      questionOrders: questionOrders,
+    );
   }
 
   @override
-  Future<QuizAttempt> getAttemptResults(int attemptId) async {
-    try {
-      final attempt = await remoteDataSource.getAttemptResults(attemptId);
-      return attempt.toEntity();
-    } catch (e) {
-      throw Exception('Failed to load results: $e');
-    }
+  Future<QuizAttemptEntity> startQuizAttempt(int quizId) async {
+    final attempt = await remoteDataSource.startQuizAttempt(quizId);
+    return attempt.toEntity();
   }
 
   @override
-  Future<List<QuizAttempt>> getUserAttempts({int? quizId}) async {
-    try {
-      final attempts = await remoteDataSource.getUserAttempts(quizId: quizId);
-      return attempts.map((a) => a.toEntity()).toList();
-    } catch (e) {
-      throw Exception('Failed to load attempts: $e');
-    }
+  Future<QuizAttemptEntity> submitQuizAttempt({
+    required int attemptId,
+    required List<Map<String, dynamic>> answers,
+  }) async {
+    final attempt = await remoteDataSource.submitQuizAttempt(
+      attemptId: attemptId,
+      answers: answers,
+    );
+    return attempt.toEntity();
   }
 
   @override
-  Future<Map<String, dynamic>> getQuizStatistics(int quizId) async {
-    try {
-      return await remoteDataSource.getQuizStatistics(quizId);
-    } catch (e) {
-      throw Exception('Failed to load statistics: $e');
-    }
+  Future<List<QuizAttemptEntity>> getQuizAttempts(int quizId) async {
+    final attempts = await remoteDataSource.getQuizAttempts(quizId);
+    return attempts.map((attempt) => attempt.toEntity()).toList();
+  }
+
+  @override
+  Future<QuizAttemptEntity> getQuizAttemptDetails(int attemptId) async {
+    final attempt = await remoteDataSource.getQuizAttemptDetails(attemptId);
+    return attempt.toEntity();
+  }
+
+  @override
+  Future<void> requestPublish(int quizId, String? message) async {
+    await remoteDataSource.requestPublish(quizId, message);
+  }
+
+  @override
+  Future<List<dynamic>> getPendingPublishRequests() async {
+    return await remoteDataSource.getPendingPublishRequests();
+  }
+
+  @override
+  Future<void> approvePublishRequest(int requestId) async {
+    await remoteDataSource.approvePublishRequest(requestId);
+  }
+
+  @override
+  Future<void> rejectPublishRequest(int requestId) async {
+    await remoteDataSource.rejectPublishRequest(requestId);
   }
 }

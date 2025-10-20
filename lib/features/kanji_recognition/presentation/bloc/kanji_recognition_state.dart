@@ -1,5 +1,5 @@
 import 'package:equatable/equatable.dart';
-import '../../domain/entities/kanji_recognition_result.dart';
+import '../../models/kanji_recognition_result.dart';
 
 abstract class KanjiRecognitionState extends Equatable {
   const KanjiRecognitionState();

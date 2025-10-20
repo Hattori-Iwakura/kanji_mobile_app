@@ -1,37 +1,48 @@
-import '../../domain/entities/user.dart';
+import '../../domain/entities/user_entity.dart';
 
-class UserModel extends User {
+class UserModel extends UserEntity {
   const UserModel({
     required super.id,
-    required super.account,
     required super.email,
-    super.profileImage,
-    required super.isFirstLogin,
-    required super.createAt,
+    required super.username,
+    super.avatarUrl,
+    required super.role,
+    required super.createdAt,
   });
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
     return UserModel(
       id: json['id'] as int,
-      account: json['account'] as String,
       email: json['email'] as String,
-      profileImage: json['profile_image'] as String?,
-      isFirstLogin:
-          json['is_first_login'] as bool? ?? false, // Default to false if null
-      createAt: json['create_at'] != null
-          ? DateTime.parse(json['create_at'] as String)
-          : DateTime.now(), // Default to now if null
+      // Backend returns 'name', map it to 'username'
+      username: json['name'] as String? ?? json['username'] as String,
+      // Backend returns 'profileImage', map to 'avatarUrl'
+      avatarUrl:
+          json['profileImage'] as String? ?? json['avatarUrl'] as String?,
+      role: json['role'] as String,
+      createdAt: DateTime.parse(json['createdAt'] as String),
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
       'id': id,
-      'account': account,
       'email': email,
-      'profile_image': profileImage,
-      'is_first_login': isFirstLogin,
-      'create_at': createAt.toIso8601String(),
+      'username': username,
+      'avatarUrl': avatarUrl,
+      'role': role,
+      'createdAt': createdAt.toIso8601String(),
     };
+  }
+
+  UserEntity toEntity() {
+    return UserEntity(
+      id: id,
+      email: email,
+      username: username,
+      avatarUrl: avatarUrl,
+      role: role,
+      createdAt: createdAt,
+    );
   }
 }

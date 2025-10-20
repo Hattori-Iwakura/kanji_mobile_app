@@ -1,144 +1,122 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../domain/entities/auth_exception.dart';
+import '../../domain/usecases/check_auth_usecase.dart';
+import '../../domain/usecases/get_profile_usecase.dart';
+import '../../domain/usecases/login_usecase.dart';
+import '../../domain/usecases/logout_usecase.dart';
+import '../../domain/usecases/register_usecase.dart';
 import 'auth_event.dart';
 import 'auth_state.dart';
-import '../../domain/repositories/auth_repository.dart';
-import '../../data/auth_service.dart';
-import '../../data/models/auth_response_model.dart';
-import '../../../../core/network/api_client.dart';
 
 class AuthBloc extends Bloc<AuthEvent, AuthState> {
-  final AuthRepository repository;
-  final AuthService authService;
-  final ApiClient apiClient;
+  final LoginUseCase loginUseCase;
+  final RegisterUseCase registerUseCase;
+  final GetProfileUseCase getProfileUseCase;
+  final LogoutUseCase logoutUseCase;
+  final CheckAuthUseCase checkAuthUseCase;
 
   AuthBloc({
-    required this.repository,
-    required this.authService,
-    required this.apiClient,
-  }) : super(const AuthInitial()) {
-    on<AuthCheckRequested>(_onAuthCheckRequested);
-    on<LoginRequested>(_onLoginRequested);
-    on<RefreshTokenRequested>(_onRefreshTokenRequested);
-    on<LogoutRequested>(_onLogoutRequested);
+    required this.loginUseCase,
+    required this.registerUseCase,
+    required this.getProfileUseCase,
+    required this.logoutUseCase,
+    required this.checkAuthUseCase,
+  }) : super(AuthInitial()) {
+    on<AuthCheckRequested>(_onCheckRequested);
+    on<AuthLoginRequested>(_onLoginRequested);
+    on<AuthRegisterRequested>(_onRegisterRequested);
+    on<AuthLogoutRequested>(_onLogoutRequested);
+    on<AuthProfileRequested>(_onProfileRequested);
   }
 
-  Future<void> _onAuthCheckRequested(
+  Future<void> _onCheckRequested(
     AuthCheckRequested event,
     Emitter<AuthState> emit,
   ) async {
-    emit(const AuthLoading());
+    emit(AuthLoading());
 
-    final isAuth = await authService.isAuthenticated();
-    if (!isAuth) {
-      emit(const AuthUnauthenticated());
-      return;
-    }
+    try {
+      final isLoggedIn = await checkAuthUseCase();
 
-    final authResponse = await authService.getAuthResponse();
-    if (authResponse != null) {
-      // Set token to API client
-      apiClient.setAuthToken(authResponse.accessToken);
-
-      // Check if token is expired
-      if (authResponse.expiresAt.isBefore(DateTime.now())) {
-        // Try to refresh token
-        add(const RefreshTokenRequested());
+      if (isLoggedIn) {
+        final user = await getProfileUseCase();
+        emit(Authenticated(user));
       } else {
-        emit(
-          AuthAuthenticated(
-            user: authResponse.user,
-            accessToken: authResponse.accessToken,
-          ),
-        );
+        emit(Unauthenticated());
       }
-    } else {
-      emit(const AuthUnauthenticated());
+    } on AuthException catch (e) {
+      emit(Unauthenticated());
+    } catch (e) {
+      emit(Unauthenticated());
     }
   }
 
   Future<void> _onLoginRequested(
-    LoginRequested event,
+    AuthLoginRequested event,
     Emitter<AuthState> emit,
   ) async {
-    emit(const AuthLoading());
+    emit(AuthLoading());
 
-    final result = await repository.login(event.account, event.password);
-
-    await result.fold(
-      (failure) async {
-        emit(AuthError(failure.message));
-      },
-      (authResponse) async {
-        // Save auth data
-        await authService.saveAuthData(authResponse as AuthResponseModel);
-
-        // Set token to API client
-        apiClient.setAuthToken(authResponse.accessToken);
-
-        emit(
-          AuthAuthenticated(
-            user: authResponse.user,
-            accessToken: authResponse.accessToken,
-          ),
-        );
-      },
-    );
+    try {
+      final user = await loginUseCase(
+        email: event.email,
+        password: event.password,
+      );
+      emit(Authenticated(user));
+    } on AuthException catch (e) {
+      emit(AuthError(e.message));
+    } catch (e) {
+      emit(AuthError('An unexpected error occurred'));
+    }
   }
 
-  Future<void> _onRefreshTokenRequested(
-    RefreshTokenRequested event,
+  Future<void> _onRegisterRequested(
+    AuthRegisterRequested event,
     Emitter<AuthState> emit,
   ) async {
-    final sessionId = await authService.getSessionId();
-    final refreshToken = await authService.getRefreshToken();
+    emit(AuthLoading());
 
-    if (sessionId == null || refreshToken == null) {
-      emit(const AuthUnauthenticated());
-      return;
+    try {
+      final user = await registerUseCase(
+        email: event.email,
+        username: event.username,
+        password: event.password,
+      );
+      emit(Authenticated(user));
+    } on AuthException catch (e) {
+      emit(AuthError(e.message));
+    } catch (e) {
+      emit(AuthError('An unexpected error occurred'));
     }
-
-    final result = await repository.refreshToken(sessionId, refreshToken);
-
-    await result.fold(
-      (failure) async {
-        // Refresh failed, logout user
-        await authService.clearAuthData();
-        apiClient.clearAuthToken();
-        emit(const AuthUnauthenticated());
-      },
-      (authResponse) async {
-        // Save new auth data
-        await authService.saveAuthData(authResponse as AuthResponseModel);
-
-        // Set new token to API client
-        apiClient.setAuthToken(authResponse.accessToken);
-
-        emit(
-          AuthAuthenticated(
-            user: authResponse.user,
-            accessToken: authResponse.accessToken,
-          ),
-        );
-      },
-    );
   }
 
   Future<void> _onLogoutRequested(
-    LogoutRequested event,
+    AuthLogoutRequested event,
     Emitter<AuthState> emit,
   ) async {
-    emit(const AuthLoading());
-
-    final sessionId = await authService.getSessionId();
-
-    if (sessionId != null) {
-      await repository.logout(sessionId);
+    try {
+      await logoutUseCase();
+      emit(Unauthenticated());
+    } on AuthException catch (e) {
+      emit(AuthError(e.message));
+    } catch (e) {
+      emit(AuthError('Logout failed'));
     }
+  }
 
-    // Clear local auth data
-    await authService.clearAuthData();
-    apiClient.clearAuthToken();
+  Future<void> _onProfileRequested(
+    AuthProfileRequested event,
+    Emitter<AuthState> emit,
+  ) async {
+    emit(AuthLoading());
 
-    emit(const AuthUnauthenticated());
+    try {
+      final user = await getProfileUseCase();
+      emit(Authenticated(user));
+    } on AuthException catch (e) {
+      emit(AuthError(e.message));
+    } catch (e) {
+      emit(AuthError('Failed to load profile'));
+    }
   }
 }

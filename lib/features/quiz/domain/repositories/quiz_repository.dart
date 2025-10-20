@@ -1,28 +1,72 @@
-import '../../domain/entities/quiz.dart';
-import '../../domain/entities/question.dart';
-import '../../domain/entities/quiz_attempt.dart';
-import '../../domain/entities/quiz_answer.dart';
-import '../../domain/entities/quiz_enums.dart';
+import '../entities/quiz_attempt_entity.dart';
+import '../entities/quiz_entity.dart';
+import '../entities/quiz_question_entity.dart';
 
 abstract class QuizRepository {
-  Future<List<Quiz>> getQuizzes({
-    bool? myQuizzes,
-    bool? isPublic,
-    String? category,
-    QuizDifficulty? difficulty,
+  // Quiz operations (dựa theo Backend API /quizzes)
+  Future<List<QuizEntity>> getAllQuizzes({
+    String? search,
+    int? limit,
+    int? offset,
   });
 
-  Future<Quiz> getQuizById(int quizId);
-  Future<Quiz> createQuiz(Map<String, dynamic> data);
-  Future<Quiz> updateQuiz(int quizId, Map<String, dynamic> data);
-  Future<void> deleteQuiz(int quizId);
+  Future<QuizEntity> getQuizById(int id);
 
-  Future<Question> addQuestion(int quizId, Map<String, dynamic> data);
-  Future<void> deleteQuestion(int questionId);
+  Future<QuizEntity> createQuiz({required String title, String? description});
 
-  Future<QuizAttempt> startQuiz(int quizId);
-  Future<QuizAnswer> submitAnswer(Map<String, dynamic> data);
-  Future<QuizAttempt> getAttemptResults(int attemptId);
-  Future<List<QuizAttempt>> getUserAttempts({int? quizId});
-  Future<Map<String, dynamic>> getQuizStatistics(int quizId);
+  Future<QuizEntity> updateQuiz({
+    required int id,
+    String? title,
+    String? description,
+    bool? isPublic,
+  });
+
+  Future<void> deleteQuiz(int id);
+
+  // Question operations
+  Future<QuizQuestionEntity> addQuestion({
+    required int quizId,
+    required int kanjiId,
+    required String questionText,
+    required String questionType,
+    required List<String> options,
+    required String correctAnswer,
+  });
+
+  Future<QuizQuestionEntity> updateQuestion({
+    required int quizId,
+    required int questionId,
+    String? questionText,
+    String? questionType,
+    List<String>? options,
+    String? correctAnswer,
+  });
+
+  Future<void> deleteQuestion({required int quizId, required int questionId});
+
+  Future<void> reorderQuestions({
+    required int quizId,
+    required List<Map<String, int>> questionOrders,
+  });
+
+  // Quiz attempt operations
+  Future<QuizAttemptEntity> startQuizAttempt(int quizId);
+
+  Future<QuizAttemptEntity> submitQuizAttempt({
+    required int attemptId,
+    required List<Map<String, dynamic>> answers,
+  });
+
+  Future<List<QuizAttemptEntity>> getQuizAttempts(int quizId);
+
+  Future<QuizAttemptEntity> getQuizAttemptDetails(int attemptId);
+
+  // Publish operations
+  Future<void> requestPublish(int quizId, String? message);
+
+  Future<List<dynamic>> getPendingPublishRequests();
+
+  Future<void> approvePublishRequest(int requestId);
+
+  Future<void> rejectPublishRequest(int requestId);
 }

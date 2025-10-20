@@ -1,369 +1,169 @@
-import 'package:dartz/dartz.dart';
-import 'package:dio/dio.dart';
-import '../../../../core/error/failures.dart';
-import '../../domain/entities/flashcard_deck.dart';
-import '../../domain/entities/flashcard_card.dart';
-import '../../domain/entities/study_session.dart';
-import '../../domain/entities/flashcard_card_detail.dart';
-import '../../domain/entities/flashcard_stats.dart';
+import '../../domain/entities/flashcard_card_entity.dart';
+import '../../domain/entities/flashcard_deck_entity.dart';
+import '../../domain/entities/flashcard_exception.dart';
 import '../../domain/repositories/flashcard_repository.dart';
-import '../datasources/flashcard_remote_data_source.dart';
-import '../models/study_session_model.dart';
+import '../datasources/flashcard_remote_datasource.dart';
 
 class FlashcardRepositoryImpl implements FlashcardRepository {
   final FlashcardRemoteDataSource remoteDataSource;
 
-  FlashcardRepositoryImpl({required this.remoteDataSource});
+  FlashcardRepositoryImpl(this.remoteDataSource);
 
   @override
-  Future<Either<Failure, FlashcardDeck>> createDeck({
+  Future<List<FlashcardDeckEntity>> getAllDecks({
+    String? search,
+    int? limit,
+    int? offset,
+  }) async {
+    try {
+      final decks = await remoteDataSource.getAllDecks(
+        search: search,
+        limit: limit,
+        offset: offset,
+      );
+      return decks.map((deck) => deck.toEntity()).toList();
+    } on FlashcardException {
+      rethrow;
+    } catch (e) {
+      throw FlashcardException('Failed to get flashcard decks: $e');
+    }
+  }
+
+  @override
+  Future<FlashcardDeckEntity> getDeckById(int id) async {
+    try {
+      final deck = await remoteDataSource.getDeckById(id);
+      return deck.toEntity();
+    } on FlashcardException {
+      rethrow;
+    } catch (e) {
+      throw FlashcardException('Failed to get deck: $e');
+    }
+  }
+
+  @override
+  Future<FlashcardDeckEntity> createDeck({
     required String name,
     String? description,
-    required String sourceType,
-    int? sourceId,
-    bool? isPublic,
+    List<int>? kanjiIds,
   }) async {
     try {
       final deck = await remoteDataSource.createDeck(
         name: name,
         description: description,
-        sourceType: sourceType,
-        sourceId: sourceId,
-        isPublic: isPublic,
+        kanjiIds: kanjiIds,
       );
-      return Right(deck);
-    } on DioException catch (e) {
-      return Left(ServerFailure(e.response?.data['message'] ?? 'Server error'));
+      return deck.toEntity();
+    } on FlashcardException {
+      rethrow;
     } catch (e) {
-      return Left(ServerFailure(e.toString()));
+      throw FlashcardException('Failed to create deck: $e');
     }
   }
 
   @override
-  Future<Either<Failure, List<FlashcardDeck>>> getUserDecks() async {
-    try {
-      final decks = await remoteDataSource.getUserDecks();
-      return Right(decks);
-    } on DioException catch (e) {
-      return Left(ServerFailure(e.response?.data['message'] ?? 'Server error'));
-    } catch (e) {
-      return Left(ServerFailure(e.toString()));
-    }
-  }
-
-  @override
-  Future<Either<Failure, FlashcardDeck>> getDeckById(int deckId) async {
-    try {
-      final deck = await remoteDataSource.getDeckById(deckId);
-      return Right(deck);
-    } on DioException catch (e) {
-      return Left(ServerFailure(e.response?.data['message'] ?? 'Server error'));
-    } catch (e) {
-      return Left(ServerFailure(e.toString()));
-    }
-  }
-
-  @override
-  Future<Either<Failure, FlashcardCardDetail>> getCardDetail(int cardId) async {
-    try {
-      final detail = await remoteDataSource.getCardDetail(cardId);
-      return Right(detail);
-    } on DioException catch (e) {
-      return Left(ServerFailure(e.response?.data['message'] ?? 'Server error'));
-    } catch (e) {
-      return Left(ServerFailure(e.toString()));
-    }
-  }
-
-  @override
-  Future<Either<Failure, FlashcardDeck>> updateDeck({
-    required int deckId,
+  Future<FlashcardDeckEntity> updateDeck({
+    required int id,
     String? name,
     String? description,
     bool? isPublic,
   }) async {
     try {
       final deck = await remoteDataSource.updateDeck(
-        deckId: deckId,
+        id: id,
         name: name,
         description: description,
         isPublic: isPublic,
       );
-      return Right(deck);
-    } on DioException catch (e) {
-      return Left(ServerFailure(e.response?.data['message'] ?? 'Server error'));
+      return deck.toEntity();
+    } on FlashcardException {
+      rethrow;
     } catch (e) {
-      return Left(ServerFailure(e.toString()));
+      throw FlashcardException('Failed to update deck: $e');
     }
   }
 
   @override
-  Future<Either<Failure, void>> deleteDeck(int deckId) async {
+  Future<void> deleteDeck(int id) async {
     try {
-      await remoteDataSource.deleteDeck(deckId);
-      return const Right(null);
-    } on DioException catch (e) {
-      return Left(ServerFailure(e.response?.data['message'] ?? 'Server error'));
+      await remoteDataSource.deleteDeck(id);
+    } on FlashcardException {
+      rethrow;
     } catch (e) {
-      return Left(ServerFailure(e.toString()));
+      throw FlashcardException('Failed to delete deck: $e');
     }
   }
 
   @override
-  Future<Either<Failure, FlashcardCard>> addCardToDeck({
+  Future<FlashcardCardEntity> addCard({
     required int deckId,
     required int kanjiId,
   }) async {
     try {
-      final card = await remoteDataSource.addCardToDeck(
+      final card = await remoteDataSource.addCard(
         deckId: deckId,
         kanjiId: kanjiId,
       );
-      return Right(card);
-    } on DioException catch (e) {
-      return Left(ServerFailure(e.response?.data['message'] ?? 'Server error'));
+      return card.toEntity();
+    } on FlashcardException {
+      rethrow;
     } catch (e) {
-      return Left(ServerFailure(e.toString()));
+      throw FlashcardException('Failed to add card: $e');
     }
   }
 
   @override
-  Future<Either<Failure, void>> removeCardFromDeck(int cardId) async {
+  Future<void> removeCard({required int deckId, required int kanjiId}) async {
     try {
-      await remoteDataSource.removeCardFromDeck(cardId);
-      return const Right(null);
-    } on DioException catch (e) {
-      return Left(ServerFailure(e.response?.data['message'] ?? 'Server error'));
+      await remoteDataSource.removeCard(deckId: deckId, kanjiId: kanjiId);
+    } on FlashcardException {
+      rethrow;
     } catch (e) {
-      return Left(ServerFailure(e.toString()));
+      throw FlashcardException('Failed to remove card: $e');
     }
   }
 
   @override
-  Future<Either<Failure, void>> bulkAddCards({
-    required int deckId,
-    required List<int> kanjiIds,
-  }) async {
+  Future<void> requestPublish(int deckId) async {
     try {
-      await remoteDataSource.bulkAddCards(deckId: deckId, kanjiIds: kanjiIds);
-      return const Right(null);
-    } on DioException catch (e) {
-      return Left(ServerFailure(e.response?.data['message'] ?? 'Server error'));
+      await remoteDataSource.requestPublish(deckId);
+    } on FlashcardException {
+      rethrow;
     } catch (e) {
-      return Left(ServerFailure(e.toString()));
+      throw FlashcardException('Failed to request publish: $e');
     }
   }
 
   @override
-  Future<Either<Failure, void>> reorderCards({
-    required int deckId,
-    required List<int> cardIds,
-  }) async {
+  Future<List<dynamic>> getPublishRequests({String? status}) async {
     try {
-      await remoteDataSource.reorderCards(deckId: deckId, cardIds: cardIds);
-      return const Right(null);
-    } on DioException catch (e) {
-      return Left(ServerFailure(e.response?.data['message'] ?? 'Server error'));
+      return await remoteDataSource.getPublishRequests(status: status);
+    } on FlashcardException {
+      rethrow;
     } catch (e) {
-      return Left(ServerFailure(e.toString()));
+      throw FlashcardException('Failed to get publish requests: $e');
     }
   }
 
   @override
-  Future<Either<Failure, StudySession>> startStudySession({
-    required int deckId,
-    int? maxCards,
-    String? mode,
-    bool? randomize,
-    bool? includeNew,
-    bool? includeDue,
-    bool? includeHard,
-    int? difficultyThreshold,
-    bool? resumeExisting,
-  }) async {
+  Future<void> approvePublishRequest(int requestId) async {
     try {
-      final session = await remoteDataSource.startStudySession(
-        deckId: deckId,
-        maxCards: maxCards,
-        mode: mode,
-        randomize: randomize,
-        includeNew: includeNew,
-        includeDue: includeDue,
-        includeHard: includeHard,
-        difficultyThreshold: difficultyThreshold,
-        resumeExisting: resumeExisting,
-      );
-      return Right(session);
-    } on DioException catch (e) {
-      return Left(ServerFailure(e.response?.data['message'] ?? 'Server error'));
+      await remoteDataSource.approvePublishRequest(requestId);
+    } on FlashcardException {
+      rethrow;
     } catch (e) {
-      return Left(ServerFailure(e.toString()));
+      throw FlashcardException('Failed to approve publish request: $e');
     }
   }
 
   @override
-  Future<Either<Failure, Map<String, dynamic>>> reviewCard({
-    required int sessionId,
-    required int cardId,
-    required int rating,
-    required int timeSpent,
-  }) async {
+  Future<void> rejectPublishRequest(int requestId, String? reason) async {
     try {
-      final result = await remoteDataSource.reviewCard(
-        sessionId: sessionId,
-        cardId: cardId,
-        rating: rating,
-        timeSpent: timeSpent,
-      );
-      return Right(result);
-    } on DioException catch (e) {
-      return Left(ServerFailure(e.response?.data['message'] ?? 'Server error'));
+      await remoteDataSource.rejectPublishRequest(requestId, reason);
+    } on FlashcardException {
+      rethrow;
     } catch (e) {
-      return Left(ServerFailure(e.toString()));
-    }
-  }
-
-  @override
-  Future<Either<Failure, StudySession>> completeSession(int sessionId) async {
-    try {
-      final session = await remoteDataSource.completeSession(sessionId);
-      return Right(session);
-    } on DioException catch (e) {
-      return Left(ServerFailure(e.response?.data['message'] ?? 'Server error'));
-    } catch (e) {
-      return Left(ServerFailure(e.toString()));
-    }
-  }
-
-  @override
-  Future<Either<Failure, List<StudySession>>> getStudyHistory({
-    int? deckId,
-  }) async {
-    try {
-      final historyPayload = await remoteDataSource.getStudyHistory(
-        deckId: deckId,
-      );
-
-      final history = historyPayload
-          .whereType<Map<String, dynamic>>()
-          .map(_mapHistoryEntry)
-          .toList();
-
-      return Right(history);
-    } on DioException catch (e) {
-      return Left(ServerFailure(e.response?.data['message'] ?? 'Server error'));
-    } catch (e) {
-      return Left(ServerFailure(e.toString()));
-    }
-  }
-
-  @override
-  Future<Either<Failure, StudySession>> pauseSession(int sessionId) async {
-    try {
-      final session = await remoteDataSource.pauseSession(sessionId);
-      return Right(session);
-    } on DioException catch (e) {
-      return Left(ServerFailure(e.response?.data['message'] ?? 'Server error'));
-    } catch (e) {
-      return Left(ServerFailure(e.toString()));
-    }
-  }
-
-  @override
-  Future<Either<Failure, StudySession>> resumeSession(int sessionId) async {
-    try {
-      final session = await remoteDataSource.resumeSession(sessionId);
-      return Right(session);
-    } on DioException catch (e) {
-      return Left(ServerFailure(e.response?.data['message'] ?? 'Server error'));
-    } catch (e) {
-      return Left(ServerFailure(e.toString()));
-    }
-  }
-
-  @override
-  Future<Either<Failure, StudySession>> getSessionDetail(int sessionId) async {
-    try {
-      final session = await remoteDataSource.getSessionDetail(sessionId);
-      return Right(session);
-    } on DioException catch (e) {
-      return Left(ServerFailure(e.response?.data['message'] ?? 'Server error'));
-    } catch (e) {
-      return Left(ServerFailure(e.toString()));
-    }
-  }
-
-  @override
-  Future<Either<Failure, List<StudySession>>> getActiveSessions({
-    int? deckId,
-  }) async {
-    try {
-      final sessions = await remoteDataSource.getActiveSessions(deckId: deckId);
-      return Right(sessions);
-    } on DioException catch (e) {
-      return Left(ServerFailure(e.response?.data['message'] ?? 'Server error'));
-    } catch (e) {
-      return Left(ServerFailure(e.toString()));
-    }
-  }
-
-  StudySessionModel _mapHistoryEntry(Map<String, dynamic> entry) {
-    final stats = entry['stats'] as Map<String, dynamic>?;
-    final meta = StudySessionMeta(
-      totalCards: (stats?['cardsStudied'] as num?)?.toInt() ?? 0,
-      reviewed: (stats?['cardsStudied'] as num?)?.toInt() ?? 0,
-      remaining: 0,
-      progress: 1,
-    );
-
-    final createAt = _parseDate(entry['startedAt']);
-    final completedAt = _parseDate(entry['completedAt']);
-    final resolvedCreateAt = createAt ?? DateTime.now().toUtc();
-    final resolvedCompletedAt = completedAt ?? resolvedCreateAt;
-
-    final sessionData = {
-      'id': entry['id'] ?? -1,
-      'deck_id': (entry['deck'] as Map<String, dynamic>?)?['id'] ?? -1,
-      'user_id': entry['user_id'] ?? -1,
-      'cards_studied': (stats?['cardsStudied'] as num?)?.toInt() ?? 0,
-      'cards_correct': (stats?['cardsCorrect'] as num?)?.toInt() ?? 0,
-      'cards_wrong': (stats?['cardsWrong'] as num?)?.toInt() ?? 0,
-      'total_time': (stats?['totalTime'] as num?)?.toInt() ?? 0,
-      'completed': true,
-      'status': 'COMPLETED',
-      'cards_total': meta.totalCards,
-      'current_index': meta.totalCards,
-      'card_order': const <int>[],
-      'create_at': resolvedCreateAt.toIso8601String(),
-      'update_at': resolvedCompletedAt.toIso8601String(),
-      'completed_at': resolvedCompletedAt.toIso8601String(),
-      'meta': {
-        'totalCards': meta.totalCards,
-        'reviewed': meta.reviewed,
-        'remaining': meta.remaining,
-        'progress': meta.progress,
-      },
-    };
-
-    return StudySessionModel.fromJson(sessionData);
-  }
-
-  DateTime? _parseDate(dynamic value) {
-    if (value is String) {
-      return DateTime.tryParse(value);
-    }
-    return null;
-  }
-
-  @override
-  Future<Either<Failure, FlashcardStats>> getStats({int? deckId}) async {
-    try {
-      final stats = await remoteDataSource.getStats(deckId: deckId);
-      return Right(stats);
-    } on DioException catch (e) {
-      return Left(ServerFailure(e.response?.data['message'] ?? 'Server error'));
-    } catch (e) {
-      return Left(ServerFailure(e.toString()));
+      throw FlashcardException('Failed to reject publish request: $e');
     }
   }
 }

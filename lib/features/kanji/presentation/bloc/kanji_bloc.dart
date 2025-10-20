@@ -1,158 +1,100 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../domain/entities/kanji_exception.dart';
+import '../../domain/usecases/create_kanji_usecase.dart';
+import '../../domain/usecases/delete_kanji_usecase.dart';
+import '../../domain/usecases/get_kanji_by_character_usecase.dart';
+import '../../domain/usecases/get_kanji_by_id_usecase.dart';
+import '../../domain/usecases/get_kanji_list_usecase.dart';
+import '../../domain/usecases/update_kanji_usecase.dart';
 import 'kanji_event.dart';
 import 'kanji_state.dart';
-import '../../domain/usecases/get_all_kanji.dart';
-import '../../domain/usecases/get_kanji_by_id.dart';
-import '../../domain/usecases/get_kanji_by_character.dart';
-import '../../domain/usecases/create_kanji.dart';
-import '../../domain/usecases/update_kanji.dart';
-import '../../domain/usecases/delete_kanji.dart';
 
 class KanjiBloc extends Bloc<KanjiEvent, KanjiState> {
-  final GetAllKanji getAllKanjiUseCase;
-  final GetKanjiById getKanjiByIdUseCase;
-  final GetKanjiByCharacter getKanjiByCharacterUseCase;
-  final CreateKanji createKanjiUseCase;
-  final UpdateKanji updateKanjiUseCase;
-  final DeleteKanji deleteKanjiUseCase;
+  final GetKanjiListUseCase getKanjiListUseCase;
+  final GetKanjiByIdUseCase getKanjiByIdUseCase;
+  final GetKanjiByCharacterUseCase getKanjiByCharacterUseCase;
+  final CreateKanjiUseCase createKanjiUseCase;
+  final UpdateKanjiUseCase updateKanjiUseCase;
+  final DeleteKanjiUseCase deleteKanjiUseCase;
 
   KanjiBloc({
-    required this.getAllKanjiUseCase,
+    required this.getKanjiListUseCase,
     required this.getKanjiByIdUseCase,
     required this.getKanjiByCharacterUseCase,
     required this.createKanjiUseCase,
     required this.updateKanjiUseCase,
     required this.deleteKanjiUseCase,
-  }) : super(const KanjiInitial()) {
-    on<LoadAllKanjiEvent>(_onLoadAllKanji);
+  }) : super(KanjiInitial()) {
+    on<LoadKanjiListEvent>(_onLoadKanjiList);
     on<LoadKanjiByIdEvent>(_onLoadKanjiById);
     on<LoadKanjiByCharacterEvent>(_onLoadKanjiByCharacter);
-    on<FilterKanjiByJlptEvent>(_onFilterByJlpt);
-    on<FilterKanjiByGradeEvent>(_onFilterByGrade);
-    on<SearchKanjiEvent>(_onSearchKanji);
     on<CreateKanjiEvent>(_onCreateKanji);
     on<UpdateKanjiEvent>(_onUpdateKanji);
     on<DeleteKanjiEvent>(_onDeleteKanji);
+    on<RefreshKanjiListEvent>(_onRefreshKanjiList);
   }
 
-  Future<void> _onLoadAllKanji(
-    LoadAllKanjiEvent event,
+  Future<void> _onLoadKanjiList(
+    LoadKanjiListEvent event,
     Emitter<KanjiState> emit,
   ) async {
-    emit(const KanjiLoading());
+    emit(KanjiLoading());
 
-    final result = await getAllKanjiUseCase.call();
+    try {
+      final kanjiList = await getKanjiListUseCase(
+        page: event.page,
+        limit: event.limit,
+        jlptLevel: event.jlptLevel,
+        grade: event.grade,
+        search: event.search,
+      );
 
-    await result.fold(
-      (failure) async {
-        emit(KanjiError(failure.message));
-      },
-      (kanjiList) async {
-        emit(KanjiListLoaded(kanjiList: kanjiList, filteredList: kanjiList));
-      },
-    );
+      emit(
+        KanjiListLoaded(
+          kanjiList: kanjiList,
+          currentPage: event.page,
+          hasMore: kanjiList.length >= event.limit,
+          appliedJlptFilter: event.jlptLevel,
+          appliedGradeFilter: event.grade,
+          appliedSearch: event.search,
+        ),
+      );
+    } on KanjiException catch (e) {
+      emit(KanjiError(e.message));
+    } catch (e) {
+      emit(KanjiError('Failed to load kanji list'));
+    }
   }
 
   Future<void> _onLoadKanjiById(
     LoadKanjiByIdEvent event,
     Emitter<KanjiState> emit,
   ) async {
-    emit(const KanjiLoading());
+    emit(KanjiLoading());
 
-    final result = await getKanjiByIdUseCase.call(event.id);
-
-    await result.fold(
-      (failure) async {
-        emit(KanjiError(failure.message));
-      },
-      (kanji) async {
-        emit(KanjiDetailLoaded(kanji));
-      },
-    );
+    try {
+      final kanji = await getKanjiByIdUseCase(event.id);
+      emit(KanjiDetailLoaded(kanji));
+    } on KanjiException catch (e) {
+      emit(KanjiError(e.message));
+    } catch (e) {
+      emit(KanjiError('Failed to load kanji'));
+    }
   }
 
   Future<void> _onLoadKanjiByCharacter(
     LoadKanjiByCharacterEvent event,
     Emitter<KanjiState> emit,
   ) async {
-    emit(const KanjiLoading());
+    emit(KanjiLoading());
 
-    final result = await getKanjiByCharacterUseCase.call(event.character);
-
-    await result.fold(
-      (failure) async {
-        emit(KanjiError(failure.message));
-      },
-      (kanji) async {
-        emit(KanjiDetailLoaded(kanji));
-      },
-    );
-  }
-
-  Future<void> _onFilterByJlpt(
-    FilterKanjiByJlptEvent event,
-    Emitter<KanjiState> emit,
-  ) async {
-    if (state is KanjiListLoaded) {
-      final currentState = state as KanjiListLoaded;
-      final filtered = currentState.kanjiList
-          .where((k) => k.jlpt == event.level)
-          .toList();
-
-      emit(
-        currentState.copyWith(
-          filteredList: filtered,
-          filterType: 'jlpt_${event.level}',
-        ),
-      );
-    }
-  }
-
-  Future<void> _onFilterByGrade(
-    FilterKanjiByGradeEvent event,
-    Emitter<KanjiState> emit,
-  ) async {
-    if (state is KanjiListLoaded) {
-      final currentState = state as KanjiListLoaded;
-      final filtered = currentState.kanjiList
-          .where((k) => k.grade == event.grade)
-          .toList();
-
-      emit(
-        currentState.copyWith(
-          filteredList: filtered,
-          filterType: 'grade_${event.grade}',
-        ),
-      );
-    }
-  }
-
-  Future<void> _onSearchKanji(
-    SearchKanjiEvent event,
-    Emitter<KanjiState> emit,
-  ) async {
-    if (state is KanjiListLoaded) {
-      final currentState = state as KanjiListLoaded;
-
-      if (event.query.isEmpty) {
-        emit(
-          currentState.copyWith(
-            filteredList: currentState.kanjiList,
-            filterType: null,
-          ),
-        );
-        return;
-      }
-
-      final query = event.query.toLowerCase();
-      final filtered = currentState.kanjiList.where((k) {
-        return k.character.contains(event.query) ||
-            k.meanings.toLowerCase().contains(query) ||
-            (k.onyomi?.toLowerCase().contains(query) ?? false) ||
-            (k.kunyomi?.toLowerCase().contains(query) ?? false);
-      }).toList();
-
-      emit(currentState.copyWith(filteredList: filtered, filterType: 'search'));
+    try {
+      final kanji = await getKanjiByCharacterUseCase(event.character);
+      emit(KanjiDetailLoaded(kanji));
+    } on KanjiException catch (e) {
+      emit(KanjiError(e.message));
+    } catch (e) {
+      emit(KanjiError('Failed to load kanji'));
     }
   }
 
@@ -160,135 +102,55 @@ class KanjiBloc extends Bloc<KanjiEvent, KanjiState> {
     CreateKanjiEvent event,
     Emitter<KanjiState> emit,
   ) async {
-    // Store previous state to update list optimistically
-    final previousState = state;
+    emit(KanjiLoading());
 
-    // Only show loading if we don't have data yet
-    if (previousState is! KanjiListLoaded) {
-      emit(const KanjiLoading());
+    try {
+      final kanji = await createKanjiUseCase(event.kanjiData);
+      emit(KanjiCreated(kanji));
+    } on KanjiException catch (e) {
+      emit(KanjiError(e.message));
+    } catch (e) {
+      emit(KanjiError('Failed to create kanji'));
     }
-
-    final result = await createKanjiUseCase(event.params);
-
-    await result.fold(
-      (failure) async {
-        emit(KanjiError(failure.message));
-      },
-      (kanji) async {
-        // If we have existing list, add new kanji to it instead of reloading
-        if (previousState is KanjiListLoaded) {
-          final updatedList = [kanji, ...previousState.kanjiList];
-          emit(
-            KanjiListLoaded(
-              kanjiList: updatedList,
-              filteredList: updatedList,
-              successMessage: 'Kanji created successfully',
-            ),
-          );
-        } else {
-          emit(
-            KanjiOperationSuccess('Kanji created successfully', kanji: kanji),
-          );
-        }
-      },
-    );
   }
 
   Future<void> _onUpdateKanji(
     UpdateKanjiEvent event,
     Emitter<KanjiState> emit,
   ) async {
-    // Store previous state to update list optimistically
-    final previousState = state;
+    emit(KanjiLoading());
 
-    // Only show loading if we don't have data yet
-    if (previousState is! KanjiListLoaded) {
-      emit(const KanjiLoading());
+    try {
+      final kanji = await updateKanjiUseCase(event.id, event.kanjiData);
+      emit(KanjiUpdated(kanji));
+    } on KanjiException catch (e) {
+      emit(KanjiError(e.message));
+    } catch (e) {
+      emit(KanjiError('Failed to update kanji'));
     }
-
-    final result = await updateKanjiUseCase(event.params);
-
-    await result.fold(
-      (failure) async {
-        emit(KanjiError(failure.message));
-      },
-      (updatedKanji) async {
-        // If we have existing list, update the kanji in place
-        if (previousState is KanjiListLoaded) {
-          final updatedList = previousState.kanjiList.map((kanji) {
-            return kanji.id == updatedKanji.id ? updatedKanji : kanji;
-          }).toList();
-
-          final updatedFilteredList = previousState.filteredList.map((kanji) {
-            return kanji.id == updatedKanji.id ? updatedKanji : kanji;
-          }).toList();
-
-          emit(
-            KanjiListLoaded(
-              kanjiList: updatedList,
-              filteredList: updatedFilteredList,
-              filterType: previousState.filterType,
-              successMessage: 'Kanji updated successfully',
-            ),
-          );
-        } else {
-          emit(
-            KanjiOperationSuccess(
-              'Kanji updated successfully',
-              kanji: updatedKanji,
-            ),
-          );
-        }
-      },
-    );
   }
 
   Future<void> _onDeleteKanji(
     DeleteKanjiEvent event,
     Emitter<KanjiState> emit,
   ) async {
-    // Store previous state to update list optimistically
-    final previousState = state;
+    emit(KanjiLoading());
 
-    // Only show loading if we don't have data yet
-    if (previousState is! KanjiListLoaded) {
-      emit(const KanjiLoading());
+    try {
+      await deleteKanjiUseCase(event.id);
+      emit(KanjiDeleted());
+    } on KanjiException catch (e) {
+      emit(KanjiError(e.message));
+    } catch (e) {
+      emit(KanjiError('Failed to delete kanji'));
     }
+  }
 
-    final result = await deleteKanjiUseCase(event.id);
-
-    await result.fold(
-      (failure) async {
-        emit(KanjiError(failure.message));
-      },
-      (deletedKanji) async {
-        // If we have existing list, remove the deleted kanji
-        if (previousState is KanjiListLoaded) {
-          final updatedList = previousState.kanjiList
-              .where((kanji) => kanji.id != event.id)
-              .toList();
-
-          final updatedFilteredList = previousState.filteredList
-              .where((kanji) => kanji.id != event.id)
-              .toList();
-
-          emit(
-            KanjiListLoaded(
-              kanjiList: updatedList,
-              filteredList: updatedFilteredList,
-              filterType: previousState.filterType,
-              successMessage: 'Kanji deleted successfully',
-            ),
-          );
-        } else {
-          emit(
-            KanjiOperationSuccess(
-              'Kanji deleted successfully',
-              kanji: deletedKanji,
-            ),
-          );
-        }
-      },
-    );
+  Future<void> _onRefreshKanjiList(
+    RefreshKanjiListEvent event,
+    Emitter<KanjiState> emit,
+  ) async {
+    // Reload with default parameters
+    add(LoadKanjiListEvent());
   }
 }

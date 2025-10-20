@@ -16,10 +16,17 @@ class KanjiDrawingPage extends StatefulWidget {
 
 class _KanjiDrawingPageState extends State<KanjiDrawingPage> {
   final List<DrawingPoint?> _points = [];
+  final List<List<DrawingPoint?>> _strokes = []; // Separate strokes for undo
+  final List<List<DrawingPoint?>> _undoneStrokes = []; // For redo
   final GlobalKey _canvasKey = GlobalKey();
+  bool _showGrid = true;
+  double _strokeWidth = 8.0;
 
   @override
   Widget build(BuildContext context) {
+    final canUndo = _strokes.isNotEmpty;
+    final canRedo = _undoneStrokes.isNotEmpty;
+
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(
@@ -28,6 +35,32 @@ class _KanjiDrawingPageState extends State<KanjiDrawingPage> {
         foregroundColor: Colors.white,
         elevation: 0,
         actions: [
+          // Undo button
+          IconButton(
+            icon: const Icon(Icons.undo),
+            onPressed: canUndo ? _undo : null,
+            tooltip: 'Undo',
+            color: canUndo ? Colors.white : Colors.grey[600],
+          ),
+          // Redo button
+          IconButton(
+            icon: const Icon(Icons.redo),
+            onPressed: canRedo ? _redo : null,
+            tooltip: 'Redo',
+            color: canRedo ? Colors.white : Colors.grey[600],
+          ),
+          // Grid toggle
+          IconButton(
+            icon: Icon(_showGrid ? Icons.grid_on : Icons.grid_off),
+            onPressed: () {
+              setState(() {
+                _showGrid = !_showGrid;
+              });
+            },
+            tooltip: 'Toggle Grid',
+            color: Colors.white,
+          ),
+          // Clear button
           IconButton(
             icon: const Icon(Icons.clear),
             onPressed: _clearCanvas,
@@ -52,40 +85,53 @@ class _KanjiDrawingPageState extends State<KanjiDrawingPage> {
                 key: _canvasKey,
                 child: GestureDetector(
                   onPanStart: (details) {
+                    final newStroke = <DrawingPoint?>[];
                     setState(() {
-                      _points.add(
-                        DrawingPoint(
-                          offset: details.localPosition,
-                          paint: Paint()
-                            ..color = Colors
-                                .white // Changed to white stroke
-                            ..strokeWidth = 8
-                            ..strokeCap = StrokeCap.round,
-                        ),
+                      final point = DrawingPoint(
+                        offset: details.localPosition,
+                        paint: Paint()
+                          ..color = Colors.white
+                          ..strokeWidth = _strokeWidth
+                          ..strokeCap = StrokeCap.round,
                       );
+                      _points.add(point);
+                      newStroke.add(point);
+                      _undoneStrokes.clear(); // Clear redo stack
                     });
                   },
                   onPanUpdate: (details) {
                     setState(() {
-                      _points.add(
-                        DrawingPoint(
-                          offset: details.localPosition,
-                          paint: Paint()
-                            ..color = Colors
-                                .white // Changed to white stroke
-                            ..strokeWidth = 8
-                            ..strokeCap = StrokeCap.round,
-                        ),
+                      final point = DrawingPoint(
+                        offset: details.localPosition,
+                        paint: Paint()
+                          ..color = Colors.white
+                          ..strokeWidth = _strokeWidth
+                          ..strokeCap = StrokeCap.round,
                       );
+                      _points.add(point);
+                      if (_strokes.isNotEmpty) {
+                        _strokes.last.add(point);
+                      }
                     });
                   },
                   onPanEnd: (details) {
                     setState(() {
                       _points.add(null); // Add null to separate strokes
+                      if (_strokes.isEmpty || _strokes.last.isNotEmpty) {
+                        // Only finalize if stroke has points
+                        final currentStroke = <DrawingPoint?>[];
+                        for (int i = _points.length - 1; i >= 0; i--) {
+                          if (_points[i] == null) break;
+                          currentStroke.insert(0, _points[i]);
+                        }
+                        if (currentStroke.isNotEmpty) {
+                          _strokes.add(currentStroke);
+                        }
+                      }
                     });
                   },
                   child: CustomPaint(
-                    painter: DrawingPainter(_points),
+                    painter: DrawingPainter(_points, showGrid: _showGrid),
                     size: Size.infinite,
                   ),
                 ),
@@ -96,19 +142,49 @@ class _KanjiDrawingPageState extends State<KanjiDrawingPage> {
           // Recognition button
           Padding(
             padding: const EdgeInsets.all(16.0),
-            child: SizedBox(
-              width: double.infinity,
-              child: ElevatedButton.icon(
-                onPressed: _points.isEmpty ? null : _recognizeKanji,
-                icon: const Icon(Icons.check_circle),
-                label: const Text('Recognize'),
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  backgroundColor: Colors.blue,
-                  foregroundColor: Colors.white,
-                  disabledBackgroundColor: Colors.grey[800],
+            child: Column(
+              children: [
+                // Stroke width slider
+                Row(
+                  children: [
+                    const Icon(Icons.brush, color: Colors.white, size: 20),
+                    Expanded(
+                      child: Slider(
+                        value: _strokeWidth,
+                        min: 4.0,
+                        max: 16.0,
+                        divisions: 6,
+                        label: 'Width: ${_strokeWidth.toInt()}',
+                        onChanged: (value) {
+                          setState(() {
+                            _strokeWidth = value;
+                          });
+                        },
+                      ),
+                    ),
+                    Text(
+                      '${_strokeWidth.toInt()}',
+                      style: const TextStyle(color: Colors.white),
+                    ),
+                  ],
                 ),
-              ),
+                const SizedBox(height: 8),
+                // Recognize button
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton.icon(
+                    onPressed: _points.isEmpty ? null : _recognizeKanji,
+                    icon: const Icon(Icons.check_circle),
+                    label: const Text('Recognize'),
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      backgroundColor: Colors.blue,
+                      foregroundColor: Colors.white,
+                      disabledBackgroundColor: Colors.grey[800],
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
 
@@ -256,8 +332,39 @@ class _KanjiDrawingPageState extends State<KanjiDrawingPage> {
   void _clearCanvas() {
     setState(() {
       _points.clear();
+      _strokes.clear();
+      _undoneStrokes.clear();
     });
     context.read<KanjiRecognitionBloc>().add(ClearRecognitionEvent());
+  }
+
+  void _undo() {
+    if (_strokes.isEmpty) return;
+
+    setState(() {
+      final lastStroke = _strokes.removeLast();
+      _undoneStrokes.add(lastStroke);
+
+      // Rebuild points list
+      _points.clear();
+      for (final stroke in _strokes) {
+        _points.addAll(stroke);
+        _points.add(null); // Separator
+      }
+    });
+  }
+
+  void _redo() {
+    if (_undoneStrokes.isEmpty) return;
+
+    setState(() {
+      final stroke = _undoneStrokes.removeLast();
+      _strokes.add(stroke);
+
+      // Add stroke back to points
+      _points.addAll(stroke);
+      _points.add(null); // Separator
+    });
   }
 
   Future<void> _recognizeKanji() async {
@@ -300,11 +407,43 @@ class DrawingPoint {
 // Custom painter for drawing
 class DrawingPainter extends CustomPainter {
   final List<DrawingPoint?> points;
+  final bool showGrid;
 
-  DrawingPainter(this.points);
+  DrawingPainter(this.points, {this.showGrid = true});
 
   @override
   void paint(Canvas canvas, Size size) {
+    // Draw grid if enabled
+    if (showGrid) {
+      final gridPaint = Paint()
+        ..color = Colors.grey[800]!
+        ..strokeWidth = 1;
+
+      // Draw center cross
+      canvas.drawLine(
+        Offset(size.width / 2, 0),
+        Offset(size.width / 2, size.height),
+        gridPaint,
+      );
+      canvas.drawLine(
+        Offset(0, size.height / 2),
+        Offset(size.width, size.height / 2),
+        gridPaint,
+      );
+
+      // Draw border
+      final borderPaint = Paint()
+        ..color = Colors.grey[700]!
+        ..strokeWidth = 2
+        ..style = PaintingStyle.stroke;
+
+      canvas.drawRect(
+        Rect.fromLTWH(0, 0, size.width, size.height),
+        borderPaint,
+      );
+    }
+
+    // Draw strokes
     for (int i = 0; i < points.length - 1; i++) {
       if (points[i] != null && points[i + 1] != null) {
         canvas.drawLine(

@@ -1,87 +1,50 @@
-import 'package:equatable/equatable.dart';
-import '../../domain/usecases/create_kanji.dart';
-import '../../domain/usecases/update_kanji.dart';
+abstract class KanjiEvent {}
 
-abstract class KanjiEvent extends Equatable {
-  const KanjiEvent();
+class LoadKanjiListEvent extends KanjiEvent {
+  final int page;
+  final int limit;
+  final String? jlptLevel;
+  final int? grade;
+  final String? search;
 
-  @override
-  List<Object?> get props => [];
-}
-
-class LoadAllKanjiEvent extends KanjiEvent {
-  const LoadAllKanjiEvent();
+  LoadKanjiListEvent({
+    this.page = 1,
+    this.limit = 50,
+    this.jlptLevel,
+    this.grade,
+    this.search,
+  });
 }
 
 class LoadKanjiByIdEvent extends KanjiEvent {
   final int id;
 
-  const LoadKanjiByIdEvent(this.id);
-
-  @override
-  List<Object?> get props => [id];
+  LoadKanjiByIdEvent(this.id);
 }
 
 class LoadKanjiByCharacterEvent extends KanjiEvent {
   final String character;
 
-  const LoadKanjiByCharacterEvent(this.character);
-
-  @override
-  List<Object?> get props => [character];
+  LoadKanjiByCharacterEvent(this.character);
 }
 
-class FilterKanjiByJlptEvent extends KanjiEvent {
-  final int level;
-
-  const FilterKanjiByJlptEvent(this.level);
-
-  @override
-  List<Object?> get props => [level];
-}
-
-class FilterKanjiByGradeEvent extends KanjiEvent {
-  final int grade;
-
-  const FilterKanjiByGradeEvent(this.grade);
-
-  @override
-  List<Object?> get props => [grade];
-}
-
-class SearchKanjiEvent extends KanjiEvent {
-  final String query;
-
-  const SearchKanjiEvent(this.query);
-
-  @override
-  List<Object?> get props => [query];
-}
-
-// Admin CRUD Events
 class CreateKanjiEvent extends KanjiEvent {
-  final CreateKanjiParams params;
+  final Map<String, dynamic> kanjiData;
 
-  const CreateKanjiEvent(this.params);
-
-  @override
-  List<Object?> get props => [params];
+  CreateKanjiEvent(this.kanjiData);
 }
 
 class UpdateKanjiEvent extends KanjiEvent {
-  final UpdateKanjiParams params;
+  final int id;
+  final Map<String, dynamic> kanjiData;
 
-  const UpdateKanjiEvent(this.params);
-
-  @override
-  List<Object?> get props => [params];
+  UpdateKanjiEvent(this.id, this.kanjiData);
 }
 
 class DeleteKanjiEvent extends KanjiEvent {
   final int id;
 
-  const DeleteKanjiEvent(this.id);
-
-  @override
-  List<Object?> get props => [id];
+  DeleteKanjiEvent(this.id);
 }
+
+class RefreshKanjiListEvent extends KanjiEvent {}
