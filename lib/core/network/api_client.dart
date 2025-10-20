@@ -46,7 +46,7 @@ class ApiClient {
   }
 
   // POST request
-  Future<Response> post(String path, dynamic data) async {
+  Future<Response> post(String path, {dynamic data}) async {
     try {
       return await dio.post(path, data: data);
     } on DioException catch (e) {
@@ -67,7 +67,7 @@ class ApiClient {
   }
 
   // PUT request
-  Future<Response> put(String path, Map<String, dynamic> data) async {
+  Future<Response> put(String path, {dynamic data}) async {
     try {
       return await dio.put(path, data: data);
     } on DioException catch (e) {
@@ -85,7 +85,7 @@ class ApiClient {
   }
 
   // PATCH request
-  Future<Response> patch(String path, dynamic data) async {
+  Future<Response> patch(String path, {dynamic data}) async {
     try {
       return await dio.patch(path, data: data);
     } on DioException catch (e) {

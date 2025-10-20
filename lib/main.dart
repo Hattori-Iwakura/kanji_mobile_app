@@ -24,22 +24,59 @@ import 'features/kanji_recognition/presentation/pages/kanji_drawing_page.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Load environment variables
-  await dotenv.load(fileName: ".env");
+  try {
+    // Load environment variables
+    await dotenv.load(fileName: ".env");
 
-  // Print config in debug mode
-  if (const bool.fromEnvironment('dart.vm.product') == false) {
-    print('Environment loaded successfully');
-    EnvConfig.printConfig();
+    // Print config in debug mode
+    if (const bool.fromEnvironment('dart.vm.product') == false) {
+      print('Environment loaded successfully');
+      EnvConfig.printConfig();
+    }
+
+    await di.init();
+
+    runApp(
+      ChangeNotifierProvider(
+        create: (_) => ThemeProvider(),
+        child: const MyApp(),
+      ),
+    );
+  } catch (e, stackTrace) {
+    print('❌ FATAL ERROR during app initialization:');
+    print('Error: $e');
+    print('Stack trace: $stackTrace');
+
+    // Show error screen
+    runApp(
+      MaterialApp(
+        home: Scaffold(
+          body: Center(
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.error, size: 64, color: Colors.red),
+                  const SizedBox(height: 16),
+                  const Text(
+                    'App Initialization Failed',
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    e.toString(),
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(color: Colors.red),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
   }
-
-  await di.init();
-  runApp(
-    ChangeNotifierProvider(
-      create: (_) => ThemeProvider(),
-      child: const MyApp(),
-    ),
-  );
 }
 
 class MyApp extends StatelessWidget {

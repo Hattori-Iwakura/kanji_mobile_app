@@ -1,6 +1,6 @@
 import 'package:dartz/dartz.dart';
 import '../../../../core/error/failures.dart';
-import '../../models/kanji_recognition_result.dart';
+import '../../domain/entities/kanji_recognition_result.dart';
 import '../../domain/repositories/kanji_recognition_repository.dart';
 import '../datasources/kanji_recognition_remote_datasource.dart';
 

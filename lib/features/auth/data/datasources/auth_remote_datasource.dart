@@ -25,10 +25,13 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     required String password,
   }) async {
     try {
-      final response = await _apiClient.post(ApiEndpoints.login, {
-        'account': email, // Backend expects 'account' field, not 'email'
-        'password': password,
-      });
+      final response = await _apiClient.post(
+        ApiEndpoints.login,
+        data: {
+          'account': email, // Backend expects 'account' field, not 'email'
+          'password': password,
+        },
+      );
 
       // Backend wraps response: { statusCode, data: { user, accessToken }, timestamp }
       final data = response.data['data'] ?? response.data;
@@ -48,11 +51,10 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     required String password,
   }) async {
     try {
-      final response = await _apiClient.post(ApiEndpoints.register, {
-        'email': email,
-        'username': username,
-        'password': password,
-      });
+      final response = await _apiClient.post(
+        ApiEndpoints.register,
+        data: {'email': email, 'username': username, 'password': password},
+      );
 
       // Backend wraps response: { statusCode, data: { user, accessToken }, timestamp }
       final data = response.data['data'] ?? response.data;

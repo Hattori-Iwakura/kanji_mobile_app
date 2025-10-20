@@ -22,10 +22,10 @@ class AuthRepositoryImpl implements AuthRepository {
     required String password,
   }) async {
     try {
-      final response = await apiClient.post('/auth/login', {
-        'account': email,
-        'password': password,
-      });
+      final response = await apiClient.post(
+        '/auth/login',
+        data: {'account': email, 'password': password},
+      );
 
       final data = response.data['data'] ?? response.data;
       final token = data['accessToken'] as String;
@@ -57,11 +57,10 @@ class AuthRepositoryImpl implements AuthRepository {
     required String password,
   }) async {
     try {
-      final response = await apiClient.post('/auth/register', {
-        'email': email,
-        'username': username,
-        'password': password,
-      });
+      final response = await apiClient.post(
+        '/auth/register',
+        data: {'email': email, 'username': username, 'password': password},
+      );
 
       final data = response.data['data'] ?? response.data;
       final token = data['accessToken'] as String;

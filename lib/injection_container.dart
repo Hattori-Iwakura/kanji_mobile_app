@@ -46,6 +46,21 @@ import 'features/flashcard/data/repositories/flashcard_repository_impl.dart';
 // Presentation
 import 'features/flashcard/presentation/bloc/flashcard_bloc.dart';
 
+// ==================== Features - Kanji (Clean Architecture) ====================
+// Domain
+import 'features/kanji/domain/repositories/kanji_repository.dart';
+import 'features/kanji/domain/usecases/create_kanji_usecase.dart';
+import 'features/kanji/domain/usecases/delete_kanji_usecase.dart';
+import 'features/kanji/domain/usecases/get_kanji_list_usecase.dart';
+import 'features/kanji/domain/usecases/get_kanji_by_character_usecase.dart';
+import 'features/kanji/domain/usecases/get_kanji_by_id_usecase.dart';
+import 'features/kanji/domain/usecases/update_kanji_usecase.dart';
+// Data
+import 'features/kanji/data/datasources/kanji_remote_datasource.dart';
+import 'features/kanji/data/repositories/kanji_repository_impl.dart';
+// Presentation
+import 'features/kanji/presentation/bloc/kanji_bloc.dart';
+
 // ==================== Features - Kanji List (Clean Architecture) ====================
 // Domain
 import 'features/kanji_list/domain/repositories/kanji_list_repository.dart';
@@ -162,6 +177,38 @@ Future<void> init() async {
   );
   sl.registerLazySingleton<AuthLocalDataSource>(
     () => AuthLocalDataSourceImpl(sl()),
+  );
+
+  // ==================== Features - Kanji (Clean Architecture) ====================
+
+  // BLoC
+  sl.registerFactory(
+    () => KanjiBloc(
+      getKanjiListUseCase: sl(),
+      getKanjiByIdUseCase: sl(),
+      getKanjiByCharacterUseCase: sl(),
+      createKanjiUseCase: sl(),
+      updateKanjiUseCase: sl(),
+      deleteKanjiUseCase: sl(),
+    ),
+  );
+
+  // Use cases
+  sl.registerLazySingleton(() => GetKanjiListUseCase(sl()));
+  sl.registerLazySingleton(() => GetKanjiByIdUseCase(sl()));
+  sl.registerLazySingleton(() => GetKanjiByCharacterUseCase(sl()));
+  sl.registerLazySingleton(() => CreateKanjiUseCase(sl()));
+  sl.registerLazySingleton(() => UpdateKanjiUseCase(sl()));
+  sl.registerLazySingleton(() => DeleteKanjiUseCase(sl()));
+
+  // Repository
+  sl.registerLazySingleton<KanjiRepository>(
+    () => KanjiRepositoryImpl(remoteDataSource: sl()),
+  );
+
+  // Data sources
+  sl.registerLazySingleton<KanjiRemoteDataSource>(
+    () => KanjiRemoteDataSourceImpl(sl()),
   );
 
   // ==================== Features - Flashcard (Clean Architecture) ====================

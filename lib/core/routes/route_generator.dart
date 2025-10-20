@@ -1,23 +1,25 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../features/auth/pages/login_page.dart';
-import '../../features/auth/pages/register_page.dart';
-import '../../features/auth/pages/profile_page.dart';
+import '../../features/auth/presentation/pages/login_page.dart';
+import '../../features/auth/presentation/pages/register_page.dart';
+import '../../features/auth/presentation/pages/profile_page.dart';
 import '../../features/home/pages/home_page.dart';
-import '../../features/kanji/pages/kanji_dictionary_page.dart';
-import '../../features/kanji/pages/kanji_detail_page.dart';
-import '../../features/kanji/pages/kanji_search_page.dart';
-import '../../features/kanji_list/pages/kanji_lists_page.dart';
-import '../../features/kanji_list/pages/kanji_list_detail_page.dart';
-import '../../features/flashcard/pages/deck_list_page.dart';
-import '../../features/flashcard/pages/deck_detail_page.dart';
-import '../../features/quiz/pages/quiz_list_page.dart';
-import '../../features/quiz/pages/quiz_session_page.dart';
-import '../../features/admin/pages/admin_dashboard_page.dart';
-import '../../features/admin/pages/admin_users_page.dart';
-import '../../features/admin/pages/admin_kanji_page.dart';
-import '../../features/admin/pages/admin_quizzes_page.dart';
-import '../../features/kanji/bloc/kanji_bloc.dart';
+import '../../features/kanji/presentation/pages/kanji_dictionary_page.dart';
+import '../../features/kanji/presentation/pages/kanji_detail_page.dart';
+import '../../features/kanji/presentation/pages/kanji_search_page.dart';
+import '../../features/kanji_list/presentation/pages/kanji_lists_page.dart';
+import '../../features/kanji_list/presentation/pages/kanji_list_detail_page.dart';
+import '../../features/flashcard/presentation/pages/deck_list_page.dart';
+import '../../features/flashcard/presentation/pages/deck_detail_page.dart';
+import '../../features/quiz/presentation/pages/quiz_list_page.dart';
+// TODO: Fix quiz_session_page - using old architecture
+// import '../../features/quiz/presentation/pages/quiz_session_page.dart';
+import '../../features/admin/presentation/pages/admin_dashboard_page.dart';
+// TODO: Fix admin pages - using old models
+// import '../../features/admin/presentation/pages/admin_users_page.dart';
+import '../../features/admin/presentation/pages/admin_kanji_page.dart';
+// import '../../features/admin/presentation/pages/admin_quizzes_page.dart';
+import '../../features/kanji/presentation/bloc/kanji_bloc.dart';
 import '../../injection_container.dart' as di;
 import '../config/env_config.dart';
 import '../debug/debug_settings_page.dart';
@@ -96,30 +98,32 @@ class RouteGenerator {
       case AppRoutes.quizList:
         return MaterialPageRoute(builder: (_) => const QuizListPage());
 
-      case AppRoutes.quizDetail:
-        final quizId = settings.arguments as int;
-        return MaterialPageRoute(
-          builder: (_) => QuizSessionPage(quizId: quizId),
-        );
+      // TODO: Fix quiz session page - temporarily disabled
+      // case AppRoutes.quizDetail:
+      //   final quizId = settings.arguments as int;
+      //   return MaterialPageRoute(
+      //     builder: (_) => QuizSessionPage(quizId: quizId),
+      //   );
 
-      case AppRoutes.quizSession:
-        final quizId = settings.arguments as int;
-        return MaterialPageRoute(
-          builder: (_) => QuizSessionPage(quizId: quizId),
-        );
+      // case AppRoutes.quizSession:
+      //   final quizId = settings.arguments as int;
+      //   return MaterialPageRoute(
+      //     builder: (_) => QuizSessionPage(quizId: quizId),
+      //   );
 
       // Admin routes
       case AppRoutes.adminDashboard:
         return MaterialPageRoute(builder: (_) => const AdminDashboardPage());
 
-      case AppRoutes.adminUsers:
-        return MaterialPageRoute(builder: (_) => const AdminUsersPage());
+      // TODO: Fix admin pages - temporarily disabled
+      // case AppRoutes.adminUsers:
+      //   return MaterialPageRoute(builder: (_) => const AdminUsersPage());
 
       case AppRoutes.adminKanji:
         return MaterialPageRoute(builder: (_) => const AdminKanjiPage());
 
-      case AppRoutes.adminQuizzes:
-        return MaterialPageRoute(builder: (_) => const AdminQuizzesPage());
+      // case AppRoutes.adminQuizzes:
+      //   return MaterialPageRoute(builder: (_) => const AdminQuizzesPage());
 
       // Debug routes (only available in debug mode)
       case AppRoutes.debugSettings:

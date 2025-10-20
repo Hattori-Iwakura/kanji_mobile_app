@@ -100,7 +100,10 @@ class KanjiRemoteDataSourceImpl implements KanjiRemoteDataSource {
   @override
   Future<KanjiModel> createKanji(Map<String, dynamic> kanjiData) async {
     try {
-      final response = await _apiClient.post(ApiEndpoints.kanji, kanjiData);
+      final response = await _apiClient.post(
+        ApiEndpoints.kanji,
+        data: kanjiData,
+      );
       return KanjiModel.fromJson(response.data);
     } on DioException catch (e) {
       final message = e.response?.data['message'] ?? 'Failed to create kanji';
@@ -115,7 +118,7 @@ class KanjiRemoteDataSourceImpl implements KanjiRemoteDataSource {
     try {
       final response = await _apiClient.put(
         ApiEndpoints.kanjiById(id),
-        kanjiData,
+        data: kanjiData,
       );
       return KanjiModel.fromJson(response.data);
     } on DioException catch (e) {

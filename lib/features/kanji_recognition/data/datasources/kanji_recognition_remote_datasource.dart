@@ -15,9 +15,10 @@ class KanjiRecognitionRemoteDataSourceImpl
   @override
   Future<KanjiRecognitionResultModel> recognizeKanji(String base64Image) async {
     try {
-      final response = await apiClient.post('/kanji-recognition/recognize', {
-        'image': base64Image,
-      });
+      final response = await apiClient.post(
+        '/kanji-recognition/recognize',
+        data: {'image': base64Image},
+      );
 
       return KanjiRecognitionResultModel.fromJson(response.data);
     } on DioException catch (e) {
