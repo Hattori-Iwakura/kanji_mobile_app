@@ -47,12 +47,14 @@ class KanjiListRepositoryImpl implements KanjiListRepository {
     required String name,
     String? description,
     List<int>? kanjiIds,
+    int? categoryId,
   }) async {
     try {
       final list = await remoteDataSource.createList(
         name: name,
         description: description,
         kanjiIds: kanjiIds,
+        categoryId: categoryId,
       );
       return list.toEntity();
     } on KanjiListException {
@@ -68,6 +70,7 @@ class KanjiListRepositoryImpl implements KanjiListRepository {
     String? name,
     String? description,
     bool? isPublic,
+    int? categoryId,
   }) async {
     try {
       final list = await remoteDataSource.updateList(
@@ -75,6 +78,7 @@ class KanjiListRepositoryImpl implements KanjiListRepository {
         name: name,
         description: description,
         isPublic: isPublic,
+        categoryId: categoryId,
       );
       return list.toEntity();
     } on KanjiListException {

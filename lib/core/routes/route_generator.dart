@@ -7,6 +7,7 @@ import '../../features/home/pages/home_page.dart';
 import '../../features/kanji/presentation/pages/kanji_dictionary_page.dart';
 import '../../features/kanji/presentation/pages/kanji_detail_page.dart';
 import '../../features/kanji/presentation/pages/kanji_search_page.dart';
+import '../../features/kanji/presentation/pages/kanji_create_page.dart';
 import '../../features/kanji_list/presentation/pages/kanji_lists_page.dart';
 import '../../features/kanji_list/presentation/pages/kanji_list_detail_page.dart';
 import '../../features/flashcard/presentation/pages/deck_list_page.dart';
@@ -64,6 +65,16 @@ class RouteGenerator {
           );
         }
         return _errorRoute();
+
+      case AppRoutes.kanjiCreate:
+        // Check if editing existing kanji
+        final kanjiId = args is int ? args : null;
+        return MaterialPageRoute(
+          builder: (_) => BlocProvider(
+            create: (_) => di.sl<KanjiBloc>(),
+            child: KanjiCreatePage(kanjiId: kanjiId),
+          ),
+        );
 
       // Kanji List routes
       case AppRoutes.kanjiLists:

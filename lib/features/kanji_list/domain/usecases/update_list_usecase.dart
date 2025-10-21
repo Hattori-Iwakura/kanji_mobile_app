@@ -11,12 +11,14 @@ class UpdateListUseCase {
     String? name,
     String? description,
     bool? isPublic,
+    int? categoryId,
   }) {
     return repository.updateList(
       id: id,
       name: name,
       description: description,
       isPublic: isPublic,
+      categoryId: categoryId,
     );
   }
 }

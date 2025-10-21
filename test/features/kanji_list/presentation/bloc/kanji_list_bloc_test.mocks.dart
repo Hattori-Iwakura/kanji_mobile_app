@@ -155,12 +155,14 @@ class MockCreateListUseCase extends _i1.Mock implements _i7.CreateListUseCase {
     required String? name,
     String? description,
     List<int>? kanjiIds,
+    int? categoryId,
   }) =>
       (super.noSuchMethod(
             Invocation.method(#call, [], {
               #name: name,
               #description: description,
               #kanjiIds: kanjiIds,
+              #categoryId: categoryId,
             }),
             returnValue: _i5.Future<_i3.KanjiListEntity>.value(
               _FakeKanjiListEntity_1(
@@ -169,6 +171,7 @@ class MockCreateListUseCase extends _i1.Mock implements _i7.CreateListUseCase {
                   #name: name,
                   #description: description,
                   #kanjiIds: kanjiIds,
+                  #categoryId: categoryId,
                 }),
               ),
             ),
@@ -201,6 +204,7 @@ class MockUpdateListUseCase extends _i1.Mock implements _i8.UpdateListUseCase {
     String? name,
     String? description,
     bool? isPublic,
+    int? categoryId,
   }) =>
       (super.noSuchMethod(
             Invocation.method(#call, [], {
@@ -208,6 +212,7 @@ class MockUpdateListUseCase extends _i1.Mock implements _i8.UpdateListUseCase {
               #name: name,
               #description: description,
               #isPublic: isPublic,
+              #categoryId: categoryId,
             }),
             returnValue: _i5.Future<_i3.KanjiListEntity>.value(
               _FakeKanjiListEntity_1(
@@ -217,6 +222,7 @@ class MockUpdateListUseCase extends _i1.Mock implements _i8.UpdateListUseCase {
                   #name: name,
                   #description: description,
                   #isPublic: isPublic,
+                  #categoryId: categoryId,
                 }),
               ),
             ),

@@ -5,6 +5,7 @@ import '../../../../injection_container.dart' as di;
 import '../bloc/kanji_list_bloc.dart';
 import '../bloc/kanji_list_event.dart';
 import '../bloc/kanji_list_state.dart';
+import '../widgets/create_edit_list_dialog.dart';
 
 class KanjiListsPage extends StatelessWidget {
   const KanjiListsPage({Key? key}) : super(key: key);
@@ -84,9 +85,7 @@ class _KanjiListsView extends StatelessWidget {
                   return Card(
                     margin: const EdgeInsets.only(bottom: 12),
                     child: ListTile(
-                      leading: CircleAvatar(
-                        child: Text('${list.totalKanji}'),
-                      ),
+                      leading: CircleAvatar(child: Text('${list.totalKanji}')),
                       title: Text(
                         list.name,
                         style: const TextStyle(fontWeight: FontWeight.bold),
@@ -94,7 +93,8 @@ class _KanjiListsView extends StatelessWidget {
                       subtitle: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          if (list.description != null && list.description!.isNotEmpty)
+                          if (list.description != null &&
+                              list.description!.isNotEmpty)
                             Text(
                               list.description!,
                               maxLines: 2,
@@ -106,16 +106,34 @@ class _KanjiListsView extends StatelessWidget {
                               Icon(
                                 list.isPublic ? Icons.public : Icons.lock,
                                 size: 14,
-                                color: list.isPublic ? Colors.green : Colors.grey,
+                                color: list.isPublic
+                                    ? Colors.green
+                                    : Colors.grey,
                               ),
                               const SizedBox(width: 4),
                               Text(
                                 list.isPublic ? 'Public' : 'Private',
                                 style: TextStyle(
                                   fontSize: 12,
-                                  color: list.isPublic ? Colors.green : Colors.grey,
+                                  color: list.isPublic
+                                      ? Colors.green
+                                      : Colors.grey,
                                 ),
                               ),
+                              if (list.category != null) ...[
+                                const SizedBox(width: 8),
+                                Chip(
+                                  label: Text(
+                                    list.category!.name,
+                                    style: const TextStyle(fontSize: 11),
+                                  ),
+                                  backgroundColor: Colors.blue[100],
+                                  visualDensity: VisualDensity.compact,
+                                  padding: EdgeInsets.zero,
+                                  materialTapTargetSize:
+                                      MaterialTapTargetSize.shrinkWrap,
+                                ),
+                              ],
                             ],
                           ),
                         ],
@@ -138,7 +156,10 @@ class _KanjiListsView extends StatelessWidget {
                               children: [
                                 Icon(Icons.delete, color: Colors.red),
                                 SizedBox(width: 8),
-                                Text('Delete', style: TextStyle(color: Colors.red)),
+                                Text(
+                                  'Delete',
+                                  style: TextStyle(color: Colors.red),
+                                ),
                               ],
                             ),
                           ),
@@ -183,16 +204,16 @@ class _KanjiListsView extends StatelessWidget {
           const SizedBox(height: 16),
           Text(
             'No kanji lists yet',
-            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  color: Colors.grey[600],
-                ),
+            style: Theme.of(
+              context,
+            ).textTheme.headlineSmall?.copyWith(color: Colors.grey[600]),
           ),
           const SizedBox(height: 8),
           Text(
             'Create your first list to get started',
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: Colors.grey[500],
-                ),
+            style: Theme.of(
+              context,
+            ).textTheme.bodyMedium?.copyWith(color: Colors.grey[500]),
           ),
           const SizedBox(height: 24),
           ElevatedButton.icon(
@@ -206,58 +227,9 @@ class _KanjiListsView extends StatelessWidget {
   }
 
   void _showCreateListDialog(BuildContext context) {
-    final nameController = TextEditingController();
-    final descriptionController = TextEditingController();
-
     showDialog(
       context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('Create New List'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: nameController,
-              decoration: const InputDecoration(
-                labelText: 'Name',
-                hintText: 'Enter list name',
-              ),
-              autofocus: true,
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: descriptionController,
-              decoration: const InputDecoration(
-                labelText: 'Description (optional)',
-                hintText: 'Enter description',
-              ),
-              maxLines: 3,
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              final name = nameController.text.trim();
-              if (name.isNotEmpty) {
-                final description = descriptionController.text.trim();
-                context.read<KanjiListBloc>().add(
-                      CreateListEvent(
-                        name: name,
-                        description: description.isEmpty ? null : description,
-                      ),
-                    );
-                Navigator.pop(dialogContext);
-              }
-            },
-            child: const Text('Create'),
-          ),
-        ],
-      ),
+      builder: (dialogContext) => const CreateEditListDialog(),
     );
   }
 

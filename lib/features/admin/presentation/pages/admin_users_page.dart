@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../core/network/api_client.dart';
+import '../../../../core/widgets/custom_back_button.dart';
 import '../../../../injection_container.dart' as di;
 import '../../../auth/models/user.dart';
 
@@ -81,6 +82,7 @@ class _AdminUsersPageState extends State<AdminUsersPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        leading: const CustomBackButton(),
         title: const Text('User Management'),
         centerTitle: true,
         actions: [
@@ -333,7 +335,7 @@ class _UserCard extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 12),
       child: ListTile(
         leading: CircleAvatar(
-          backgroundColor: user.role == 'admin'
+          backgroundColor: user.role.toUpperCase() == 'ADMIN'
               ? Colors.red.shade100
               : Colors.blue.shade100,
           backgroundImage: user.avatarUrl != null
@@ -344,7 +346,9 @@ class _UserCard extends StatelessWidget {
                   user.username[0].toUpperCase(),
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
-                    color: user.role == 'admin' ? Colors.red : Colors.blue,
+                    color: user.role.toUpperCase() == 'ADMIN'
+                        ? Colors.red
+                        : Colors.blue,
                   ),
                 )
               : null,
@@ -356,7 +360,7 @@ class _UserCard extends StatelessWidget {
               style: const TextStyle(fontWeight: FontWeight.bold),
             ),
             const SizedBox(width: 8),
-            if (user.role == 'admin')
+            if (user.role.toUpperCase() == 'ADMIN')
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                 decoration: BoxDecoration(

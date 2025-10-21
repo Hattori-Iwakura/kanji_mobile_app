@@ -84,6 +84,19 @@ import 'features/kanji_list/data/repositories/kanji_list_repository_impl.dart';
 // Presentation
 import 'features/kanji_list/presentation/bloc/kanji_list_bloc.dart';
 
+// ==================== Features - Category ====================
+// Domain
+import 'features/kanji_list/domain/repositories/category_repository.dart';
+import 'features/kanji_list/domain/usecases/get_all_categories_usecase.dart';
+import 'features/kanji_list/domain/usecases/create_category_usecase.dart';
+import 'features/kanji_list/domain/usecases/update_category_usecase.dart';
+import 'features/kanji_list/domain/usecases/delete_category_usecase.dart';
+// Data
+import 'features/kanji_list/data/datasources/category_remote_datasource.dart';
+import 'features/kanji_list/data/repositories/category_repository_impl.dart';
+// Presentation
+import 'features/admin/presentation/bloc/category_bloc.dart';
+
 // ==================== Features - Quiz (Clean Architecture) ====================
 // Domain
 import 'features/quiz/domain/repositories/quiz_repository.dart';
@@ -305,6 +318,34 @@ Future<void> init() async {
   // Data sources
   sl.registerLazySingleton<KanjiListRemoteDataSource>(
     () => KanjiListRemoteDataSourceImpl(sl()),
+  );
+
+  // ==================== Features - Category ====================
+
+  // BLoC
+  sl.registerFactory(
+    () => CategoryBloc(
+      getAllCategoriesUseCase: sl(),
+      createCategoryUseCase: sl(),
+      updateCategoryUseCase: sl(),
+      deleteCategoryUseCase: sl(),
+    ),
+  );
+
+  // Use cases
+  sl.registerLazySingleton(() => GetAllCategoriesUseCase(sl()));
+  sl.registerLazySingleton(() => CreateCategoryUseCase(sl()));
+  sl.registerLazySingleton(() => UpdateCategoryUseCase(sl()));
+  sl.registerLazySingleton(() => DeleteCategoryUseCase(sl()));
+
+  // Repository
+  sl.registerLazySingleton<CategoryRepository>(
+    () => CategoryRepositoryImpl(sl()),
+  );
+
+  // Data sources
+  sl.registerLazySingleton<CategoryRemoteDataSource>(
+    () => CategoryRemoteDataSourceImpl(sl()),
   );
 
   // ==================== Features - Quiz (Clean Architecture) ====================

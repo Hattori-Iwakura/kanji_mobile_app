@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../injection_container.dart' as di;
+import '../../../../core/widgets/custom_back_button.dart';
 import '../bloc/quiz_bloc.dart';
 import '../bloc/quiz_event.dart';
 import '../bloc/quiz_state.dart';
@@ -24,6 +25,7 @@ class _QuizListView extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        leading: const CustomBackButton(),
         title: const Text('Quizzes'),
         actions: [
           IconButton(
@@ -96,7 +98,8 @@ class _QuizListView extends StatelessWidget {
                       subtitle: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          if (quiz.description != null && quiz.description!.isNotEmpty)
+                          if (quiz.description != null &&
+                              quiz.description!.isNotEmpty)
                             Text(
                               quiz.description!,
                               maxLines: 2,
@@ -108,14 +111,18 @@ class _QuizListView extends StatelessWidget {
                               Icon(
                                 quiz.isPublic ? Icons.public : Icons.lock,
                                 size: 14,
-                                color: quiz.isPublic ? Colors.green : Colors.grey,
+                                color: quiz.isPublic
+                                    ? Colors.green
+                                    : Colors.grey,
                               ),
                               const SizedBox(width: 4),
                               Text(
                                 quiz.isPublic ? 'Public' : 'Private',
                                 style: TextStyle(
                                   fontSize: 12,
-                                  color: quiz.isPublic ? Colors.green : Colors.grey,
+                                  color: quiz.isPublic
+                                      ? Colors.green
+                                      : Colors.grey,
                                 ),
                               ),
                             ],
@@ -150,7 +157,10 @@ class _QuizListView extends StatelessWidget {
                               children: [
                                 Icon(Icons.delete, color: Colors.red),
                                 SizedBox(width: 8),
-                                Text('Delete', style: TextStyle(color: Colors.red)),
+                                Text(
+                                  'Delete',
+                                  style: TextStyle(color: Colors.red),
+                                ),
                               ],
                             ),
                           ),
@@ -205,24 +215,20 @@ class _QuizListView extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(
-            Icons.quiz_outlined,
-            size: 80,
-            color: Colors.grey[400],
-          ),
+          Icon(Icons.quiz_outlined, size: 80, color: Colors.grey[400]),
           const SizedBox(height: 16),
           Text(
             'No quizzes yet',
-            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  color: Colors.grey[600],
-                ),
+            style: Theme.of(
+              context,
+            ).textTheme.headlineSmall?.copyWith(color: Colors.grey[600]),
           ),
           const SizedBox(height: 8),
           Text(
             'Create your first quiz to get started',
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: Colors.grey[500],
-                ),
+            style: Theme.of(
+              context,
+            ).textTheme.bodyMedium?.copyWith(color: Colors.grey[500]),
           ),
           const SizedBox(height: 24),
           ElevatedButton.icon(
@@ -278,11 +284,11 @@ class _QuizListView extends StatelessWidget {
               if (title.isNotEmpty) {
                 final description = descriptionController.text.trim();
                 context.read<QuizBloc>().add(
-                      CreateQuizEvent(
-                        title: title,
-                        description: description.isEmpty ? null : description,
-                      ),
-                    );
+                  CreateQuizEvent(
+                    title: title,
+                    description: description.isEmpty ? null : description,
+                  ),
+                );
                 Navigator.pop(dialogContext);
               }
             },
@@ -298,7 +304,9 @@ class _QuizListView extends StatelessWidget {
       context: context,
       builder: (dialogContext) => AlertDialog(
         title: const Text('Delete Quiz'),
-        content: const Text('Are you sure you want to delete this quiz? This action cannot be undone.'),
+        content: const Text(
+          'Are you sure you want to delete this quiz? This action cannot be undone.',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext),
@@ -309,9 +317,7 @@ class _QuizListView extends StatelessWidget {
               context.read<QuizBloc>().add(DeleteQuizEvent(quizId));
               Navigator.pop(dialogContext);
             },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red,
-            ),
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
             child: const Text('Delete'),
           ),
         ],

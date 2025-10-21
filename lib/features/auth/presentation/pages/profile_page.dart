@@ -155,7 +155,7 @@ class _ProfileView extends StatelessWidget {
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    backgroundColor: user.role == 'admin'
+                    backgroundColor: user.role.toUpperCase() == 'ADMIN'
                         ? Colors.red.shade100
                         : Colors.blue.shade100,
                     padding: const EdgeInsets.symmetric(horizontal: 8),

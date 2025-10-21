@@ -31,11 +31,17 @@ class CreateListEvent extends KanjiListEvent {
   final String name;
   final String? description;
   final List<int>? kanjiIds;
+  final int? categoryId;
 
-  CreateListEvent({required this.name, this.description, this.kanjiIds});
+  CreateListEvent({
+    required this.name,
+    this.description,
+    this.kanjiIds,
+    this.categoryId,
+  });
 
   @override
-  List<Object?> get props => [name, description, kanjiIds];
+  List<Object?> get props => [name, description, kanjiIds, categoryId];
 }
 
 class UpdateListEvent extends KanjiListEvent {
@@ -43,16 +49,18 @@ class UpdateListEvent extends KanjiListEvent {
   final String? name;
   final String? description;
   final bool? isPublic;
+  final int? categoryId;
 
   UpdateListEvent({
     required this.id,
     this.name,
     this.description,
     this.isPublic,
+    this.categoryId,
   });
 
   @override
-  List<Object?> get props => [id, name, description, isPublic];
+  List<Object?> get props => [id, name, description, isPublic, categoryId];
 }
 
 class DeleteListEvent extends KanjiListEvent {

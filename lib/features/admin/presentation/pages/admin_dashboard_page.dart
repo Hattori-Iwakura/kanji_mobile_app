@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import '../../../../core/routes/app_routes.dart';
 import '../../../../core/network/api_client.dart';
 import '../../../../injection_container.dart' as di;
+import '../../../../core/widgets/app_bottom_navigation_bar.dart';
+import 'category_management_page.dart';
 
 class AdminDashboardPage extends StatefulWidget {
   const AdminDashboardPage({super.key});
@@ -30,20 +32,90 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
     });
 
     try {
-      // TODO: Replace with actual admin stats endpoint
-      // For now, using mock data
-      await Future.delayed(const Duration(milliseconds: 500));
+      // Fetch users
+      final usersResponse = await _apiClient.get('/admin/users');
+      print('Users Response: ${usersResponse.data}'); // DEBUG
+      final usersData = usersResponse.data;
+      List<dynamic> users = [];
+      if (usersData is Map<String, dynamic>) {
+        users = (usersData['data'] as List?) ?? [];
+      } else if (usersData is List) {
+        users = usersData;
+      }
+
+      // Fetch kanji count (using search endpoint with limit)
+      final kanjiResponse = await _apiClient.get('/kanji?limit=1');
+      print('Kanji Response: ${kanjiResponse.data}'); // DEBUG
+      final kanjiData = kanjiResponse.data;
+      int kanjiTotal = 0;
+      if (kanjiData is Map<String, dynamic>) {
+        kanjiTotal = kanjiData['total'] ?? 0;
+      }
+
+      // Fetch quizzes
+      final quizzesResponse = await _apiClient.get('/quizzes');
+      print('Quizzes Response: ${quizzesResponse.data}'); // DEBUG
+      final quizzesData = quizzesResponse.data;
+      List<dynamic> quizzes = [];
+      if (quizzesData is Map<String, dynamic>) {
+        quizzes = (quizzesData['data'] as List?) ?? [];
+      } else if (quizzesData is List) {
+        quizzes = quizzesData;
+      }
+
+      // Fetch pending publish requests
+      int pendingRequests = 0;
+      try {
+        final publishResponse = await _apiClient.get(
+          '/quizzes/admin/publish-requests',
+        );
+        print('Publish Requests Response: ${publishResponse.data}'); // DEBUG
+        final publishData = publishResponse.data;
+        if (publishData is Map<String, dynamic>) {
+          pendingRequests = (publishData['data'] as List?)?.length ?? 0;
+        } else if (publishData is List) {
+          pendingRequests = publishData.length;
+        }
+      } catch (e) {
+        // If endpoint fails or user doesn't have permission, set to 0
+        print('Error fetching publish requests: $e'); // DEBUG
+        pendingRequests = 0;
+      }
+
+      // Calculate active users (users who logged in within last 7 days)
+      final now = DateTime.now();
+      int activeUsers = 0;
+      int newUsersToday = 0;
+
+      for (var user in users) {
+        try {
+          if (user['lastLoginAt'] != null) {
+            final lastLogin = DateTime.parse(user['lastLoginAt'] as String);
+            if (now.difference(lastLogin).inDays <= 7) {
+              activeUsers++;
+            }
+          }
+
+          if (user['createdAt'] != null) {
+            final createdAt = DateTime.parse(user['createdAt'] as String);
+            if (now.difference(createdAt).inDays == 0) {
+              newUsersToday++;
+            }
+          }
+        } catch (e) {
+          // Skip invalid dates
+          continue;
+        }
+      }
 
       setState(() {
         _stats = {
-          'totalUsers': 1250,
-          'totalKanji': 2136,
-          'totalQuizzes': 45,
-          'totalFlashcards': 320,
-          'activeUsers': 856,
-          'newUsersToday': 23,
-          'quizzesCompletedToday': 145,
-          'avgSessionTime': '12.5 min',
+          'totalUsers': users.length,
+          'totalKanji': kanjiTotal,
+          'totalQuizzes': quizzes.length,
+          'activeUsers': activeUsers,
+          'newUsersToday': newUsersToday,
+          'pendingRequests': pendingRequests,
         };
         _isLoading = false;
       });
@@ -70,6 +142,35 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
         ],
       ),
       body: _buildBody(),
+      bottomNavigationBar: AppBottomNavigationBar(
+        currentIndex: 5, // Admin tab (index 5 for admins)
+        onTap: (index) {
+          // Navigate based on index
+          switch (index) {
+            case 0:
+              // Home - stay on admin dashboard for admins
+              break;
+            case 1:
+              Navigator.pushReplacementNamed(
+                context,
+                AppRoutes.kanjiDictionary,
+              );
+              break;
+            case 2:
+              Navigator.pushReplacementNamed(context, AppRoutes.kanjiLists);
+              break;
+            case 3:
+              Navigator.pushReplacementNamed(context, AppRoutes.flashcardDecks);
+              break;
+            case 4:
+              Navigator.pushReplacementNamed(context, AppRoutes.quizList);
+              break;
+            case 5:
+              // Already on admin dashboard
+              break;
+          }
+        },
+      ),
     );
   }
 
@@ -241,16 +342,16 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
               Colors.purple,
             ),
             _buildStatCard(
-              'Flashcards',
-              _stats['totalFlashcards']?.toString() ?? '0',
-              Icons.style,
-              Colors.pink,
-            ),
-            _buildStatCard(
-              'New Today',
+              'New Users Today',
               _stats['newUsersToday']?.toString() ?? '0',
               Icons.person_add,
               Colors.teal,
+            ),
+            _buildStatCard(
+              'Pending Approvals',
+              _stats['pendingRequests']?.toString() ?? '0',
+              Icons.pending_actions,
+              Colors.amber,
             ),
           ],
         ),
@@ -335,6 +436,19 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
           Icons.quiz_outlined,
           Colors.purple,
           () => Navigator.pushNamed(context, AppRoutes.adminQuizzes),
+        ),
+        const SizedBox(height: 12),
+        _buildActionCard(
+          'Category Management',
+          'Manage kanji list categories',
+          Icons.category_outlined,
+          Colors.teal,
+          () => Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const CategoryManagementPage(),
+            ),
+          ),
         ),
         const SizedBox(height: 12),
         _buildActionCard(

@@ -107,6 +107,10 @@ class KanjiBloc extends Bloc<KanjiEvent, KanjiState> {
     try {
       final kanji = await createKanjiUseCase(event.kanjiData);
       emit(KanjiCreated(kanji));
+
+      // Auto-reload list after short delay to show success message
+      await Future.delayed(const Duration(milliseconds: 500));
+      add(LoadKanjiListEvent());
     } on KanjiException catch (e) {
       emit(KanjiError(e.message));
     } catch (e) {
@@ -123,6 +127,10 @@ class KanjiBloc extends Bloc<KanjiEvent, KanjiState> {
     try {
       final kanji = await updateKanjiUseCase(event.id, event.kanjiData);
       emit(KanjiUpdated(kanji));
+
+      // Auto-reload list after short delay to show success message
+      await Future.delayed(const Duration(milliseconds: 500));
+      add(LoadKanjiListEvent());
     } on KanjiException catch (e) {
       emit(KanjiError(e.message));
     } catch (e) {
@@ -139,6 +147,10 @@ class KanjiBloc extends Bloc<KanjiEvent, KanjiState> {
     try {
       await deleteKanjiUseCase(event.id);
       emit(KanjiDeleted());
+
+      // Auto-reload list after short delay to show success message
+      await Future.delayed(const Duration(milliseconds: 500));
+      add(LoadKanjiListEvent());
     } on KanjiException catch (e) {
       emit(KanjiError(e.message));
     } catch (e) {
@@ -150,7 +162,18 @@ class KanjiBloc extends Bloc<KanjiEvent, KanjiState> {
     RefreshKanjiListEvent event,
     Emitter<KanjiState> emit,
   ) async {
-    // Reload with default parameters
-    add(LoadKanjiListEvent());
+    // Preserve current filters if state is KanjiListLoaded
+    if (state is KanjiListLoaded) {
+      final currentState = state as KanjiListLoaded;
+      add(
+        LoadKanjiListEvent(
+          jlptLevel: currentState.appliedJlptFilter,
+          grade: currentState.appliedGradeFilter,
+          search: currentState.appliedSearch,
+        ),
+      );
+    } else {
+      add(LoadKanjiListEvent());
+    }
   }
 }

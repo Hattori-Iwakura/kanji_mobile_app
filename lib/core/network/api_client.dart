@@ -1,10 +1,12 @@
 import 'package:dio/dio.dart';
 import 'package:pretty_dio_logger/pretty_dio_logger.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'endpoint.dart';
 import '../config/env_config.dart';
 
 class ApiClient {
   late final Dio dio;
+  final _secureStorage = const FlutterSecureStorage();
 
   ApiClient({String? baseUrl}) {
     final timeoutDuration = Duration(milliseconds: EnvConfig.apiTimeout);
@@ -18,6 +20,43 @@ class ApiClient {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
           'X-Platform': 'mobile', // Identify as mobile client
+        },
+      ),
+    );
+
+    // Add auth token interceptor - automatically injects token from secure storage
+    dio.interceptors.add(
+      InterceptorsWrapper(
+        onRequest: (options, handler) async {
+          // Skip auth for login/register endpoints
+          if (options.path.contains('/auth/login') ||
+              options.path.contains('/auth/register')) {
+            return handler.next(options);
+          }
+
+          // Load token from secure storage and inject into headers
+          try {
+            final token = await _secureStorage.read(key: 'auth_token');
+            if (token != null && token.isNotEmpty) {
+              options.headers['Authorization'] = 'Bearer $token';
+              print('🔐 Token injected for: ${options.method} ${options.path}');
+            } else {
+              print('⚠️ No token found for: ${options.method} ${options.path}');
+            }
+          } catch (e) {
+            print('❌ Error reading token: $e');
+          }
+
+          return handler.next(options);
+        },
+        onError: (error, handler) {
+          // Log auth errors
+          if (error.response?.statusCode == 401) {
+            print('🚫 Unauthorized request: ${error.requestOptions.path}');
+          } else if (error.response?.statusCode == 403) {
+            print('🚫 Forbidden request: ${error.requestOptions.path}');
+          }
+          return handler.next(error);
         },
       ),
     );

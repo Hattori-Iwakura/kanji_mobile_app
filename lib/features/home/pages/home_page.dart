@@ -24,7 +24,7 @@ class HomePage extends StatelessWidget {
           child: BlocBuilder<AuthBloc, AuthState>(
             builder: (context, state) {
               final isAdmin =
-                  state is Authenticated && state.user.role == 'admin';
+                  state is Authenticated && state.user.role == 'ADMIN';
 
               return GridView.count(
                 crossAxisCount: 2,

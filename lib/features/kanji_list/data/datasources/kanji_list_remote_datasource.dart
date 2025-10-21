@@ -16,12 +16,14 @@ abstract class KanjiListRemoteDataSource {
     required String name,
     String? description,
     List<int>? kanjiIds,
+    int? categoryId,
   });
   Future<KanjiList> updateList({
     required int id,
     String? name,
     String? description,
     bool? isPublic,
+    int? categoryId,
   });
   Future<void> deleteList(int id);
   Future<void> addKanji({required int listId, required int kanjiId});
@@ -90,12 +92,14 @@ class KanjiListRemoteDataSourceImpl implements KanjiListRemoteDataSource {
     required String name,
     String? description,
     List<int>? kanjiIds,
+    int? categoryId,
   }) async {
     try {
       final data = <String, dynamic>{
         'name': name,
         if (description != null) 'description': description,
         if (kanjiIds != null) 'kanjiIds': kanjiIds,
+        if (categoryId != null) 'categoryId': categoryId,
       };
 
       final response = await _apiClient.post(
@@ -116,12 +120,14 @@ class KanjiListRemoteDataSourceImpl implements KanjiListRemoteDataSource {
     String? name,
     String? description,
     bool? isPublic,
+    int? categoryId,
   }) async {
     try {
       final data = <String, dynamic>{};
       if (name != null) data['name'] = name;
       if (description != null) data['description'] = description;
       if (isPublic != null) data['isPublic'] = isPublic;
+      if (categoryId != null) data['categoryId'] = categoryId;
 
       final response = await _apiClient.put(
         '${ApiEndpoints.kanjiLists}/$id',

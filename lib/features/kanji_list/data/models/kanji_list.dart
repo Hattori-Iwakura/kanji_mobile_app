@@ -1,4 +1,5 @@
 import '../../domain/entities/kanji_list_entity.dart';
+import 'category.dart';
 
 /// Kanji List model extending KanjiListEntity
 class KanjiList extends KanjiListEntity {
@@ -14,12 +15,14 @@ class KanjiList extends KanjiListEntity {
     required super.totalKanji,
     required super.createAt,
     required super.updateAt,
+    super.categoryId,
+    super.category,
     required this.type,
     this.level,
   });
 
   factory KanjiList.fromJson(Map<String, dynamic> json) {
-    // Backend returns: { id, userId (nullable), name, description, isPublic, items: [...], createdAt, updatedAt }
+    // Backend returns: { id, userId (nullable), name, description, isPublic, categoryId, category, items: [...], createdAt, updatedAt }
     // Determine type: SYSTEM lists have userId = null
     final int userId =
         json['userId'] as int? ?? 0; // Default to 0 for system lists
@@ -43,6 +46,12 @@ class KanjiList extends KanjiListEntity {
       totalKanji = (json['items'] as List).length;
     }
 
+    // Parse category if available
+    Category? category;
+    if (json['category'] != null && json['category'] is Map<String, dynamic>) {
+      category = Category.fromJson(json['category'] as Map<String, dynamic>);
+    }
+
     return KanjiList(
       id: json['id'] as int,
       name: json['name'] as String,
@@ -52,6 +61,8 @@ class KanjiList extends KanjiListEntity {
       totalKanji: totalKanji,
       createAt: DateTime.parse(json['createdAt'] as String),
       updateAt: DateTime.parse(json['updatedAt'] as String),
+      categoryId: json['categoryId'] as int?,
+      category: category,
       type: type,
       level: level,
     );
@@ -67,6 +78,8 @@ class KanjiList extends KanjiListEntity {
       'totalKanji': totalKanji,
       'createdAt': createAt.toIso8601String(),
       'updatedAt': updateAt.toIso8601String(),
+      'categoryId': categoryId,
+      'category': category != null ? (category as Category).toJson() : null,
       'type': type,
       'level': level,
     };
@@ -82,6 +95,8 @@ class KanjiList extends KanjiListEntity {
       totalKanji: totalKanji,
       createAt: createAt,
       updateAt: updateAt,
+      categoryId: categoryId,
+      category: category,
     );
   }
 

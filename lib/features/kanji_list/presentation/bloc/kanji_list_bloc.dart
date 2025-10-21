@@ -107,8 +107,13 @@ class KanjiListBloc extends Bloc<KanjiListEvent, KanjiListState> {
         name: event.name,
         description: event.description,
         kanjiIds: event.kanjiIds,
+        categoryId: event.categoryId,
       );
       emit(ListCreated(list));
+
+      // Auto-reload lists after short delay to show success message
+      await Future.delayed(const Duration(milliseconds: 500));
+      add(LoadAllListsEvent());
     } on KanjiListException catch (e) {
       emit(KanjiListError(e.message));
     } catch (e) {
@@ -127,8 +132,13 @@ class KanjiListBloc extends Bloc<KanjiListEvent, KanjiListState> {
         name: event.name,
         description: event.description,
         isPublic: event.isPublic,
+        categoryId: event.categoryId,
       );
       emit(ListUpdated(list));
+
+      // Auto-reload lists after short delay to show success message
+      await Future.delayed(const Duration(milliseconds: 500));
+      add(LoadAllListsEvent());
     } on KanjiListException catch (e) {
       emit(KanjiListError(e.message));
     } catch (e) {
@@ -144,6 +154,10 @@ class KanjiListBloc extends Bloc<KanjiListEvent, KanjiListState> {
     try {
       await deleteListUseCase(event.id);
       emit(ListDeleted());
+
+      // Auto-reload lists after short delay to show success message
+      await Future.delayed(const Duration(milliseconds: 500));
+      add(LoadAllListsEvent());
     } on KanjiListException catch (e) {
       emit(KanjiListError(e.message));
     } catch (e) {
@@ -159,6 +173,10 @@ class KanjiListBloc extends Bloc<KanjiListEvent, KanjiListState> {
     try {
       await addKanjiToListUseCase(listId: event.listId, kanjiId: event.kanjiId);
       emit(KanjiAddedToList());
+
+      // Reload list detail to show updated kanji count
+      await Future.delayed(const Duration(milliseconds: 300));
+      add(LoadListByIdEvent(event.listId));
     } on KanjiListException catch (e) {
       emit(KanjiListError(e.message));
     } catch (e) {
@@ -177,6 +195,10 @@ class KanjiListBloc extends Bloc<KanjiListEvent, KanjiListState> {
         kanjiId: event.kanjiId,
       );
       emit(KanjiRemovedFromList());
+
+      // Reload list detail to show updated kanji count
+      await Future.delayed(const Duration(milliseconds: 300));
+      add(LoadListByIdEvent(event.listId));
     } on KanjiListException catch (e) {
       emit(KanjiListError(e.message));
     } catch (e) {
@@ -248,14 +270,19 @@ class KanjiListBloc extends Bloc<KanjiListEvent, KanjiListState> {
     RefreshListsEvent event,
     Emitter<KanjiListState> emit,
   ) async {
-    emit(KanjiListLoading());
-    try {
-      final lists = await getAllListsUseCase();
-      emit(ListsLoaded(lists: lists));
-    } on KanjiListException catch (e) {
-      emit(KanjiListError(e.message));
-    } catch (e) {
-      emit(KanjiListError('Failed to refresh lists'));
+    // Preserve current filters if state is ListsLoaded
+    if (state is ListsLoaded) {
+      final currentState = state as ListsLoaded;
+      add(
+        LoadAllListsEvent(
+          search: currentState.appliedSearch,
+          type: currentState.appliedType,
+          limit: currentState.appliedLimit,
+          offset: currentState.appliedOffset,
+        ),
+      );
+    } else {
+      add(LoadAllListsEvent());
     }
   }
 }

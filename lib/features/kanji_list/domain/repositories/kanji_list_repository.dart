@@ -15,6 +15,7 @@ abstract class KanjiListRepository {
     required String name,
     String? description,
     List<int>? kanjiIds,
+    int? categoryId,
   });
 
   Future<KanjiListEntity> updateList({
@@ -22,6 +23,7 @@ abstract class KanjiListRepository {
     String? name,
     String? description,
     bool? isPublic,
+    int? categoryId,
   });
 
   Future<void> deleteList(int id);

@@ -14,8 +14,14 @@ import 'features/auth/presentation/bloc/auth_bloc.dart';
 import 'features/auth/presentation/bloc/auth_event.dart';
 import 'features/auth/presentation/bloc/auth_state.dart';
 
+// Admin - Category
+import 'features/admin/presentation/bloc/category_bloc.dart';
+
 // Home
-import 'features/home/pages/home_page.dart';
+import 'features/home/presentation/pages/user_landing_page.dart';
+
+// Admin
+import 'features/admin/presentation/pages/admin_dashboard_page.dart';
 
 // Kanji Recognition (preserved)
 import 'features/kanji_recognition/presentation/bloc/kanji_recognition_bloc.dart';
@@ -84,8 +90,13 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (context) => di.sl<AuthBloc>()..add(AuthCheckRequested()),
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider(
+          create: (context) => di.sl<AuthBloc>()..add(AuthCheckRequested()),
+        ),
+        BlocProvider(create: (context) => di.sl<CategoryBloc>()),
+      ],
       child: Consumer<ThemeProvider>(
         builder: (context, themeProvider, child) {
           return MaterialApp(
@@ -102,7 +113,13 @@ class MyApp extends StatelessWidget {
                     body: Center(child: CircularProgressIndicator()),
                   );
                 } else if (state is Authenticated) {
-                  return const HomePage();
+                  // Role-based routing: Admin → AdminDashboard, User → UserLandingPage
+                  // NOTE: Backend returns 'ADMIN' (uppercase), not 'admin'
+                  if (state.user.role.toUpperCase() == 'ADMIN') {
+                    return const AdminDashboardPage();
+                  } else {
+                    return const UserLandingPage();
+                  }
                 } else {
                   // Navigate to login using named route
                   Future.microtask(

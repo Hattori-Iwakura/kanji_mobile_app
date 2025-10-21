@@ -5,6 +5,8 @@ import 'package:audioplayers/audioplayers.dart';
 import '../../../../injection_container.dart' as di;
 import '../../../../core/services/kanji_alive_service.dart';
 import '../../../../core/services/kanjivg_service.dart';
+import '../../../../core/routes/app_routes.dart';
+import '../../../../core/widgets/custom_back_button.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../../auth/presentation/bloc/auth_state.dart';
 import '../bloc/kanji_bloc.dart';
@@ -83,20 +85,61 @@ class _KanjiDetailViewState extends State<_KanjiDetailView> {
 
     return Scaffold(
       appBar: AppBar(
+        leading: const CustomBackButton(),
         title: const Text('Kanji Detail'),
         actions: [
           if (isAdmin)
-            IconButton(
-              icon: const Icon(Icons.edit),
-              onPressed: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Edit feature coming soon')),
-                );
+            BlocBuilder<KanjiBloc, KanjiState>(
+              builder: (context, state) {
+                if (state is KanjiDetailLoaded) {
+                  return Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.edit),
+                        tooltip: 'Edit Kanji',
+                        onPressed: () {
+                          Navigator.pushNamed(
+                            context,
+                            AppRoutes.kanjiCreate,
+                            arguments: state.kanji.id,
+                          );
+                        },
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.delete, color: Colors.red),
+                        tooltip: 'Delete Kanji',
+                        onPressed: () => _showDeleteConfirmation(context, state.kanji.id),
+                      ),
+                    ],
+                  );
+                }
+                return const SizedBox.shrink();
               },
             ),
         ],
       ),
-      body: BlocBuilder<KanjiBloc, KanjiState>(
+      body: BlocConsumer<KanjiBloc, KanjiState>(
+        listener: (context, state) {
+          if (state is KanjiDeleted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('✅ Kanji deleted successfully!'),
+                backgroundColor: Colors.green,
+              ),
+            );
+            Navigator.pop(context);
+          }
+          
+          if (state is KanjiError) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('❌ ${state.message}'),
+                backgroundColor: Colors.red,
+              ),
+            );
+          }
+        },
         builder: (context, state) {
           if (state is KanjiLoading) {
             return const Center(child: CircularProgressIndicator());
@@ -314,52 +357,75 @@ class _KanjiDetailViewState extends State<_KanjiDetailView> {
   }
 
   Widget _buildStrokeAnimationSection(KanjiStrokeInfo strokeInfo) {
-    return Padding(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Row(
+    return StatefulBuilder(
+      builder: (context, setState) {
+        int _animationKey = 0;
+
+        return Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Icon(Icons.draw, size: 20, color: Colors.blue),
-              SizedBox(width: 8),
-              Text(
-                'Stroke Order Animation',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Row(
+                    children: [
+                      Icon(Icons.draw, size: 20, color: Colors.blue),
+                      SizedBox(width: 8),
+                      Text(
+                        'Stroke Order Animation',
+                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                      ),
+                    ],
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.replay, color: Colors.blue),
+                    tooltip: 'Replay Animation',
+                    onPressed: () {
+                      setState(() {
+                        _animationKey++;
+                      });
+                    },
+                  ),
+                ],
               ),
+              const SizedBox(height: 16),
+              Container(
+                height: 250,
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  color: Colors.grey[100],
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.grey[300]!),
+                ),
+                child: Center(
+                  child: SvgPicture.network(
+                    strokeInfo.animatedUrls.length > 1
+                        ? strokeInfo.animatedUrls[1] // AnimCJK animated SVG
+                        : strokeInfo.svgUrl, // Fallback to KanjiVG static
+                    key: ValueKey(_animationKey),
+                    width: 200,
+                    height: 200,
+                    placeholderBuilder: (context) =>
+                        const CircularProgressIndicator(),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Stroke Order Diagram - Click replay button to animate',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Colors.grey[600],
+                  fontStyle: FontStyle.italic,
+                ),
+              ),
+              const Divider(height: 32),
             ],
           ),
-          const SizedBox(height: 16),
-          Container(
-            height: 250,
-            width: double.infinity,
-            decoration: BoxDecoration(
-              color: Colors.grey[100],
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.grey[300]!),
-            ),
-            child: Center(
-              child: SvgPicture.network(
-                strokeInfo.svgUrl,
-                width: 200,
-                height: 200,
-                placeholderBuilder: (context) =>
-                    const CircularProgressIndicator(),
-              ),
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'SVG Stroke Diagram from KanjiVG',
-            style: TextStyle(
-              fontSize: 12,
-              color: Colors.grey[600],
-              fontStyle: FontStyle.italic,
-            ),
-          ),
-          const Divider(height: 32),
-        ],
-      ),
+        );
+      },
     );
   }
 
@@ -406,6 +472,35 @@ class _KanjiDetailViewState extends State<_KanjiDetailView> {
                 tooltip: 'Play audio',
               )
             : null,
+      ),
+    );
+  }
+
+  void _showDeleteConfirmation(BuildContext context, int kanjiId) {
+    showDialog(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Delete Kanji'),
+        content: const Text(
+          'Are you sure you want to delete this kanji? This action cannot be undone.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              context.read<KanjiBloc>().add(DeleteKanjiEvent(kanjiId));
+              Navigator.pop(dialogContext);
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('Delete'),
+          ),
+        ],
       ),
     );
   }

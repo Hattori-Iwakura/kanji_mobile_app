@@ -10,11 +10,13 @@ class CreateListUseCase {
     required String name,
     String? description,
     List<int>? kanjiIds,
+    int? categoryId,
   }) {
     return repository.createList(
       name: name,
       description: description,
       kanjiIds: kanjiIds,
+      categoryId: categoryId,
     );
   }
 }

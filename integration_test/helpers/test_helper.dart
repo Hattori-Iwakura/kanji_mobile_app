@@ -30,10 +30,13 @@ class IntegrationTestHelper {
     apiClient.clearAuthToken();
 
     try {
-      final response = await apiClient.post('/auth/login', {
-        'account': testEmail, // Changed from 'email' to 'account'
-        'password': testPassword,
-      });
+      final response = await apiClient.post(
+        '/auth/login',
+        data: {
+          'account': testEmail, // Changed from 'email' to 'account'
+          'password': testPassword,
+        },
+      );
 
       if ((response.statusCode == 200 || response.statusCode == 201) &&
           response.data != null) {
@@ -67,10 +70,10 @@ class IntegrationTestHelper {
     apiClient.clearAuthToken();
 
     try {
-      final response = await apiClient.post('/auth/login', {
-        'account': adminEmail,
-        'password': adminPassword,
-      });
+      final response = await apiClient.post(
+        '/auth/login',
+        data: {'account': adminEmail, 'password': adminPassword},
+      );
 
       if ((response.statusCode == 200 || response.statusCode == 201) &&
           response.data != null) {
@@ -98,12 +101,15 @@ class IntegrationTestHelper {
   /// Register a test user (call this once before running tests)
   Future<void> registerTestUser() async {
     try {
-      await apiClient.post('/auth/register', {
-        'account': 'testuser', // Added account field
-        'email': testEmail,
-        'password': testPassword,
-        'name': 'Test User',
-      });
+      await apiClient.post(
+        '/auth/register',
+        data: {
+          'account': 'testuser', // Added account field
+          'email': testEmail,
+          'password': testPassword,
+          'name': 'Test User',
+        },
+      );
     } catch (e) {
       // User might already exist, that's okay
       print('Note: Test user registration failed (might already exist): $e');

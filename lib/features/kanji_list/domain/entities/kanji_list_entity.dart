@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'category_entity.dart';
 
 class KanjiListEntity extends Equatable {
   final int id;
@@ -9,6 +10,8 @@ class KanjiListEntity extends Equatable {
   final int totalKanji;
   final DateTime createAt;
   final DateTime updateAt;
+  final int? categoryId;
+  final CategoryEntity? category;
 
   const KanjiListEntity({
     required this.id,
@@ -19,6 +22,8 @@ class KanjiListEntity extends Equatable {
     required this.totalKanji,
     required this.createAt,
     required this.updateAt,
+    this.categoryId,
+    this.category,
   });
 
   @override
@@ -31,5 +36,7 @@ class KanjiListEntity extends Equatable {
     totalKanji,
     createAt,
     updateAt,
+    categoryId,
+    category,
   ];
 }
