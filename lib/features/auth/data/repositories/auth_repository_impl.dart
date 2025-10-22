@@ -1,6 +1,8 @@
-import '../../../../core/network/api_client.dart';
-import '../../domain/entities/auth_exception.dart';
-import '../../domain/entities/user_entity.dart';
+import 'package:dartz/dartz.dart';
+import 'package:dio/dio.dart';
+import '../../../../core/errors/failures.dart';
+import '../../domain/entities/auth_result.dart';
+import '../../domain/entities/user.dart';
 import '../../domain/repositories/auth_repository.dart';
 import '../datasources/auth_local_datasource.dart';
 import '../datasources/auth_remote_datasource.dart';
@@ -8,121 +10,234 @@ import '../datasources/auth_remote_datasource.dart';
 class AuthRepositoryImpl implements AuthRepository {
   final AuthRemoteDataSource remoteDataSource;
   final AuthLocalDataSource localDataSource;
-  final ApiClient apiClient;
 
   AuthRepositoryImpl({
     required this.remoteDataSource,
     required this.localDataSource,
-    required this.apiClient,
   });
 
   @override
-  Future<UserEntity> login({
+  Future<Either<Failure, AuthResult>> login({
+    required String account,
+    required String password,
+  }) async {
+    try {
+      final result = await remoteDataSource.login(
+        account: account,
+        password: password,
+      );
+
+      // Cache tokens and user
+      await localDataSource.cacheAuthTokens(
+        accessToken: result.accessToken,
+        refreshToken: result.refreshToken,
+        sessionId: result.sessionId,
+      );
+      await localDataSource.cacheUser(result.user as dynamic);
+
+      return Right(result.toEntity());
+    } on DioException catch (e) {
+      return Left(_handleDioException(e));
+    } catch (e) {
+      return Left(UnknownFailure(e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, AuthResult>> register({
+    required String account,
     required String email,
     required String password,
   }) async {
     try {
-      final response = await apiClient.post(
-        '/auth/login',
-        data: {'account': email, 'password': password},
-      );
-
-      final data = response.data['data'] ?? response.data;
-      final token = data['accessToken'] as String;
-
-      // Save token to local storage
-      await localDataSource.saveToken(token);
-
-      // Set token in API client for future requests
-      apiClient.setAuthToken(token);
-
-      // Get user from remote data source
-      final userModel = await remoteDataSource.login(
+      final result = await remoteDataSource.register(
+        account: account,
         email: email,
         password: password,
       );
 
-      return userModel.toEntity();
-    } on AuthException {
-      rethrow;
+      // Cache tokens and user
+      await localDataSource.cacheAuthTokens(
+        accessToken: result.accessToken,
+        refreshToken: result.refreshToken,
+        sessionId: result.sessionId,
+      );
+      await localDataSource.cacheUser(result.user as dynamic);
+
+      return Right(result.toEntity());
+    } on DioException catch (e) {
+      return Left(_handleDioException(e));
     } catch (e) {
-      throw AuthException('Login failed: $e');
+      return Left(UnknownFailure(e.toString()));
     }
   }
 
   @override
-  Future<UserEntity> register({
-    required String email,
-    required String username,
-    required String password,
+  Future<Either<Failure, void>> logout() async {
+    try {
+      await remoteDataSource.logout();
+      await localDataSource.clearAuthData();
+      return const Right(null);
+    } on DioException catch (e) {
+      // Even if remote logout fails, clear local data
+      await localDataSource.clearAuthData();
+      return Left(_handleDioException(e));
+    } catch (e) {
+      await localDataSource.clearAuthData();
+      return Left(UnknownFailure(e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, User>> getProfile() async {
+    try {
+      final user = await remoteDataSource.getProfile();
+      await localDataSource.cacheUser(user);
+      return Right(user.toEntity());
+    } on DioException catch (e) {
+      return Left(_handleDioException(e));
+    } catch (e) {
+      return Left(UnknownFailure(e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, User>> updateProfile({
+    String? name,
+    String? profileImage,
   }) async {
     try {
-      final response = await apiClient.post(
-        '/auth/register',
-        data: {'email': email, 'username': username, 'password': password},
+      final user = await remoteDataSource.updateProfile(
+        name: name,
+        profileImage: profileImage,
+      );
+      await localDataSource.cacheUser(user);
+      return Right(user.toEntity());
+    } on DioException catch (e) {
+      return Left(_handleDioException(e));
+    } catch (e) {
+      return Left(UnknownFailure(e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, void>> changePassword({
+    required String oldPassword,
+    required String newPassword,
+  }) async {
+    try {
+      await remoteDataSource.changePassword(
+        oldPassword: oldPassword,
+        newPassword: newPassword,
+      );
+      return const Right(null);
+    } on DioException catch (e) {
+      return Left(_handleDioException(e));
+    } catch (e) {
+      return Left(UnknownFailure(e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, void>> forgotPassword({required String email}) async {
+    try {
+      await remoteDataSource.forgotPassword(email: email);
+      return const Right(null);
+    } on DioException catch (e) {
+      return Left(_handleDioException(e));
+    } catch (e) {
+      return Left(UnknownFailure(e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, void>> resetPassword({
+    required String token,
+    required String newPassword,
+  }) async {
+    try {
+      await remoteDataSource.resetPassword(
+        token: token,
+        newPassword: newPassword,
+      );
+      return const Right(null);
+    } on DioException catch (e) {
+      return Left(_handleDioException(e));
+    } catch (e) {
+      return Left(UnknownFailure(e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, AuthResult>> refreshToken({
+    required String refreshToken,
+    String? sessionId,
+  }) async {
+    try {
+      final result = await remoteDataSource.refreshToken(
+        refreshToken: refreshToken,
+        sessionId: sessionId,
       );
 
-      final data = response.data['data'] ?? response.data;
-      final token = data['accessToken'] as String;
-
-      // Save token to local storage
-      await localDataSource.saveToken(token);
-
-      // Set token in API client
-      apiClient.setAuthToken(token);
-
-      // Get user from remote data source
-      final userModel = await remoteDataSource.register(
-        email: email,
-        username: username,
-        password: password,
+      // Cache new tokens
+      await localDataSource.cacheAuthTokens(
+        accessToken: result.accessToken,
+        refreshToken: result.refreshToken,
+        sessionId: result.sessionId,
       );
 
-      return userModel.toEntity();
-    } on AuthException {
-      rethrow;
+      return Right(result.toEntity());
+    } on DioException catch (e) {
+      return Left(_handleDioException(e));
     } catch (e) {
-      throw AuthException('Registration failed: $e');
+      return Left(UnknownFailure(e.toString()));
     }
   }
 
   @override
-  Future<UserEntity> getProfile() async {
-    try {
-      final token = await localDataSource.getToken();
-      if (token == null) {
-        throw AuthException('No authentication token found');
-      }
-
-      final userModel = await remoteDataSource.getProfile();
-      return userModel.toEntity();
-    } on AuthException {
-      rethrow;
-    } catch (e) {
-      throw AuthException('Failed to get profile: $e');
-    }
+  Future<bool> isAuthenticated() async {
+    final accessToken = await localDataSource.getAccessToken();
+    return accessToken != null && accessToken.isNotEmpty;
   }
 
   @override
-  Future<void> logout() async {
-    try {
-      await localDataSource.deleteToken();
-      apiClient.clearAuthToken();
-    } catch (e) {
-      throw AuthException('Logout failed: $e');
-    }
+  Future<User?> getCachedUser() async {
+    final userModel = await localDataSource.getCachedUser();
+    return userModel?.toEntity();
   }
 
   @override
-  Future<bool> isLoggedIn() async {
-    return await localDataSource.hasValidToken();
+  Future<void> clearAuthData() async {
+    await localDataSource.clearAuthData();
   }
 
-  @override
-  Future<void> initAuth() async {
-    final token = await localDataSource.getToken();
-    if (token != null && await localDataSource.hasValidToken()) {
-      apiClient.setAuthToken(token);
+  // Helper method to handle Dio exceptions
+  Failure _handleDioException(DioException e) {
+    switch (e.type) {
+      case DioExceptionType.connectionTimeout:
+      case DioExceptionType.sendTimeout:
+      case DioExceptionType.receiveTimeout:
+        return TimeoutFailure(e.message ?? 'Request timeout');
+
+      case DioExceptionType.connectionError:
+        return const NetworkFailure('No internet connection');
+
+      case DioExceptionType.badResponse:
+        final statusCode = e.response?.statusCode;
+        if (statusCode == 401) {
+          return const UnauthorizedFailure('Unauthorized access');
+        } else if (statusCode == 404) {
+          return const NotFoundFailure('Resource not found');
+        } else if (statusCode == 500) {
+          return const ServerFailure('Internal server error');
+        }
+        return ServerFailure(e.error?.toString() ?? 'Server error occurred');
+
+      case DioExceptionType.cancel:
+        return const UnknownFailure('Request cancelled');
+
+      default:
+        return UnknownFailure(e.message ?? 'An unknown error occurred');
     }
   }
 }

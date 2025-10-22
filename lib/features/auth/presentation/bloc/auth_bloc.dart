@@ -1,122 +1,153 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../domain/entities/auth_exception.dart';
-import '../../domain/usecases/check_auth_usecase.dart';
 import '../../domain/usecases/get_profile_usecase.dart';
 import '../../domain/usecases/login_usecase.dart';
 import '../../domain/usecases/logout_usecase.dart';
 import '../../domain/usecases/register_usecase.dart';
+import '../../domain/repositories/auth_repository.dart';
 import 'auth_event.dart';
 import 'auth_state.dart';
 
 class AuthBloc extends Bloc<AuthEvent, AuthState> {
   final LoginUseCase loginUseCase;
   final RegisterUseCase registerUseCase;
-  final GetProfileUseCase getProfileUseCase;
   final LogoutUseCase logoutUseCase;
-  final CheckAuthUseCase checkAuthUseCase;
+  final GetProfileUseCase getProfileUseCase;
+  final AuthRepository authRepository;
 
   AuthBloc({
     required this.loginUseCase,
     required this.registerUseCase,
-    required this.getProfileUseCase,
     required this.logoutUseCase,
-    required this.checkAuthUseCase,
-  }) : super(AuthInitial()) {
-    on<AuthCheckRequested>(_onCheckRequested);
-    on<AuthLoginRequested>(_onLoginRequested);
-    on<AuthRegisterRequested>(_onRegisterRequested);
-    on<AuthLogoutRequested>(_onLogoutRequested);
-    on<AuthProfileRequested>(_onProfileRequested);
+    required this.getProfileUseCase,
+    required this.authRepository,
+  }) : super(const AuthInitial()) {
+    on<LoginEvent>(_onLogin);
+    on<RegisterEvent>(_onRegister);
+    on<LogoutEvent>(_onLogout);
+    on<GetProfileEvent>(_onGetProfile);
+    on<UpdateProfileEvent>(_onUpdateProfile);
+    on<CheckAuthStatusEvent>(_onCheckAuthStatus);
+    on<ForgotPasswordEvent>(_onForgotPassword);
+    on<ResetPasswordEvent>(_onResetPassword);
   }
 
-  Future<void> _onCheckRequested(
-    AuthCheckRequested event,
+  Future<void> _onLogin(LoginEvent event, Emitter<AuthState> emit) async {
+    emit(const AuthLoading());
+
+    final result = await loginUseCase(
+      account: event.account,
+      password: event.password,
+    );
+
+    result.fold(
+      (failure) => emit(AuthError(message: failure.message)),
+      (authResult) => emit(LoginSuccess(user: authResult.user)),
+    );
+  }
+
+  Future<void> _onRegister(RegisterEvent event, Emitter<AuthState> emit) async {
+    emit(const AuthLoading());
+
+    final result = await registerUseCase(
+      account: event.account,
+      email: event.email,
+      password: event.password,
+    );
+
+    result.fold(
+      (failure) => emit(AuthError(message: failure.message)),
+      (authResult) => emit(RegisterSuccess(user: authResult.user)),
+    );
+  }
+
+  Future<void> _onLogout(LogoutEvent event, Emitter<AuthState> emit) async {
+    emit(const AuthLoading());
+
+    final result = await logoutUseCase();
+
+    result.fold(
+      (failure) => emit(AuthError(message: failure.message)),
+      (_) => emit(const LogoutSuccess()),
+    );
+  }
+
+  Future<void> _onGetProfile(
+    GetProfileEvent event,
     Emitter<AuthState> emit,
   ) async {
-    emit(AuthLoading());
+    emit(const AuthLoading());
 
-    try {
-      final isLoggedIn = await checkAuthUseCase();
+    final result = await getProfileUseCase();
 
-      if (isLoggedIn) {
-        final user = await getProfileUseCase();
-        emit(Authenticated(user));
+    result.fold(
+      (failure) => emit(AuthError(message: failure.message)),
+      (user) => emit(ProfileLoaded(user: user)),
+    );
+  }
+
+  Future<void> _onUpdateProfile(
+    UpdateProfileEvent event,
+    Emitter<AuthState> emit,
+  ) async {
+    emit(const AuthLoading());
+
+    final result = await authRepository.updateProfile(
+      name: event.name,
+      profileImage: event.profileImage,
+    );
+
+    result.fold(
+      (failure) => emit(AuthError(message: failure.message)),
+      (user) => emit(ProfileUpdated(user: user)),
+    );
+  }
+
+  Future<void> _onCheckAuthStatus(
+    CheckAuthStatusEvent event,
+    Emitter<AuthState> emit,
+  ) async {
+    final isAuthenticated = await authRepository.isAuthenticated();
+
+    if (isAuthenticated) {
+      final user = await authRepository.getCachedUser();
+      if (user != null) {
+        emit(Authenticated(user: user));
       } else {
-        emit(Unauthenticated());
+        emit(const Unauthenticated());
       }
-    } on AuthException catch (e) {
-      emit(Unauthenticated());
-    } catch (e) {
-      emit(Unauthenticated());
+    } else {
+      emit(const Unauthenticated());
     }
   }
 
-  Future<void> _onLoginRequested(
-    AuthLoginRequested event,
+  Future<void> _onForgotPassword(
+    ForgotPasswordEvent event,
     Emitter<AuthState> emit,
   ) async {
-    emit(AuthLoading());
+    emit(const AuthLoading());
 
-    try {
-      final user = await loginUseCase(
-        email: event.email,
-        password: event.password,
-      );
-      emit(Authenticated(user));
-    } on AuthException catch (e) {
-      emit(AuthError(e.message));
-    } catch (e) {
-      emit(AuthError('An unexpected error occurred'));
-    }
+    final result = await authRepository.forgotPassword(email: event.email);
+
+    result.fold(
+      (failure) => emit(AuthError(message: failure.message)),
+      (_) => emit(const ForgotPasswordSuccess()),
+    );
   }
 
-  Future<void> _onRegisterRequested(
-    AuthRegisterRequested event,
+  Future<void> _onResetPassword(
+    ResetPasswordEvent event,
     Emitter<AuthState> emit,
   ) async {
-    emit(AuthLoading());
+    emit(const AuthLoading());
 
-    try {
-      final user = await registerUseCase(
-        email: event.email,
-        username: event.username,
-        password: event.password,
-      );
-      emit(Authenticated(user));
-    } on AuthException catch (e) {
-      emit(AuthError(e.message));
-    } catch (e) {
-      emit(AuthError('An unexpected error occurred'));
-    }
-  }
+    final result = await authRepository.resetPassword(
+      token: event.token,
+      newPassword: event.newPassword,
+    );
 
-  Future<void> _onLogoutRequested(
-    AuthLogoutRequested event,
-    Emitter<AuthState> emit,
-  ) async {
-    try {
-      await logoutUseCase();
-      emit(Unauthenticated());
-    } on AuthException catch (e) {
-      emit(AuthError(e.message));
-    } catch (e) {
-      emit(AuthError('Logout failed'));
-    }
-  }
-
-  Future<void> _onProfileRequested(
-    AuthProfileRequested event,
-    Emitter<AuthState> emit,
-  ) async {
-    emit(AuthLoading());
-
-    try {
-      final user = await getProfileUseCase();
-      emit(Authenticated(user));
-    } on AuthException catch (e) {
-      emit(AuthError(e.message));
-    } catch (e) {
-      emit(AuthError('Failed to load profile'));
-    }
+    result.fold(
+      (failure) => emit(AuthError(message: failure.message)),
+      (_) => emit(const ResetPasswordSuccess()),
+    );
   }
 }

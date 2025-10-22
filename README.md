@@ -1,4 +1,4 @@
-# kanji_flutter
+# kanji_mobile_v1
 
 A new Flutter project.
 
