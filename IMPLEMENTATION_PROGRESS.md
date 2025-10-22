@@ -180,10 +180,17 @@ lib/
 3. Presentation: Search page with canvas drawing
 4. Canvas functionality for kanji drawing
 
-### Phase 4: Flashcard Feature
-1. Domain: Flashcard entities, spaced repetition algorithm
-2. Data: Flashcard API, local storage for progress
-3. Presentation: Card swiper, study session, progress tracking
+### Phase 4: Flashcard Feature (Completed ✅)
+1. ✅ Domain: Flashcard entities (Flashcard, FlashcardDeck, StudyProgress), SM-2 spaced repetition algorithm
+2. ✅ Data: Flashcard API integration, Hive local storage for offline progress, intelligent caching (remote-first, cache fallback)
+3. ✅ Presentation BLoC: FlashcardBloc with 7 events (LoadDecks, CreateDeck, DeleteDeck, StartStudySession, FlipCard, AnswerCard, EndStudySession), 8 states
+4. ✅ Presentation UI: 
+   - FlashcardDeckListPage (deck list with stats, create/delete, study button)
+   - StudySessionPage (flip card animation, quality rating 0-5, progress tracking)
+   - SessionResultsPage (accuracy, study time, statistics display)
+   - DeckCard widget (stats display, progress bar)
+   - CreateDeckDialog (form validation for deck creation)
+5. ✅ Integration: Connected to HomePage Flashcards tab
 
 ### Phase 5: Quiz Feature
 1. Domain: Quiz entities, scoring logic
@@ -223,9 +230,9 @@ lib/
 | **Auth Feature** | ✅ Complete | 100% |
 | **Routing & Navigation** | ✅ Complete | 100% |
 | **Dashboard/Home** | ✅ Complete | 100% |
-| **Kanji Feature** | 🔄 Not Started | 0% |
-| **Kanji Search** | 🔄 Not Started | 0% |
-| **Flashcard** | 🔄 Not Started | 0% |
+| **Kanji Feature** | ✅ Complete | 100% |
+| **Kanji Search (CNN)** | ✅ Complete | 100% |
+| **Flashcard** | ✅ Complete | 100% |
 | **Quiz** | 🔄 Not Started | 0% |
 | **Profile** | 🔄 Not Started | 0% |
 | **Settings** | 🔄 Not Started | 0% |
@@ -233,7 +240,7 @@ lib/
 | **Notifications** | 🔄 Not Started | 0% |
 | **Testing** | 🔄 Not Started | 0% |
 
-**Overall Progress: ~40%** (6/15 major components completed)
+**Overall Progress: ~60%** (9/15 major components completed)
 
 ---
 
@@ -256,17 +263,29 @@ lib/
    - ✅ Welcome card, quick actions, learning stats
    - ✅ Profile tab with logout functionality
 
-4. **🔄 Backend Testing - NEXT PRIORITY**
+4. **✅ Flashcard Feature - COMPLETED**
+   - ✅ Domain, Data, BLoC, and UI layers fully implemented
+   - ✅ SM-2 spaced repetition algorithm for intelligent review scheduling
+   - ✅ Offline support with Hive caching
+   - ✅ FlashcardDeckListPage with deck stats and study overview
+   - ✅ StudySessionPage with flip card animation and quality ratings
+   - ✅ SessionResultsPage with accuracy and time statistics
+   - ✅ Integrated with HomePage Flashcards tab
+
+5. **🔄 Backend Testing - NEXT PRIORITY**
    - Start kanji-web-be backend (docker-compose + npm run start:dev)
    - Test authentication flow (Login, Register, Logout)
+   - Test Kanji endpoints (list, detail, search)
+   - Test Flashcard endpoints (decks, cards, study session)
+   - Verify CNN recognition API (http://10.0.2.2:8000)
    - Verify token storage and refresh mechanism
    - Follow AUTH_UI_TESTING_GUIDE.md for detailed test cases
 
-5. **🔄 Kanji Feature Implementation - UPCOMING**
-   - Start with Kanji domain layer (entities, repository, use cases)
-   - Implement Kanji data layer (API integration)
-   - Create Kanji UI (list page, detail page with stroke animation)
-   - Integrate external APIs (Jisho for strokes, Kanji Alive for audio)
+6. **🔄 Quiz Feature Implementation - UPCOMING**
+   - Start with Quiz domain layer (entities, repository, use cases)
+   - Implement Quiz data layer (API integration)
+   - Create Quiz UI (list page, quiz taking UI with multiple-choice/fill-in-blank, results page)
+   - Integrate with CNN for drawing-based questions
 
 ---
 

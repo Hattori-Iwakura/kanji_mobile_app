@@ -13,7 +13,7 @@ class AuthResultModel extends AuthResult {
     return AuthResultModel(
       user: UserModel.fromJson(json['user'] as Map<String, dynamic>),
       accessToken: json['accessToken'] as String,
-      refreshToken: json['refreshToken'] as String,
+      refreshToken: json['refreshToken'] as String?, // Optional
       sessionId: json['sessionId'] as String?,
     );
   }

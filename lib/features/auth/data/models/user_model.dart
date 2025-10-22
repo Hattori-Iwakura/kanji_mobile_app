@@ -14,12 +14,15 @@ class UserModel extends User {
   factory UserModel.fromJson(Map<String, dynamic> json) {
     return UserModel(
       id: json['id'] as int,
-      account: json['account'] as String,
+      // Backend returns 'name' field, use it as account if available, otherwise use email
+      account: (json['name'] as String?) ?? (json['account'] as String?) ?? json['email'] as String,
       email: json['email'] as String,
-      profileImage: json['profile_image'] as String?,
-      isFirstLogin: json['is_first_login'] as bool? ?? false,
-      createdAt: DateTime.parse(json['create_at'] as String),
-      role: json['role'] as String? ?? 'user',
+      // Backend returns 'profileImage' in camelCase
+      profileImage: (json['profileImage'] as String?) ?? (json['profile_image'] as String?),
+      isFirstLogin: (json['isFirstLogin'] as bool?) ?? (json['is_first_login'] as bool?) ?? false,
+      // Backend returns 'createdAt' in camelCase
+      createdAt: DateTime.parse((json['createdAt'] as String?) ?? (json['create_at'] as String?) ?? DateTime.now().toIso8601String()),
+      role: (json['role'] as String?) ?? 'USER',
     );
   }
 

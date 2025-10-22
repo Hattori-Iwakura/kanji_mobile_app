@@ -4,13 +4,13 @@ import 'user.dart';
 class AuthResult extends Equatable {
   final User user;
   final String accessToken;
-  final String refreshToken;
+  final String? refreshToken; // Optional - backend may not return it
   final String? sessionId;
 
   const AuthResult({
     required this.user,
     required this.accessToken,
-    required this.refreshToken,
+    this.refreshToken,
     this.sessionId,
   });
 

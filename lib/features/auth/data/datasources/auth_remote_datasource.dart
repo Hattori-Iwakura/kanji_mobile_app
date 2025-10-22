@@ -56,7 +56,8 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         data: {'account': account, 'password': password},
       );
 
-      if (response.data['success'] == true) {
+      // Backend returns: { statusCode: 201, data: { user, accessToken }, timestamp }
+      if (response.statusCode == 201 || response.statusCode == 200) {
         return AuthResultModel.fromJson(response.data['data']);
       } else {
         throw DioException(

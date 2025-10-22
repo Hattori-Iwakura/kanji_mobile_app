@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:kanji_mobile_v1/core/di/injection.dart';
 import 'package:kanji_mobile_v1/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:kanji_mobile_v1/features/auth/presentation/bloc/auth_state.dart';
 import 'package:kanji_mobile_v1/features/auth/presentation/pages/login_page.dart';
@@ -17,23 +17,19 @@ void main() {
     mockAuthBloc = MockAuthBloc();
     when(mockAuthBloc.state).thenReturn(AuthInitial());
     when(mockAuthBloc.stream).thenAnswer((_) => const Stream.empty());
-
-    // Register mock in GetIt for widget testing
-    if (getIt.isRegistered<AuthBloc>()) {
-      getIt.unregister<AuthBloc>();
-    }
-    getIt.registerFactory<AuthBloc>(() => mockAuthBloc);
   });
 
   tearDown(() async {
     await mockAuthBloc.close();
-    if (getIt.isRegistered<AuthBloc>()) {
-      getIt.unregister<AuthBloc>();
-    }
   });
 
   Widget createWidgetUnderTest() {
-    return const MaterialApp(home: LoginPage());
+    return MaterialApp(
+      home: BlocProvider<AuthBloc>(
+        create: (_) => mockAuthBloc,
+        child: const LoginPage(),
+      ),
+    );
   }
 
   group('LoginPage Widget Tests', () {

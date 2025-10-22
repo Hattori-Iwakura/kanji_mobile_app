@@ -4,6 +4,16 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/routes/app_router.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../../auth/presentation/bloc/auth_event.dart';
+import '../../../auth/presentation/bloc/auth_state.dart';
+import '../../../kanji/presentation/pages/kanji_list_page.dart';
+import '../../../cnn_recognition/presentation/pages/kanji_drawing_page.dart';
+import '../../../flashcard/presentation/pages/flashcard_deck_list_page.dart';
+import '../../../quiz/presentation/pages/quiz_list_page.dart';
+import '../../../profile/presentation/pages/profile_page.dart';
+import '../../../profile/presentation/pages/settings_page.dart';
+import '../../../translation/presentation/pages/translation_page.dart';
+import '../../../admin/presentation/pages/admin_dashboard_page.dart';
+import '../../../notifications/presentation/pages/notifications_settings_page.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -38,11 +48,10 @@ class _HomePageState extends State<HomePage> {
           IconButton(
             icon: const Icon(Icons.notifications_outlined),
             onPressed: () {
-              // TODO: Navigate to notifications
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Notifications - Coming Soon'),
-                  duration: Duration(seconds: 1),
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const NotificationsSettingsPage(),
                 ),
               );
             },
@@ -50,17 +59,15 @@ class _HomePageState extends State<HomePage> {
           IconButton(
             icon: const Icon(Icons.settings_outlined),
             onPressed: () {
-              // TODO: Navigate to settings
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Settings - Coming Soon'),
-                  duration: Duration(seconds: 1),
-                ),
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const SettingsPage()),
               );
             },
           ),
         ],
       ),
+      drawer: _buildDrawer(context),
       body: _pages[_currentIndex],
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
@@ -88,9 +95,9 @@ class _HomePageState extends State<HomePage> {
               label: 'Kanji',
             ),
             BottomNavigationBarItem(
-              icon: Icon(Icons.search_outlined),
-              activeIcon: Icon(Icons.search),
-              label: 'Search',
+              icon: Icon(Icons.translate_outlined),
+              activeIcon: Icon(Icons.translate),
+              label: 'Translate',
             ),
             BottomNavigationBarItem(
               icon: Icon(Icons.style_outlined),
@@ -118,7 +125,7 @@ class _HomePageState extends State<HomePage> {
       case 0:
         return 'Kanji Master';
       case 1:
-        return 'Search Kanji';
+        return 'Translation';
       case 2:
         return 'Flashcards';
       case 3:
@@ -128,6 +135,316 @@ class _HomePageState extends State<HomePage> {
       default:
         return 'Kanji Master';
     }
+  }
+
+  Widget _buildDrawer(BuildContext context) {
+    return Drawer(
+      backgroundColor: Colors.grey[900],
+      child: BlocBuilder<AuthBloc, AuthState>(
+        builder: (context, authState) {
+          final isAdmin =
+              authState is Authenticated && authState.user.role == 'ADMIN';
+          final userEmail = authState is Authenticated
+              ? authState.user.email
+              : 'user@email.com';
+
+          return ListView(
+            padding: EdgeInsets.zero,
+            children: [
+              DrawerHeader(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      Theme.of(context).colorScheme.primary,
+                      Theme.of(context).colorScheme.secondary,
+                    ],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    Stack(
+                      children: [
+                        const CircleAvatar(
+                          radius: 30,
+                          backgroundColor: Colors.white,
+                          child: Icon(
+                            Icons.person,
+                            size: 35,
+                            color: Colors.indigo,
+                          ),
+                        ),
+                        if (isAdmin)
+                          Positioned(
+                            right: 0,
+                            bottom: 0,
+                            child: Container(
+                              padding: const EdgeInsets.all(4),
+                              decoration: BoxDecoration(
+                                color: Colors.amber,
+                                shape: BoxShape.circle,
+                                border: Border.all(
+                                  color: Colors.white,
+                                  width: 2,
+                                ),
+                              ),
+                              child: const Icon(
+                                Icons.admin_panel_settings,
+                                size: 16,
+                                color: Colors.black,
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    Row(
+                      children: [
+                        const Text(
+                          'Kanji Master',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        if (isAdmin) ...[
+                          const SizedBox(width: 8),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 2,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.amber,
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: const Text(
+                              'ADMIN',
+                              style: TextStyle(
+                                color: Colors.black,
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                    Text(
+                      userEmail,
+                      style: TextStyle(
+                        color: Colors.white.withOpacity(0.9),
+                        fontSize: 14,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              _buildDrawerItem(
+                context,
+                icon: Icons.home_outlined,
+                title: 'Home',
+                onTap: () {
+                  Navigator.pop(context);
+                  setState(() => _currentIndex = 0);
+                },
+              ),
+              _buildDrawerItem(
+                context,
+                icon: Icons.auto_stories_outlined,
+                title: 'Kanji Dictionary',
+                onTap: () {
+                  Navigator.pop(context);
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const KanjiListPage()),
+                  );
+                },
+              ),
+              _buildDrawerItem(
+                context,
+                icon: Icons.search_outlined,
+                title: 'Search Kanji',
+                onTap: () {
+                  Navigator.pop(context);
+                  setState(() => _currentIndex = 1);
+                },
+              ),
+              _buildDrawerItem(
+                context,
+                icon: Icons.style_outlined,
+                title: 'Flashcards',
+                onTap: () {
+                  Navigator.pop(context);
+                  setState(() => _currentIndex = 2);
+                },
+              ),
+              _buildDrawerItem(
+                context,
+                icon: Icons.quiz_outlined,
+                title: 'Quiz',
+                onTap: () {
+                  Navigator.pop(context);
+                  setState(() => _currentIndex = 3);
+                },
+              ),
+              _buildDrawerItem(
+                context,
+                icon: Icons.list_outlined,
+                title: 'Kanji Lists',
+                onTap: () {
+                  Navigator.pop(context);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Kanji Lists - Coming Soon'),
+                      duration: Duration(seconds: 1),
+                    ),
+                  );
+                },
+              ),
+              _buildDrawerItem(
+                context,
+                icon: Icons.translate_outlined,
+                title: 'Translation',
+                onTap: () {
+                  Navigator.pop(context);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Translation - Coming Soon'),
+                      duration: Duration(seconds: 1),
+                    ),
+                  );
+                },
+              ),
+              const Divider(color: Colors.white24),
+
+              // Admin Dashboard - Only show for ADMIN role
+              if (isAdmin) ...[
+                _buildDrawerItem(
+                  context,
+                  icon: Icons.dashboard,
+                  title: 'Admin Dashboard',
+                  onTap: () {
+                    Navigator.pop(context);
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const AdminDashboardPage(),
+                      ),
+                    );
+                  },
+                ),
+                const Divider(color: Colors.white24),
+              ],
+
+              _buildDrawerItem(
+                context,
+                icon: Icons.person_outline,
+                title: 'Profile',
+                onTap: () {
+                  Navigator.pop(context);
+                  setState(() => _currentIndex = 4);
+                },
+              ),
+              _buildDrawerItem(
+                context,
+                icon: Icons.settings_outlined,
+                title: 'Settings',
+                onTap: () {
+                  Navigator.pop(context);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Settings - Coming Soon'),
+                      duration: Duration(seconds: 1),
+                    ),
+                  );
+                },
+              ),
+              _buildDrawerItem(
+                context,
+                icon: Icons.help_outline,
+                title: 'Help & Support',
+                onTap: () {
+                  Navigator.pop(context);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Help & Support - Coming Soon'),
+                      duration: Duration(seconds: 1),
+                    ),
+                  );
+                },
+              ),
+              const Divider(color: Colors.white24),
+              _buildDrawerItem(
+                context,
+                icon: Icons.logout,
+                title: 'Logout',
+                isDestructive: true,
+                onTap: () {
+                  Navigator.pop(context);
+                  showDialog(
+                    context: context,
+                    builder: (context) => AlertDialog(
+                      backgroundColor: Colors.grey[900],
+                      title: const Text(
+                        'Logout',
+                        style: TextStyle(color: Colors.white),
+                      ),
+                      content: const Text(
+                        'Are you sure you want to logout?',
+                        style: TextStyle(color: Colors.white70),
+                      ),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.pop(context),
+                          child: const Text('Cancel'),
+                        ),
+                        TextButton(
+                          onPressed: () {
+                            Navigator.pop(context);
+                            context.read<AuthBloc>().add(LogoutEvent());
+                            context.go(AppRouter.login);
+                          },
+                          child: const Text(
+                            'Logout',
+                            style: TextStyle(color: Colors.red),
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildDrawerItem(
+    BuildContext context, {
+    required IconData icon,
+    required String title,
+    required VoidCallback onTap,
+    bool isDestructive = false,
+  }) {
+    return ListTile(
+      leading: Icon(icon, color: isDestructive ? Colors.red : Colors.white),
+      title: Text(
+        title,
+        style: TextStyle(
+          color: isDestructive ? Colors.red : Colors.white,
+          fontWeight: FontWeight.w500,
+        ),
+      ),
+      onTap: onTap,
+      hoverColor: Colors.white.withOpacity(0.1),
+    );
   }
 }
 
@@ -199,11 +516,9 @@ class _KanjiTab extends StatelessWidget {
                   subtitle: 'Explore dictionary',
                   color: Colors.blue,
                   onTap: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Kanji Dictionary - Coming Soon'),
-                        duration: Duration(seconds: 1),
-                      ),
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const KanjiListPage()),
                     );
                   },
                 ),
@@ -216,10 +531,10 @@ class _KanjiTab extends StatelessWidget {
                   subtitle: 'Draw & detect',
                   color: Colors.purple,
                   onTap: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('AI Recognition - Coming Soon'),
-                        duration: Duration(seconds: 1),
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const KanjiDrawingPage(),
                       ),
                     );
                   },
@@ -382,31 +697,7 @@ class _SearchTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.search, size: 80, color: Colors.white.withOpacity(0.3)),
-          const SizedBox(height: 16),
-          Text(
-            'Search Feature',
-            style: TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-              color: Colors.white.withOpacity(0.7),
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Coming Soon',
-            style: TextStyle(
-              fontSize: 16,
-              color: Colors.white.withOpacity(0.5),
-            ),
-          ),
-        ],
-      ),
-    );
+    return const TranslationPage();
   }
 }
 
@@ -416,31 +707,7 @@ class _FlashcardsTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.style, size: 80, color: Colors.white.withOpacity(0.3)),
-          const SizedBox(height: 16),
-          Text(
-            'Flashcards Feature',
-            style: TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-              color: Colors.white.withOpacity(0.7),
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Coming Soon',
-            style: TextStyle(
-              fontSize: 16,
-              color: Colors.white.withOpacity(0.5),
-            ),
-          ),
-        ],
-      ),
-    );
+    return const FlashcardDeckListPage();
   }
 }
 
@@ -450,31 +717,7 @@ class _QuizTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.quiz, size: 80, color: Colors.white.withOpacity(0.3)),
-          const SizedBox(height: 16),
-          Text(
-            'Quiz Feature',
-            style: TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-              color: Colors.white.withOpacity(0.7),
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Coming Soon',
-            style: TextStyle(
-              fontSize: 16,
-              color: Colors.white.withOpacity(0.5),
-            ),
-          ),
-        ],
-      ),
-    );
+    return const QuizListPage();
   }
 }
 
@@ -484,173 +727,6 @@ class _ProfileTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        children: [
-          // Profile Header
-          const SizedBox(height: 16),
-          CircleAvatar(
-            radius: 50,
-            backgroundColor: Theme.of(context).colorScheme.primary,
-            child: const Icon(Icons.person, size: 50, color: Colors.white),
-          ),
-          const SizedBox(height: 16),
-          const Text(
-            'User Name',
-            style: TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            'user@email.com',
-            style: TextStyle(
-              fontSize: 16,
-              color: Colors.white.withOpacity(0.6),
-            ),
-          ),
-          const SizedBox(height: 24),
-
-          // Profile Actions
-          _ProfileMenuItem(
-            icon: Icons.person_outline,
-            title: 'Edit Profile',
-            onTap: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Edit Profile - Coming Soon'),
-                  duration: Duration(seconds: 1),
-                ),
-              );
-            },
-          ),
-          _ProfileMenuItem(
-            icon: Icons.history,
-            title: 'Learning History',
-            onTap: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Learning History - Coming Soon'),
-                  duration: Duration(seconds: 1),
-                ),
-              );
-            },
-          ),
-          _ProfileMenuItem(
-            icon: Icons.emoji_events_outlined,
-            title: 'Achievements',
-            onTap: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Achievements - Coming Soon'),
-                  duration: Duration(seconds: 1),
-                ),
-              );
-            },
-          ),
-          _ProfileMenuItem(
-            icon: Icons.settings_outlined,
-            title: 'Settings',
-            onTap: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Settings - Coming Soon'),
-                  duration: Duration(seconds: 1),
-                ),
-              );
-            },
-          ),
-          _ProfileMenuItem(
-            icon: Icons.help_outline,
-            title: 'Help & Support',
-            onTap: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Help & Support - Coming Soon'),
-                  duration: Duration(seconds: 1),
-                ),
-              );
-            },
-          ),
-          const SizedBox(height: 16),
-          _ProfileMenuItem(
-            icon: Icons.logout,
-            title: 'Logout',
-            isDestructive: true,
-            onTap: () {
-              showDialog(
-                context: context,
-                builder: (context) => AlertDialog(
-                  backgroundColor: Colors.grey[900],
-                  title: const Text(
-                    'Logout',
-                    style: TextStyle(color: Colors.white),
-                  ),
-                  content: const Text(
-                    'Are you sure you want to logout?',
-                    style: TextStyle(color: Colors.white70),
-                  ),
-                  actions: [
-                    TextButton(
-                      onPressed: () => Navigator.pop(context),
-                      child: const Text('Cancel'),
-                    ),
-                    TextButton(
-                      onPressed: () {
-                        Navigator.pop(context);
-                        context.read<AuthBloc>().add(LogoutEvent());
-                        context.go(AppRouter.login);
-                      },
-                      child: const Text(
-                        'Logout',
-                        style: TextStyle(color: Colors.red),
-                      ),
-                    ),
-                  ],
-                ),
-              );
-            },
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _ProfileMenuItem extends StatelessWidget {
-  final IconData icon;
-  final String title;
-  final VoidCallback onTap;
-  final bool isDestructive;
-
-  const _ProfileMenuItem({
-    required this.icon,
-    required this.title,
-    required this.onTap,
-    this.isDestructive = false,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return ListTile(
-      leading: Icon(icon, color: isDestructive ? Colors.red : Colors.white),
-      title: Text(
-        title,
-        style: TextStyle(
-          color: isDestructive ? Colors.red : Colors.white,
-          fontWeight: FontWeight.w500,
-        ),
-      ),
-      trailing: Icon(
-        Icons.chevron_right,
-        color: isDestructive
-            ? Colors.red.withOpacity(0.5)
-            : Colors.white.withOpacity(0.5),
-      ),
-      onTap: onTap,
-    );
+    return const ProfilePage();
   }
 }

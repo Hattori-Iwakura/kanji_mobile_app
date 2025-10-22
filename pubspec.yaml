@@ -82,6 +82,7 @@ dependencies:
 
   # Notifications
   flutter_local_notifications: ^18.0.1
+  timezone: ^0.9.4
 
   # Image & Media
   image_picker: ^1.1.2
@@ -116,6 +117,7 @@ dev_dependencies:
 
   # Testing
   mockito: ^5.4.4
+  mocktail: ^1.0.4
   bloc_test: ^9.1.7
   integration_test:
     sdk: flutter

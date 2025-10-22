@@ -23,24 +23,6 @@ class AppRouter {
   static GoRouter createRouter({required bool isAuthenticated}) {
     return GoRouter(
       initialLocation: isAuthenticated ? home : login,
-      redirect: (BuildContext context, GoRouterState state) {
-        final isLoginRoute =
-            state.matchedLocation == login ||
-            state.matchedLocation == register ||
-            state.matchedLocation == forgotPassword;
-
-        // Redirect to login if not authenticated and trying to access protected route
-        if (!isAuthenticated && !isLoginRoute) {
-          return login;
-        }
-
-        // Redirect to home if authenticated and trying to access login routes
-        if (isAuthenticated && isLoginRoute) {
-          return home;
-        }
-
-        return null;
-      },
       routes: [
         // Auth Routes
         GoRoute(path: login, builder: (context, state) => const LoginPage()),

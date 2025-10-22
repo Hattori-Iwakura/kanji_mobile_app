@@ -6,7 +6,7 @@ import '../models/user_model.dart';
 abstract class AuthLocalDataSource {
   Future<void> cacheAuthTokens({
     required String accessToken,
-    required String refreshToken,
+    String? refreshToken, // Optional
     String? sessionId,
   });
 
@@ -28,17 +28,19 @@ class AuthLocalDataSourceImpl implements AuthLocalDataSource {
   @override
   Future<void> cacheAuthTokens({
     required String accessToken,
-    required String refreshToken,
+    String? refreshToken, // Optional
     String? sessionId,
   }) async {
     await secureStorage.write(
       key: AppConstants.keyAccessToken,
       value: accessToken,
     );
-    await secureStorage.write(
-      key: AppConstants.keyRefreshToken,
-      value: refreshToken,
-    );
+    if (refreshToken != null) {
+      await secureStorage.write(
+        key: AppConstants.keyRefreshToken,
+        value: refreshToken,
+      );
+    }
     if (sessionId != null) {
       await secureStorage.write(key: 'session_id', value: sessionId);
     }

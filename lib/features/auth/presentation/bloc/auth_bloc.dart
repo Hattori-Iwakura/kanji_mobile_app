@@ -31,6 +31,14 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<ResetPasswordEvent>(_onResetPassword);
   }
 
+  @override
+  void onTransition(Transition<AuthEvent, AuthState> transition) {
+    super.onTransition(transition);
+    print(
+      '🔀 AuthBloc Transition: ${transition.event.runtimeType} → ${transition.nextState.runtimeType}',
+    );
+  }
+
   Future<void> _onLogin(LoginEvent event, Emitter<AuthState> emit) async {
     emit(const AuthLoading());
 
@@ -39,10 +47,12 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       password: event.password,
     );
 
-    result.fold(
-      (failure) => emit(AuthError(message: failure.message)),
-      (authResult) => emit(LoginSuccess(user: authResult.user)),
-    );
+    result.fold((failure) => emit(AuthError(message: failure.message)), (
+      authResult,
+    ) {
+      // Only emit Authenticated - router will handle navigation
+      emit(Authenticated(user: authResult.user));
+    });
   }
 
   Future<void> _onRegister(RegisterEvent event, Emitter<AuthState> emit) async {
@@ -54,10 +64,12 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       password: event.password,
     );
 
-    result.fold(
-      (failure) => emit(AuthError(message: failure.message)),
-      (authResult) => emit(RegisterSuccess(user: authResult.user)),
-    );
+    result.fold((failure) => emit(AuthError(message: failure.message)), (
+      authResult,
+    ) {
+      // Only emit Authenticated - router will handle navigation
+      emit(Authenticated(user: authResult.user));
+    });
   }
 
   Future<void> _onLogout(LogoutEvent event, Emitter<AuthState> emit) async {
@@ -65,10 +77,10 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
     final result = await logoutUseCase();
 
-    result.fold(
-      (failure) => emit(AuthError(message: failure.message)),
-      (_) => emit(const LogoutSuccess()),
-    );
+    result.fold((failure) => emit(AuthError(message: failure.message)), (_) {
+      // Only emit Unauthenticated - router will redirect to login
+      emit(const Unauthenticated());
+    });
   }
 
   Future<void> _onGetProfile(
