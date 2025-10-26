@@ -1,5 +1,5 @@
 import 'package:dartz/dartz.dart';
-import '../../../../core/errors/failures.dart';
+import '../../../../core/error/failures.dart';
 import '../entities/quiz_result.dart';
 import '../repositories/quiz_repository.dart';
 

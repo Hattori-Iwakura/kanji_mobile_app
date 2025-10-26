@@ -3,9 +3,10 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
 import 'package:kanji_mobile_v1/core/error/failures.dart';
-import 'package:kanji_mobile_v1/features/kanji/domain/entities/kanji.dart';
 import 'package:kanji_mobile_v1/features/kanji/domain/repositories/kanji_repository.dart';
 import 'package:kanji_mobile_v1/features/kanji/domain/usecases/get_kanji_by_id.dart';
+
+import '../../../helpers/fixtures/kanji_fixtures.dart';
 
 class MockKanjiRepository extends Mock implements KanjiRepository {}
 
@@ -18,34 +19,21 @@ void main() {
     usecase = GetKanjiById(mockKanjiRepository);
   });
 
-  final testKanji = Kanji(
-    id: 1,
-    character: '日',
-    onyomi: 'ニチ、ジツ',
-    kunyomi: 'ひ、か',
-    meanings: 'sun, day',
-    strokeCount: 4,
-    jlpt: 5,
-    grade: 1,
-    frequency: 1,
-    createdAt: DateTime(2024, 1, 1),
-    updatedAt: DateTime(2024, 1, 1),
-  );
-
   group('GetKanjiById', () {
     test('should return kanji when id exists', () async {
       // arrange
       const testId = 1;
       when(
         () => mockKanjiRepository.getKanjiById(testId),
-      ).thenAnswer((_) async => Right(testKanji));
+      ).thenAnswer((_) async => Right(tKanji1));
 
       // act
       final result = await usecase(testId);
 
       // assert
-      expect(result, equals(Right(testKanji)));
+      expect(result, equals(Right(tKanji1)));
       verify(() => mockKanjiRepository.getKanjiById(testId)).called(1);
+      verifyNoMoreInteractions(mockKanjiRepository);
     });
 
     test('should return kanji with complete data', () async {
@@ -53,7 +41,7 @@ void main() {
       const testId = 1;
       when(
         () => mockKanjiRepository.getKanjiById(testId),
-      ).thenAnswer((_) async => Right(testKanji));
+      ).thenAnswer((_) async => Right(tKanji1));
 
       // act
       final result = await usecase(testId);
@@ -135,26 +123,12 @@ void main() {
 
     test('should return different kanji for different ids', () async {
       // arrange
-      final testKanji2 = Kanji(
-        id: 2,
-        character: '月',
-        onyomi: 'ゲツ、ガツ',
-        kunyomi: 'つき',
-        meanings: 'moon, month',
-        strokeCount: 4,
-        jlpt: 5,
-        grade: 1,
-        frequency: 2,
-        createdAt: DateTime(2024, 1, 1),
-        updatedAt: DateTime(2024, 1, 1),
-      );
-
       when(
         () => mockKanjiRepository.getKanjiById(1),
-      ).thenAnswer((_) async => Right(testKanji));
+      ).thenAnswer((_) async => Right(tKanji1));
       when(
         () => mockKanjiRepository.getKanjiById(2),
-      ).thenAnswer((_) async => Right(testKanji2));
+      ).thenAnswer((_) async => Right(tKanji2));
 
       // act
       final result1 = await usecase(1);
@@ -169,6 +143,22 @@ void main() {
         (failure) => fail('Expected Right for id 2'),
         (kanji) => expect(kanji.character, equals('月')),
       );
+    });
+
+    test('should return NotFoundFailure when kanji does not exist', () async {
+      // arrange
+      const testId = 999;
+      final failure = NotFoundFailure('Kanji with ID 999 not found');
+      when(
+        () => mockKanjiRepository.getKanjiById(testId),
+      ).thenAnswer((_) async => Left(failure));
+
+      // act
+      final result = await usecase(testId);
+
+      // assert
+      expect(result, equals(Left(failure)));
+      verify(() => mockKanjiRepository.getKanjiById(testId)).called(1);
     });
   });
 }

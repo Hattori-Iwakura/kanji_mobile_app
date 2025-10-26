@@ -2,6 +2,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../domain/usecases/get_all_kanji.dart';
 import '../../domain/usecases/get_kanji_by_id.dart';
 import '../../domain/usecases/search_kanji.dart';
+import '../../domain/usecases/recognize_kanji.dart';
 import 'kanji_event.dart';
 import 'kanji_state.dart';
 
@@ -10,15 +11,18 @@ class KanjiBloc extends Bloc<KanjiEvent, KanjiState> {
   final GetAllKanji getAllKanji;
   final GetKanjiById getKanjiById;
   final SearchKanji searchKanji;
+  final RecognizeKanji recognizeKanji;
 
   KanjiBloc({
     required this.getAllKanji,
     required this.getKanjiById,
     required this.searchKanji,
+    required this.recognizeKanji,
   }) : super(KanjiInitial()) {
     on<LoadAllKanjiEvent>(_onLoadAllKanji);
     on<LoadKanjiByIdEvent>(_onLoadKanjiById);
     on<SearchKanjiEvent>(_onSearchKanji);
+    on<RecognizeKanjiEvent>(_onRecognizeKanji);
   }
 
   Future<void> _onLoadAllKanji(
@@ -81,6 +85,20 @@ class KanjiBloc extends Bloc<KanjiEvent, KanjiState> {
           hasMore: results.length >= event.limit,
         ),
       ),
+    );
+  }
+
+  Future<void> _onRecognizeKanji(
+    RecognizeKanjiEvent event,
+    Emitter<KanjiState> emit,
+  ) async {
+    emit(KanjiRecognitionInProgress());
+
+    final result = await recognizeKanji(event.base64Image);
+
+    result.fold(
+      (failure) => emit(KanjiRecognitionFailure(failure.message)),
+      (recognitionResult) => emit(KanjiRecognitionSuccess(recognitionResult)),
     );
   }
 }

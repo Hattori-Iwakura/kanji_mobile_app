@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
 import 'package:google_mlkit_translation/google_mlkit_translation.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 /// Translation page with TTS, STT, and text translation
 class TranslationPage extends StatefulWidget {
@@ -26,10 +28,16 @@ class _TranslationPageState extends State<TranslationPage>
   bool _isListening = false;
   bool _isTranslating = false;
   bool _isSpeaking = false;
+  bool _hasPermission = false;
+  bool _isInitializing = false;
   String _selectedSourceLang = 'en';
   String _selectedTargetLang = 'ja';
   double _speechVolume = 1.0;
   double _speechRate = 0.5;
+  String _recognizedText = '';
+  String _detectedLanguage = '';
+  int _retryCount = 0;
+  final int _maxRetries = 3;
 
   // Tab Controller
   late TabController _tabController;
@@ -39,6 +47,7 @@ class _TranslationPageState extends State<TranslationPage>
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
     _initializeTts();
+    _checkPermissions();
     _initializeStt();
     _initializeTranslator();
   }
@@ -74,11 +83,12 @@ class _TranslationPageState extends State<TranslationPage>
   }
 
   Future<void> _initializeStt() async {
+    setState(() => _isInitializing = true);
+
     _speechToText = stt.SpeechToText();
     bool available = await _speechToText.initialize(
       onError: (error) {
-        _showSnackBar('STT Error: ${error.errorMsg}', Colors.red);
-        setState(() => _isListening = false);
+        _handleSttError(error.errorMsg);
       },
       onStatus: (status) {
         if (status == 'done' || status == 'notListening') {
@@ -87,8 +97,116 @@ class _TranslationPageState extends State<TranslationPage>
       },
     );
 
+    setState(() => _isInitializing = false);
+
     if (!available) {
       _showSnackBar('Speech recognition not available', Colors.orange);
+    }
+  }
+
+  /// Check and request microphone permissions
+  Future<void> _checkPermissions() async {
+    final status = await Permission.microphone.status;
+
+    if (status.isDenied) {
+      final result = await Permission.microphone.request();
+      setState(() => _hasPermission = result.isGranted);
+
+      if (result.isPermanentlyDenied) {
+        _showPermissionDialog();
+      }
+    } else if (status.isGranted) {
+      setState(() => _hasPermission = true);
+    } else if (status.isPermanentlyDenied) {
+      _showPermissionDialog();
+    }
+  }
+
+  /// Show dialog to open app settings for permissions
+  void _showPermissionDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: const Color(0xFF1A1A1A),
+        title: const Text(
+          'Microphone Permission Required',
+          style: TextStyle(color: Colors.white),
+        ),
+        content: const Text(
+          'This app needs microphone access for speech recognition. Please enable it in settings.',
+          style: TextStyle(color: Colors.white70),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              openAppSettings();
+              Navigator.pop(context);
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.blue),
+            child: const Text('Open Settings'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Handle STT errors with retry mechanism
+  void _handleSttError(String errorMsg) {
+    setState(() => _isListening = false);
+
+    if (_retryCount < _maxRetries) {
+      _retryCount++;
+      _showSnackBar(
+        'Error: $errorMsg - Retry $_retryCount/$_maxRetries',
+        Colors.orange,
+      );
+
+      // Auto-retry after 2 seconds
+      Future.delayed(const Duration(seconds: 2), () {
+        if (!_isListening && _retryCount < _maxRetries) {
+          _toggleListening();
+        }
+      });
+    } else {
+      _showSnackBar(
+        'Speech recognition failed after $_maxRetries attempts',
+        Colors.red,
+      );
+      _retryCount = 0; // Reset for next attempt
+    }
+  }
+
+  /// Detect language from recognized text
+  Future<String> _detectLanguage(String text) async {
+    if (text.isEmpty) return '';
+
+    // Simple heuristic detection
+    // Check for Japanese characters (Hiragana, Katakana, Kanji)
+    final japaneseRegex = RegExp(r'[\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAF]');
+    // Check for Vietnamese diacritics
+    final vietnameseRegex = RegExp(
+      r'[àáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđ]',
+    );
+    // Check for Chinese characters
+    final chineseRegex = RegExp(r'[\u4E00-\u9FFF]');
+    // Check for Korean characters
+    final koreanRegex = RegExp(r'[\uAC00-\uD7AF\u1100-\u11FF\u3130-\u318F]');
+
+    if (japaneseRegex.hasMatch(text)) {
+      return 'ja';
+    } else if (vietnameseRegex.hasMatch(text.toLowerCase())) {
+      return 'vi';
+    } else if (koreanRegex.hasMatch(text)) {
+      return 'ko';
+    } else if (chineseRegex.hasMatch(text)) {
+      return 'zh';
+    } else {
+      // Default to English for Latin characters
+      return 'en';
     }
   }
 
@@ -455,52 +573,198 @@ class _TranslationPageState extends State<TranslationPage>
   }
 
   Widget _buildVoiceInputSection() {
-    return Container(
-      padding: const EdgeInsets.all(32),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: _isListening
-              ? [Colors.red.shade800, Colors.red.shade600]
-              : [Colors.blue.shade800, Colors.blue.shade600],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Column(
-        children: [
-          Icon(
-            _isListening ? Icons.mic : Icons.mic_none,
-            size: 80,
-            color: Colors.white,
-          ),
-          const SizedBox(height: 20),
-          Text(
-            _isListening ? 'Listening...' : 'Tap to speak',
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
+    return Column(
+      children: [
+        Container(
+          padding: const EdgeInsets.all(32),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: _isListening
+                  ? [Colors.red.shade800, Colors.red.shade600]
+                  : _hasPermission
+                  ? [Colors.blue.shade800, Colors.blue.shade600]
+                  : [Colors.grey.shade800, Colors.grey.shade600],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
             ),
+            borderRadius: BorderRadius.circular(20),
           ),
-          const SizedBox(height: 32),
-          ElevatedButton(
-            onPressed: _toggleListening,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.white,
-              foregroundColor: _isListening ? Colors.red : Colors.blue,
-              padding: const EdgeInsets.symmetric(horizontal: 48, vertical: 16),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(30),
+          child: Column(
+            children: [
+              // Animated mic icon
+              AnimatedContainer(
+                duration: const Duration(milliseconds: 300),
+                child: Icon(
+                  _isListening ? Icons.mic : Icons.mic_none,
+                  size: _isListening ? 90 : 80,
+                  color: Colors.white,
+                ),
               ),
+
+              const SizedBox(height: 20),
+
+              Text(
+                _isListening
+                    ? 'Listening...'
+                    : _hasPermission
+                    ? 'Tap to speak'
+                    : 'Permission needed',
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+
+              if (_isListening && _recognizedText.isNotEmpty) ...[
+                const SizedBox(height: 16),
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    _recognizedText,
+                    style: const TextStyle(color: Colors.white, fontSize: 16),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+              ],
+
+              const SizedBox(height: 32),
+
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  // Main record button
+                  ElevatedButton.icon(
+                    onPressed: _hasPermission || !_isListening
+                        ? _toggleListening
+                        : _checkPermissions,
+                    icon: Icon(_isListening ? Icons.stop : Icons.mic, size: 20),
+                    label: Text(
+                      _isListening
+                          ? 'Stop'
+                          : _hasPermission
+                          ? 'Start Recording'
+                          : 'Grant Permission',
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.white,
+                      foregroundColor: _isListening ? Colors.red : Colors.blue,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 32,
+                        vertical: 16,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(30),
+                      ),
+                    ),
+                  ),
+
+                  if (!_isListening && _recognizedText.isNotEmpty) ...[
+                    const SizedBox(width: 12),
+                    // Retry button
+                    IconButton(
+                      onPressed: () {
+                        setState(() {
+                          _recognizedText = '';
+                          _sourceController.clear();
+                        });
+                        _toggleListening();
+                      },
+                      icon: const Icon(Icons.refresh),
+                      color: Colors.white,
+                      iconSize: 32,
+                      tooltip: 'Retry recording',
+                    ),
+                  ],
+                ],
+              ),
+            ],
+          ),
+        ),
+
+        // Language detection indicator
+        if (_detectedLanguage.isNotEmpty &&
+            _detectedLanguage != _selectedSourceLang)
+          Container(
+            margin: const EdgeInsets.only(top: 16),
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.blue.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colors.blue.withOpacity(0.3)),
             ),
-            child: Text(
-              _isListening ? 'Stop' : 'Start Recording',
-              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            child: Row(
+              children: [
+                const Icon(Icons.language, color: Colors.blue, size: 20),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Language Detected',
+                        style: TextStyle(
+                          color: Colors.blue,
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      Text(
+                        _getLanguageName(_detectedLanguage),
+                        style: TextStyle(
+                          color: Colors.white.withOpacity(0.8),
+                          fontSize: 14,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                TextButton(
+                  onPressed: () {
+                    setState(() {
+                      _selectedSourceLang = _detectedLanguage;
+                      _detectedLanguage = '';
+                    });
+                    _updateTranslator();
+                  },
+                  child: const Text('Use this'),
+                ),
+              ],
             ),
           ),
-        ],
-      ),
+
+        // Permission status indicator
+        if (!_hasPermission && !_isInitializing)
+          Container(
+            margin: const EdgeInsets.only(top: 16),
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.orange.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colors.orange.withOpacity(0.3)),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.warning, color: Colors.orange, size: 20),
+                const SizedBox(width: 12),
+                const Expanded(
+                  child: Text(
+                    'Microphone permission is required for speech recognition',
+                    style: TextStyle(color: Colors.orange, fontSize: 13),
+                  ),
+                ),
+              ],
+            ),
+          ),
+      ],
     );
   }
 
@@ -621,7 +885,7 @@ class _TranslationPageState extends State<TranslationPage>
               ),
             ),
           );
-        }).toList(),
+        }),
       ],
     );
   }
@@ -657,20 +921,100 @@ class _TranslationPageState extends State<TranslationPage>
   Future<void> _toggleListening() async {
     if (_isListening) {
       await _speechToText.stop();
-      setState(() => _isListening = false);
+      setState(() {
+        _isListening = false;
+        _retryCount = 0; // Reset retry count
+      });
     } else {
+      // Check permission first
+      if (!_hasPermission) {
+        await _checkPermissions();
+        if (!_hasPermission) {
+          _showSnackBar('Microphone permission denied', Colors.red);
+          return;
+        }
+      }
+
+      // Reset retry count for new attempt
+      _retryCount = 0;
+
       bool available = await _speechToText.initialize();
       if (available) {
         setState(() => _isListening = true);
+
+        // Get available locales for debugging
+        final locales = await _speechToText.locales();
+        final supportedLocales = locales.map((l) => l.localeId).join(', ');
+        debugPrint('Available locales: $supportedLocales');
+
         await _speechToText.listen(
-          onResult: (result) {
+          onResult: (result) async {
+            final recognizedWords = result.recognizedWords;
             setState(() {
-              _sourceController.text = result.recognizedWords;
+              _sourceController.text = recognizedWords;
+              _recognizedText = recognizedWords;
             });
+
+            // Auto-detect language
+            if (recognizedWords.isNotEmpty && result.finalResult) {
+              final detected = await _detectLanguage(recognizedWords);
+              if (detected.isNotEmpty && detected != _selectedSourceLang) {
+                setState(() => _detectedLanguage = detected);
+                _showSnackBar(
+                  'Detected language: ${_getLanguageName(detected)}',
+                  Colors.blue,
+                );
+              }
+            }
           },
-          localeId: _selectedSourceLang == 'en' ? 'en_US' : 'ja_JP',
+          localeId: _getLocaleId(_selectedSourceLang),
+          listenFor: const Duration(seconds: 30),
+          pauseFor: const Duration(seconds: 3),
+          partialResults: true,
+          onSoundLevelChange: (level) {
+            // Visual feedback for sound level
+            debugPrint('Sound level: $level');
+          },
         );
+      } else {
+        _showSnackBar('Speech recognition not available', Colors.red);
       }
+    }
+  }
+
+  /// Get locale ID for speech recognition
+  String _getLocaleId(String langCode) {
+    switch (langCode) {
+      case 'en':
+        return 'en_US';
+      case 'ja':
+        return 'ja_JP';
+      case 'vi':
+        return 'vi_VN';
+      case 'zh':
+        return 'zh_CN';
+      case 'ko':
+        return 'ko_KR';
+      default:
+        return 'en_US';
+    }
+  }
+
+  /// Get language name for display
+  String _getLanguageName(String langCode) {
+    switch (langCode) {
+      case 'en':
+        return 'English';
+      case 'ja':
+        return 'Japanese (日本語)';
+      case 'vi':
+        return 'Vietnamese (Tiếng Việt)';
+      case 'zh':
+        return 'Chinese (中文)';
+      case 'ko':
+        return 'Korean (한국어)';
+      default:
+        return 'Unknown';
     }
   }
 
@@ -716,8 +1060,10 @@ class _TranslationPageState extends State<TranslationPage>
   }
 
   void _copyTranslation() {
-    // TODO: Implement clipboard copy
-    _showSnackBar('Copied to clipboard', Colors.green);
+    if (_translatedController.text.isNotEmpty) {
+      Clipboard.setData(ClipboardData(text: _translatedController.text));
+      _showSnackBar('Copied to clipboard', Colors.green);
+    }
   }
 
   void _showSnackBar(String message, Color backgroundColor) {

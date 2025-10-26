@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:fl_chart/fl_chart.dart';
+import '../../../../core/routes/app_router.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../../auth/presentation/bloc/auth_state.dart';
 import 'admin_users_page.dart';
@@ -270,10 +272,7 @@ class AdminDashboardPage extends StatelessWidget {
                 label: 'Users',
                 color: Colors.blue,
                 onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const AdminUsersPage()),
-                  );
+                  context.go(AppRouter.userManagement);
                 },
               ),
             ),

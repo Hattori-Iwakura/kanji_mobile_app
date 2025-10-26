@@ -285,7 +285,7 @@ class QuizResultPage extends StatelessWidget {
           final index = entry.key;
           final answer = entry.value;
           return _buildAnswerReviewCard(index + 1, answer);
-        }).toList(),
+        }),
       ],
     );
   }

@@ -1,6 +1,6 @@
 import 'package:dartz/dartz.dart';
 import 'package:dio/dio.dart';
-import '../../../../core/errors/failures.dart';
+import '../../../../core/error/failures.dart';
 import '../../domain/entities/quiz.dart';
 import '../../domain/entities/question.dart';
 import '../../domain/entities/quiz_result.dart';
@@ -163,13 +163,93 @@ class QuizRepositoryImpl implements QuizRepository {
     }
   }
 
+  @override
+  Future<Either<Failure, Question>> addQuestion({
+    required String quizId,
+    required String type,
+    required String questionText,
+    required List<String> options,
+    required String correctAnswer,
+    String? explanation,
+    int points = 10,
+    List<String> meanings = const [],
+  }) async {
+    try {
+      final question = await remoteDataSource.addQuestion(
+        quizId: quizId,
+        type: type,
+        questionText: questionText,
+        options: options,
+        correctAnswer: correctAnswer,
+        explanation: explanation,
+        points: points,
+        meanings: meanings,
+      );
+      return Right(question);
+    } on DioException catch (e) {
+      return Left(_handleDioError(e));
+    } catch (e) {
+      return Left(UnknownFailure(e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, Question>> updateQuestion({
+    required String quizId,
+    required String questionId,
+    String? type,
+    String? questionText,
+    List<String>? options,
+    String? correctAnswer,
+    String? explanation,
+    int? points,
+    List<String>? meanings,
+  }) async {
+    try {
+      final question = await remoteDataSource.updateQuestion(
+        quizId: quizId,
+        questionId: questionId,
+        type: type,
+        questionText: questionText,
+        options: options,
+        correctAnswer: correctAnswer,
+        explanation: explanation,
+        points: points,
+        meanings: meanings,
+      );
+      return Right(question);
+    } on DioException catch (e) {
+      return Left(_handleDioError(e));
+    } catch (e) {
+      return Left(UnknownFailure(e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, void>> deleteQuestion({
+    required String quizId,
+    required String questionId,
+  }) async {
+    try {
+      await remoteDataSource.deleteQuestion(
+        quizId: quizId,
+        questionId: questionId,
+      );
+      return const Right(null);
+    } on DioException catch (e) {
+      return Left(_handleDioError(e));
+    } catch (e) {
+      return Left(UnknownFailure(e.toString()));
+    }
+  }
+
   /// Handle Dio errors and convert to Failure
   Failure _handleDioError(DioException error) {
     switch (error.type) {
       case DioExceptionType.connectionTimeout:
       case DioExceptionType.sendTimeout:
       case DioExceptionType.receiveTimeout:
-        return TimeoutFailure('Request timeout. Please try again.');
+        return const NetworkFailure('Request timeout. Please try again.');
 
       case DioExceptionType.badResponse:
         final statusCode = error.response?.statusCode;

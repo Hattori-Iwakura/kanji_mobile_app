@@ -2,11 +2,15 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/di/injection.dart';
+import '../../../cnn_recognition/presentation/bloc/cnn_recognition_bloc.dart';
+import '../../../cnn_recognition/presentation/bloc/cnn_recognition_event.dart';
+import '../../../cnn_recognition/presentation/bloc/cnn_recognition_state.dart';
 import '../../domain/entities/quiz.dart';
 import '../../domain/entities/question.dart';
 import '../bloc/quiz_bloc.dart';
 import '../bloc/quiz_event.dart';
 import '../bloc/quiz_state.dart';
+import '../widgets/quiz_drawing_canvas.dart';
 import 'quiz_result_page.dart';
 
 /// Page for taking a quiz
@@ -80,8 +84,13 @@ class _QuizTakingPageState extends State<QuizTakingPage> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (_) => getIt<QuizBloc>()..add(StartQuizEvent(widget.quiz.id)),
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider(
+          create: (_) => getIt<QuizBloc>()..add(StartQuizEvent(widget.quiz.id)),
+        ),
+        BlocProvider(create: (_) => getIt<CnnRecognitionBloc>()),
+      ],
       child: _QuizTakingView(
         quiz: widget.quiz,
         elapsedSeconds: _elapsedSeconds,
@@ -299,6 +308,8 @@ class _QuizTakingView extends StatelessWidget {
       return _buildFillInBlank(context, state, question);
     } else if (question.isTrueFalse) {
       return _buildTrueFalse(context, state, question);
+    } else if (question.isDrawing) {
+      return _buildDrawing(context, state, question);
     } else {
       return const Text(
         'Unsupported question type',
@@ -513,6 +524,213 @@ class _QuizTakingView extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildDrawing(
+    BuildContext context,
+    QuizSessionActive state,
+    Question question,
+  ) {
+    return BlocConsumer<CnnRecognitionBloc, CnnRecognitionState>(
+      listener: (context, cnnState) {
+        if (cnnState is PredictionSuccess) {
+          // Get top prediction
+          if (cnnState.predictions.isNotEmpty) {
+            final topPrediction = cnnState.predictions.first;
+            final predictedKanji = topPrediction.character;
+
+            // Auto-submit answer
+            context.read<QuizBloc>().add(
+              AnswerQuestionEvent(
+                questionId: question.id,
+                answer: predictedKanji,
+              ),
+            );
+
+            // Show prediction result
+            final isCorrect = predictedKanji == question.correctAnswer;
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Row(
+                  children: [
+                    Icon(
+                      isCorrect ? Icons.check_circle : Icons.error,
+                      color: Colors.white,
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            'CNN Predicted: $predictedKanji',
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 18,
+                            ),
+                          ),
+                          Text(
+                            isCorrect
+                                ? '✓ Correct! (${(topPrediction.confidence * 100).toStringAsFixed(1)}%)'
+                                : '✗ Expected: ${question.correctAnswer}',
+                            style: const TextStyle(fontSize: 14),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                backgroundColor: isCorrect ? Colors.green : Colors.red,
+                duration: const Duration(seconds: 4),
+              ),
+            );
+          }
+        } else if (cnnState is PredictionError) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Error: ${cnnState.message}'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      },
+      builder: (context, cnnState) {
+        final isProcessing = cnnState is PredictingKanji;
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // Drawing instructions
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.purple.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.purple.withOpacity(0.3)),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      const Icon(Icons.draw, color: Colors.purple, size: 20),
+                      const SizedBox(width: 8),
+                      const Text(
+                        'Draw the Kanji',
+                        style: TextStyle(
+                          color: Colors.purple,
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Draw the kanji character in the canvas below. The AI will recognize your drawing and check if it matches the expected answer.',
+                    style: TextStyle(
+                      color: Colors.white.withOpacity(0.8),
+                      fontSize: 14,
+                      height: 1.4,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 20),
+
+            // Canvas
+            QuizDrawingCanvas(
+              onDrawingComplete: (imageBytes) {
+                // Trigger CNN prediction
+                context.read<CnnRecognitionBloc>().add(
+                  PredictKanjiEvent(imageBytes),
+                );
+              },
+              onClear: () {
+                // Clear any previous answer
+                context.read<CnnRecognitionBloc>().add(ClearRecognitionEvent());
+              },
+            ),
+
+            if (isProcessing) ...[
+              const SizedBox(height: 16),
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.blue.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.blue.withOpacity(0.3)),
+                ),
+                child: Row(
+                  children: [
+                    const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Colors.blue,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    const Text(
+                      'Analyzing your drawing...',
+                      style: TextStyle(
+                        color: Colors.blue,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+
+            if (state.currentQuestionAnswered) ...[
+              const SizedBox(height: 16),
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.green.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.green.withOpacity(0.3)),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.check_circle, color: Colors.green),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'Answer Submitted',
+                            style: TextStyle(
+                              color: Colors.green,
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          Text(
+                            'Your answer: ${state.currentAnswer}',
+                            style: TextStyle(
+                              color: Colors.white.withOpacity(0.8),
+                              fontSize: 13,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ],
+        );
+      },
     );
   }
 

@@ -1,6 +1,7 @@
 import 'package:dartz/dartz.dart';
 import '../../../../core/error/failures.dart';
 import '../entities/kanji.dart';
+import '../entities/kanji_recognition_result.dart';
 
 /// Repository interface for Kanji operations
 abstract class KanjiRepository {
@@ -30,4 +31,9 @@ abstract class KanjiRepository {
     int limit,
     String? sortBy,
   });
+
+  /// Recognize kanji from canvas drawing (base64 image)
+  Future<Either<Failure, KanjiRecognitionResultEntity>> recognizeKanji(
+    String base64Image,
+  );
 }

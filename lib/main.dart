@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'app.dart';
 import 'core/constants/api_endpoints.dart';
 import 'core/di/injection.dart';
@@ -12,6 +13,9 @@ void main() async {
 
   // Load environment variables
   await dotenv.load(fileName: '.env');
+
+  // Initialize Hive for local caching
+  await Hive.initFlutter();
 
   // Initialize API endpoints with env variables
   // Use localhost for web, 10.0.2.2 for Android emulator

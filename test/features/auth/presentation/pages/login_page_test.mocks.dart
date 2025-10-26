@@ -5,7 +5,7 @@
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'dart:async' as _i9;
 
-import 'package:flutter_bloc/flutter_bloc.dart' as _i11;
+import 'package:flutter_bloc/flutter_bloc.dart' as _i10;
 import 'package:kanji_mobile_v1/features/auth/domain/repositories/auth_repository.dart'
     as _i6;
 import 'package:kanji_mobile_v1/features/auth/domain/usecases/get_profile_usecase.dart'
@@ -19,7 +19,7 @@ import 'package:kanji_mobile_v1/features/auth/domain/usecases/register_usecase.d
 import 'package:kanji_mobile_v1/features/auth/presentation/bloc/auth_bloc.dart'
     as _i8;
 import 'package:kanji_mobile_v1/features/auth/presentation/bloc/auth_event.dart'
-    as _i10;
+    as _i11;
 import 'package:kanji_mobile_v1/features/auth/presentation/bloc/auth_state.dart'
     as _i7;
 import 'package:mockito/mockito.dart' as _i1;
@@ -156,13 +156,21 @@ class MockAuthBloc extends _i1.Mock implements _i8.AuthBloc {
           as bool);
 
   @override
-  void add(_i10.AuthEvent? event) => super.noSuchMethod(
+  void onTransition(
+    _i10.Transition<_i11.AuthEvent, _i7.AuthState>? transition,
+  ) => super.noSuchMethod(
+    Invocation.method(#onTransition, [transition]),
+    returnValueForMissingStub: null,
+  );
+
+  @override
+  void add(_i11.AuthEvent? event) => super.noSuchMethod(
     Invocation.method(#add, [event]),
     returnValueForMissingStub: null,
   );
 
   @override
-  void onEvent(_i10.AuthEvent? event) => super.noSuchMethod(
+  void onEvent(_i11.AuthEvent? event) => super.noSuchMethod(
     Invocation.method(#onEvent, [event]),
     returnValueForMissingStub: null,
   );
@@ -174,19 +182,11 @@ class MockAuthBloc extends _i1.Mock implements _i8.AuthBloc {
   );
 
   @override
-  void on<E extends _i10.AuthEvent>(
-    _i11.EventHandler<E, _i7.AuthState>? handler, {
-    _i11.EventTransformer<E>? transformer,
+  void on<E extends _i11.AuthEvent>(
+    _i10.EventHandler<E, _i7.AuthState>? handler, {
+    _i10.EventTransformer<E>? transformer,
   }) => super.noSuchMethod(
     Invocation.method(#on, [handler], {#transformer: transformer}),
-    returnValueForMissingStub: null,
-  );
-
-  @override
-  void onTransition(
-    _i11.Transition<_i10.AuthEvent, _i7.AuthState>? transition,
-  ) => super.noSuchMethod(
-    Invocation.method(#onTransition, [transition]),
     returnValueForMissingStub: null,
   );
 
@@ -200,7 +200,7 @@ class MockAuthBloc extends _i1.Mock implements _i8.AuthBloc {
           as _i9.Future<void>);
 
   @override
-  void onChange(_i11.Change<_i7.AuthState>? change) => super.noSuchMethod(
+  void onChange(_i10.Change<_i7.AuthState>? change) => super.noSuchMethod(
     Invocation.method(#onChange, [change]),
     returnValueForMissingStub: null,
   );

@@ -13,7 +13,7 @@ class _AdminKanjiPageState extends State<AdminKanjiPage> {
   String _selectedFilter = 'All';
 
   // Mock kanji data
-  List<Map<String, dynamic>> _kanjis = [
+  final List<Map<String, dynamic>> _kanjis = [
     {
       'id': '1',
       'character': '日',

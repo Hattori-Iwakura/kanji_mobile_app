@@ -1,5 +1,7 @@
 import 'package:dio/dio.dart';
 import '../models/kanji_model.dart';
+import '../models/kanji_recognition_request.dart';
+import '../models/kanji_recognition_result.dart';
 
 /// Remote data source for Kanji API
 abstract class KanjiRemoteDataSource {
@@ -25,6 +27,11 @@ abstract class KanjiRemoteDataSource {
     int limit,
     String? sortBy,
   });
+
+  /// Recognize kanji from canvas drawing (base64 image)
+  Future<KanjiRecognitionResult> recognizeKanji(
+    KanjiRecognitionRequest request,
+  );
 }
 
 class KanjiRemoteDataSourceImpl implements KanjiRemoteDataSource {
@@ -120,6 +127,24 @@ class KanjiRemoteDataSourceImpl implements KanjiRemoteDataSource {
       final kanjiList = dataWrapper['data'] as List;
 
       return kanjiList.map((json) => KanjiModel.fromJson(json)).toList();
+    } on DioException catch (e) {
+      throw _handleDioError(e);
+    }
+  }
+
+  @override
+  Future<KanjiRecognitionResult> recognizeKanji(
+    KanjiRecognitionRequest request,
+  ) async {
+    try {
+      final response = await dio.post(
+        '/kanji-recognition/recognize',
+        data: request.toJson(),
+      );
+
+      final responseData = response.data;
+      // Backend returns direct data without wrapper
+      return KanjiRecognitionResult.fromJson(responseData);
     } on DioException catch (e) {
       throw _handleDioError(e);
     }

@@ -4,6 +4,9 @@ import '../../domain/usecases/get_quiz_questions.dart';
 import '../../domain/usecases/submit_quiz_answer.dart';
 import '../../domain/usecases/complete_quiz.dart';
 import '../../domain/usecases/get_quiz_history.dart';
+import '../../domain/usecases/add_question.dart';
+import '../../domain/usecases/update_question.dart';
+import '../../domain/usecases/delete_question.dart';
 import '../../domain/repositories/quiz_repository.dart';
 import 'quiz_event.dart';
 import 'quiz_state.dart';
@@ -15,6 +18,9 @@ class QuizBloc extends Bloc<QuizEvent, QuizState> {
   final SubmitQuizAnswer submitQuizAnswer;
   final CompleteQuiz completeQuiz;
   final GetQuizHistory getQuizHistory;
+  final AddQuestion addQuestion;
+  final UpdateQuestion updateQuestion;
+  final DeleteQuestion deleteQuestion;
   final QuizRepository repository;
 
   QuizBloc({
@@ -23,6 +29,9 @@ class QuizBloc extends Bloc<QuizEvent, QuizState> {
     required this.submitQuizAnswer,
     required this.completeQuiz,
     required this.getQuizHistory,
+    required this.addQuestion,
+    required this.updateQuestion,
+    required this.deleteQuestion,
     required this.repository,
   }) : super(QuizInitial()) {
     on<LoadQuizzesEvent>(_onLoadQuizzes);
@@ -36,6 +45,9 @@ class QuizBloc extends Bloc<QuizEvent, QuizState> {
     on<CompleteQuizEvent>(_onCompleteQuiz);
     on<RetryQuizEvent>(_onRetryQuiz);
     on<ViewQuizResultEvent>(_onViewQuizResult);
+    on<AddQuestionEvent>(_onAddQuestion);
+    on<UpdateQuestionEvent>(_onUpdateQuestion);
+    on<DeleteQuestionEvent>(_onDeleteQuestion);
   }
 
   Future<void> _onLoadQuizzes(
@@ -246,5 +258,69 @@ class QuizBloc extends Bloc<QuizEvent, QuizState> {
       (failure) => emit(QuizError(failure.message)),
       (quizResult) => emit(QuizCompleted(quizResult)),
     );
+  }
+
+  Future<void> _onAddQuestion(
+    AddQuestionEvent event,
+    Emitter<QuizState> emit,
+  ) async {
+    emit(QuizLoading());
+
+    final result = await addQuestion(
+      quizId: event.quizId,
+      type: event.type,
+      questionText: event.questionText,
+      options: event.options,
+      correctAnswer: event.correctAnswer,
+      explanation: event.explanation,
+      points: event.points,
+      meanings: event.meanings,
+    );
+
+    result.fold((failure) => emit(QuizError(failure.message)), (question) {
+      // Reload questions after adding
+      add(LoadQuestionsEvent(event.quizId));
+    });
+  }
+
+  Future<void> _onUpdateQuestion(
+    UpdateQuestionEvent event,
+    Emitter<QuizState> emit,
+  ) async {
+    emit(QuizLoading());
+
+    final result = await updateQuestion(
+      quizId: event.quizId,
+      questionId: event.questionId,
+      type: event.type,
+      questionText: event.questionText,
+      options: event.options,
+      correctAnswer: event.correctAnswer,
+      explanation: event.explanation,
+      points: event.points,
+      meanings: event.meanings,
+    );
+
+    result.fold((failure) => emit(QuizError(failure.message)), (question) {
+      // Reload questions after updating
+      add(LoadQuestionsEvent(event.quizId));
+    });
+  }
+
+  Future<void> _onDeleteQuestion(
+    DeleteQuestionEvent event,
+    Emitter<QuizState> emit,
+  ) async {
+    emit(QuizLoading());
+
+    final result = await deleteQuestion(
+      quizId: event.quizId,
+      questionId: event.questionId,
+    );
+
+    result.fold((failure) => emit(QuizError(failure.message)), (_) {
+      // Reload questions after deleting
+      add(LoadQuestionsEvent(event.quizId));
+    });
   }
 }

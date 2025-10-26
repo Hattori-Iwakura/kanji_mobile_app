@@ -5,14 +5,16 @@ import '../../../../core/routes/app_router.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../../auth/presentation/bloc/auth_event.dart';
 import '../../../auth/presentation/bloc/auth_state.dart';
-import '../../../kanji/presentation/pages/kanji_list_page.dart';
+import '../../../kanji/presentation/pages/kanji_list_page.dart' as old_kanji;
+import '../../../kanji/presentation/pages/kanji_recognition_page.dart';
+import '../../../kanji/presentation/pages/kanji_search_page.dart';
 import '../../../cnn_recognition/presentation/pages/kanji_drawing_page.dart';
 import '../../../flashcard/presentation/pages/flashcard_deck_list_page.dart';
+import '../../../kanji_list/presentation/pages/kanji_list_page.dart';
 import '../../../quiz/presentation/pages/quiz_list_page.dart';
 import '../../../profile/presentation/pages/profile_page.dart';
 import '../../../profile/presentation/pages/settings_page.dart';
 import '../../../translation/presentation/pages/translation_page.dart';
-import '../../../admin/presentation/pages/admin_dashboard_page.dart';
 import '../../../notifications/presentation/pages/notifications_settings_page.dart';
 
 class HomePage extends StatefulWidget {
@@ -95,9 +97,9 @@ class _HomePageState extends State<HomePage> {
               label: 'Kanji',
             ),
             BottomNavigationBarItem(
-              icon: Icon(Icons.translate_outlined),
-              activeIcon: Icon(Icons.translate),
-              label: 'Translate',
+              icon: Icon(Icons.search_outlined),
+              activeIcon: Icon(Icons.search),
+              label: 'Search',
             ),
             BottomNavigationBarItem(
               icon: Icon(Icons.style_outlined),
@@ -125,7 +127,7 @@ class _HomePageState extends State<HomePage> {
       case 0:
         return 'Kanji Master';
       case 1:
-        return 'Translation';
+        return 'Search Kanji';
       case 2:
         return 'Flashcards';
       case 3:
@@ -261,7 +263,9 @@ class _HomePageState extends State<HomePage> {
                   Navigator.pop(context);
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (_) => const KanjiListPage()),
+                    MaterialPageRoute(
+                      builder: (_) => const old_kanji.KanjiListPage(),
+                    ),
                   );
                 },
               ),
@@ -290,6 +294,15 @@ class _HomePageState extends State<HomePage> {
                 onTap: () {
                   Navigator.pop(context);
                   setState(() => _currentIndex = 3);
+                },
+              ),
+              _buildDrawerItem(
+                context,
+                icon: Icons.analytics_outlined,
+                title: 'My Progress',
+                onTap: () {
+                  Navigator.pop(context);
+                  context.go(AppRouter.progress);
                 },
               ),
               _buildDrawerItem(
@@ -330,12 +343,7 @@ class _HomePageState extends State<HomePage> {
                   title: 'Admin Dashboard',
                   onTap: () {
                     Navigator.pop(context);
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => const AdminDashboardPage(),
-                      ),
-                    );
+                    context.go(AppRouter.adminDashboard);
                   },
                 ),
                 const Divider(color: Colors.white24),
@@ -518,7 +526,9 @@ class _KanjiTab extends StatelessWidget {
                   onTap: () {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (_) => const KanjiListPage()),
+                      MaterialPageRoute(
+                        builder: (_) => const old_kanji.KanjiListPage(),
+                      ),
                     );
                   },
                 ),
@@ -536,6 +546,42 @@ class _KanjiTab extends StatelessWidget {
                       MaterialPageRoute(
                         builder: (_) => const KanjiDrawingPage(),
                       ),
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(
+                child: _QuickActionCard(
+                  icon: Icons.auto_awesome,
+                  title: 'New Recognition',
+                  subtitle: 'Backend API v2',
+                  color: Colors.green,
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const KanjiRecognitionPage(),
+                      ),
+                    );
+                  },
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: _QuickActionCard(
+                  icon: Icons.list_alt_outlined,
+                  title: 'Kanji Lists',
+                  subtitle: 'Manage collections',
+                  color: Colors.orange,
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const KanjiListPage()),
                     );
                   },
                 ),
@@ -697,7 +743,7 @@ class _SearchTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const TranslationPage();
+    return const KanjiSearchPage();
   }
 }
 

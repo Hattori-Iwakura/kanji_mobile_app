@@ -72,3 +72,13 @@ class SearchKanjiEvent extends KanjiEvent {
     sortBy,
   ];
 }
+
+/// Event to recognize kanji from canvas drawing (base64 image)
+class RecognizeKanjiEvent extends KanjiEvent {
+  final String base64Image;
+
+  const RecognizeKanjiEvent(this.base64Image);
+
+  @override
+  List<Object> get props => [base64Image];
+}

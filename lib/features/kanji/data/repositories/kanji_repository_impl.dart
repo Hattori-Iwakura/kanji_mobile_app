@@ -1,8 +1,10 @@
 import 'package:dartz/dartz.dart';
 import '../../../../core/error/failures.dart';
 import '../../domain/entities/kanji.dart';
+import '../../domain/entities/kanji_recognition_result.dart';
 import '../../domain/repositories/kanji_repository.dart';
 import '../datasources/kanji_remote_datasource.dart';
+import '../models/kanji_recognition_request.dart';
 
 /// Implementation of KanjiRepository
 class KanjiRepositoryImpl implements KanjiRepository {
@@ -75,6 +77,34 @@ class KanjiRepositoryImpl implements KanjiRepository {
         sortBy: sortBy,
       );
       return Right(kanjiModels.map((model) => model.toEntity()).toList());
+    } on Exception catch (e) {
+      return Left(_mapExceptionToFailure(e));
+    }
+  }
+
+  @override
+  Future<Either<Failure, KanjiRecognitionResultEntity>> recognizeKanji(
+    String base64Image,
+  ) async {
+    try {
+      final request = KanjiRecognitionRequest(image: base64Image);
+      final result = await remoteDataSource.recognizeKanji(request);
+
+      // Convert model to entity
+      final entity = KanjiRecognitionResultEntity(
+        character: result.character,
+        confidence: result.confidence,
+        top5: result.top5
+            ?.map(
+              (t) => Top5Prediction(
+                character: t.character,
+                confidence: t.confidence,
+              ),
+            )
+            .toList(),
+      );
+
+      return Right(entity);
     } on Exception catch (e) {
       return Left(_mapExceptionToFailure(e));
     }

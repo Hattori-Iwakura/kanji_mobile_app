@@ -12,6 +12,7 @@ class Question extends Equatable {
   final int points;
   final int orderIndex;
   final DateTime createdAt;
+  final List<String> meanings; // For DRAWING type - kanji meanings
 
   const Question({
     required this.id,
@@ -24,6 +25,7 @@ class Question extends Equatable {
     required this.points,
     required this.orderIndex,
     required this.createdAt,
+    this.meanings = const [],
   });
 
   @override
@@ -38,6 +40,7 @@ class Question extends Equatable {
     points,
     orderIndex,
     createdAt,
+    meanings,
   ];
 
   /// Check if question is multiple choice

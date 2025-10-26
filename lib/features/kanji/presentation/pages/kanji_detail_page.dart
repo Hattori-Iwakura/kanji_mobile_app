@@ -1,11 +1,87 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+import 'package:just_audio/just_audio.dart';
+import '../../../../core/di/injection.dart';
+import '../../../../core/services/kanjivg_service.dart';
+import '../../../../core/services/rapidapi_service.dart';
 import '../../domain/entities/kanji.dart';
 
 /// Detail page for a single kanji showing full information
-class KanjiDetailPage extends StatelessWidget {
+class KanjiDetailPage extends StatefulWidget {
   final Kanji kanji;
 
   const KanjiDetailPage({super.key, required this.kanji});
+
+  @override
+  State<KanjiDetailPage> createState() => _KanjiDetailPageState();
+}
+
+class _KanjiDetailPageState extends State<KanjiDetailPage> {
+  final KanjiVGService _kanjiVGService = getIt<KanjiVGService>();
+  final RapidAPIService _rapidAPIService = getIt<RapidAPIService>();
+  final AudioPlayer _audioPlayer = AudioPlayer();
+
+  String? _strokeSvg;
+  List<KanjiExample>? _examples;
+  bool _loadingStrokes = true;
+  bool _loadingExamples = true;
+  String? _playingAudioUrl;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadStrokeOrder();
+    _loadExamples();
+  }
+
+  @override
+  void dispose() {
+    _audioPlayer.dispose();
+    super.dispose();
+  }
+
+  Future<void> _loadStrokeOrder() async {
+    setState(() => _loadingStrokes = true);
+    final svg = await _kanjiVGService.fetchStrokeSvg(widget.kanji.character);
+    if (mounted) {
+      setState(() {
+        _strokeSvg = svg;
+        _loadingStrokes = false;
+      });
+    }
+  }
+
+  Future<void> _loadExamples() async {
+    setState(() => _loadingExamples = true);
+    final examples = await _rapidAPIService.getExamples(widget.kanji.character);
+    if (mounted) {
+      setState(() {
+        _examples = examples;
+        _loadingExamples = false;
+      });
+    }
+  }
+
+  Future<void> _playAudio(String url) async {
+    try {
+      setState(() => _playingAudioUrl = url);
+      await _audioPlayer.setUrl(url);
+      await _audioPlayer.play();
+      await _audioPlayer.processingStateStream.firstWhere(
+        (state) => state == ProcessingState.completed,
+      );
+      if (mounted) {
+        setState(() => _playingAudioUrl = null);
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _playingAudioUrl = null);
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Failed to play audio: $e')));
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -18,7 +94,7 @@ class KanjiDetailPage extends StatelessWidget {
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
-          kanji.character,
+          widget.kanji.character,
           style: const TextStyle(color: Colors.white, fontSize: 32),
         ),
         actions: [
@@ -47,7 +123,7 @@ class KanjiDetailPage extends StatelessWidget {
                 ),
                 child: Center(
                   child: Text(
-                    kanji.character,
+                    widget.kanji.character,
                     style: const TextStyle(
                       color: Colors.white,
                       fontSize: 120,
@@ -65,24 +141,28 @@ class KanjiDetailPage extends StatelessWidget {
               spacing: 12,
               runSpacing: 12,
               children: [
-                if (kanji.jlpt != null)
+                if (widget.kanji.jlpt != null)
                   _buildBadge(
                     'JLPT',
-                    'N${kanji.jlpt}',
-                    _getJlptColor(kanji.jlpt!),
+                    'N${widget.kanji.jlpt}',
+                    _getJlptColor(widget.kanji.jlpt!),
                   ),
-                if (kanji.grade != null)
-                  _buildBadge('Grade', '${kanji.grade}', Colors.blue[300]!),
-                if (kanji.strokeCount != null)
+                if (widget.kanji.grade != null)
+                  _buildBadge(
+                    'Grade',
+                    '${widget.kanji.grade}',
+                    Colors.blue[300]!,
+                  ),
+                if (widget.kanji.strokeCount != null)
                   _buildBadge(
                     'Strokes',
-                    '${kanji.strokeCount}',
+                    '${widget.kanji.strokeCount}',
                     Colors.purple[300]!,
                   ),
-                if (kanji.frequency != null)
+                if (widget.kanji.frequency != null)
                   _buildBadge(
                     'Frequency',
-                    '#${kanji.frequency}',
+                    '#${widget.kanji.frequency}',
                     Colors.orange[300]!,
                   ),
               ],
@@ -95,14 +175,15 @@ class KanjiDetailPage extends StatelessWidget {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  if (kanji.onyomi != null) ...[
-                    _buildReadingRow('音読み (On-yomi)', kanji.onyomi!),
+                  if (widget.kanji.onyomi != null) ...[
+                    _buildReadingRow('音読み (On-yomi)', widget.kanji.onyomi!),
                     const SizedBox(height: 12),
                   ],
-                  if (kanji.kunyomi != null) ...[
-                    _buildReadingRow('訓読み (Kun-yomi)', kanji.kunyomi!),
+                  if (widget.kanji.kunyomi != null) ...[
+                    _buildReadingRow('訓読み (Kun-yomi)', widget.kanji.kunyomi!),
                   ],
-                  if (kanji.onyomi == null && kanji.kunyomi == null)
+                  if (widget.kanji.onyomi == null &&
+                      widget.kanji.kunyomi == null)
                     const Text(
                       'No readings available',
                       style: TextStyle(
@@ -121,7 +202,7 @@ class KanjiDetailPage extends StatelessWidget {
               Wrap(
                 spacing: 8,
                 runSpacing: 8,
-                children: kanji.meaningsList
+                children: widget.kanji.meaningsList
                     .map(
                       (meaning) => Chip(
                         label: Text(meaning),
@@ -135,78 +216,182 @@ class KanjiDetailPage extends StatelessWidget {
             ),
             const SizedBox(height: 32),
 
-            // Stroke order (Placeholder - will integrate with Jisho API later)
+            // Stroke order with KanjiVG
             _buildSection(
               'Stroke Order',
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(24),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF1A1A1A),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.white24),
-                ),
-                child: Column(
-                  children: [
-                    const Icon(Icons.draw, color: Colors.white54, size: 48),
-                    const SizedBox(height: 12),
-                    const Text(
-                      'Stroke order animation',
-                      style: TextStyle(color: Colors.white70, fontSize: 16),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'Coming soon via Jisho API',
-                      style: TextStyle(
-                        color: Colors.white54,
-                        fontSize: 12,
-                        fontStyle: FontStyle.italic,
+              _loadingStrokes
+                  ? Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(24),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF1A1A1A),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: Colors.white24),
+                      ),
+                      child: const Center(
+                        child: CircularProgressIndicator(color: Colors.white),
+                      ),
+                    )
+                  : _strokeSvg != null
+                  ? Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: Colors.white24),
+                      ),
+                      child: SvgPicture.string(
+                        _strokeSvg!,
+                        width: 300,
+                        height: 300,
+                      ),
+                    )
+                  : Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(24),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF1A1A1A),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: Colors.white24),
+                      ),
+                      child: Column(
+                        children: [
+                          const Icon(
+                            Icons.error_outline,
+                            color: Colors.orange,
+                            size: 48,
+                          ),
+                          const SizedBox(height: 12),
+                          const Text(
+                            'Stroke data not available',
+                            style: TextStyle(
+                              color: Colors.white70,
+                              fontSize: 16,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          TextButton(
+                            onPressed: _loadStrokeOrder,
+                            child: const Text('Retry'),
+                          ),
+                        ],
                       ),
                     ),
-                  ],
-                ),
-              ),
             ),
             const SizedBox(height: 24),
 
-            // Examples (Placeholder - will add later)
+            // Examples with RapidAPI
             _buildSection(
               'Examples',
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(24),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF1A1A1A),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.white24),
-                ),
-                child: Column(
-                  children: [
-                    const Icon(
-                      Icons.library_books,
-                      color: Colors.white54,
-                      size: 48,
-                    ),
-                    const SizedBox(height: 12),
-                    const Text(
-                      'Example sentences',
-                      style: TextStyle(color: Colors.white70, fontSize: 16),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'Coming soon via Kanji Alive API',
-                      style: TextStyle(
-                        color: Colors.white54,
-                        fontSize: 12,
-                        fontStyle: FontStyle.italic,
+              _loadingExamples
+                  ? Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(24),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF1A1A1A),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: Colors.white24),
+                      ),
+                      child: const Center(
+                        child: CircularProgressIndicator(color: Colors.white),
+                      ),
+                    )
+                  : _examples != null && _examples!.isNotEmpty
+                  ? Column(
+                      children: _examples!
+                          .take(5)
+                          .map((example) => _buildExampleCard(example))
+                          .toList(),
+                    )
+                  : Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(24),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF1A1A1A),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: Colors.white24),
+                      ),
+                      child: Column(
+                        children: [
+                          const Icon(
+                            Icons.library_books,
+                            color: Colors.white54,
+                            size: 48,
+                          ),
+                          const SizedBox(height: 12),
+                          const Text(
+                            'No examples available',
+                            style: TextStyle(
+                              color: Colors.white70,
+                              fontSize: 16,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          TextButton(
+                            onPressed: _loadExamples,
+                            child: const Text('Retry'),
+                          ),
+                        ],
                       ),
                     ),
-                  ],
-                ),
-              ),
             ),
+            const SizedBox(height: 24),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildExampleCard(KanjiExample example) {
+    final isPlaying = _playingAudioUrl == example.audio.bestUrl;
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: const Color(0xFF1A1A1A),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.white24),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  example.japanese,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+              if (example.audio.bestUrl != null)
+                IconButton(
+                  icon: Icon(
+                    isPlaying ? Icons.stop_circle : Icons.play_circle,
+                    color: isPlaying ? Colors.green : Colors.blue,
+                  ),
+                  onPressed: () {
+                    if (isPlaying) {
+                      _audioPlayer.stop();
+                      setState(() => _playingAudioUrl = null);
+                    } else {
+                      _playAudio(example.audio.bestUrl!);
+                    }
+                  },
+                ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(
+            example.meaning,
+            style: const TextStyle(color: Colors.white70, fontSize: 14),
+          ),
+        ],
       ),
     );
   }

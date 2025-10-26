@@ -3,9 +3,10 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
 import 'package:kanji_mobile_v1/core/error/failures.dart';
-import 'package:kanji_mobile_v1/features/kanji/domain/entities/kanji.dart';
 import 'package:kanji_mobile_v1/features/kanji/domain/repositories/kanji_repository.dart';
 import 'package:kanji_mobile_v1/features/kanji/domain/usecases/search_kanji.dart';
+
+import '../../../helpers/fixtures/kanji_fixtures.dart';
 
 class MockKanjiRepository extends Mock implements KanjiRepository {}
 
@@ -17,22 +18,6 @@ void main() {
     mockKanjiRepository = MockKanjiRepository();
     usecase = SearchKanji(mockKanjiRepository);
   });
-
-  final testKanji = Kanji(
-    id: 1,
-    character: '日',
-    onyomi: 'ニチ、ジツ',
-    kunyomi: 'ひ、か',
-    meanings: 'sun, day',
-    strokeCount: 4,
-    jlpt: 5,
-    grade: 1,
-    frequency: 1,
-    createdAt: DateTime(2024, 1, 1),
-    updatedAt: DateTime(2024, 1, 1),
-  );
-
-  final testSearchResults = [testKanji];
 
   group('SearchKanji', () {
     test('should return search results when query is successful', () async {
@@ -48,13 +33,13 @@ void main() {
           limit: any(named: 'limit'),
           sortBy: any(named: 'sortBy'),
         ),
-      ).thenAnswer((_) async => Right(testSearchResults));
+      ).thenAnswer((_) async => Right(tKanjiList));
 
       // act
       final result = await usecase(query: 'sun');
 
       // assert
-      expect(result, equals(Right(testSearchResults)));
+      expect(result, equals(Right(tKanjiList)));
       verify(
         () => mockKanjiRepository.searchKanji(
           query: 'sun',
@@ -67,6 +52,7 @@ void main() {
           sortBy: null,
         ),
       ).called(1);
+      verifyNoMoreInteractions(mockKanjiRepository);
     });
 
     test('should search kanji with JLPT level filters', () async {
@@ -82,13 +68,13 @@ void main() {
           limit: any(named: 'limit'),
           sortBy: any(named: 'sortBy'),
         ),
-      ).thenAnswer((_) async => Right(testSearchResults));
+      ).thenAnswer((_) async => Right(tKanjiList));
 
       // act
       final result = await usecase(query: 'sun', jlptLevels: [5, 4]);
 
       // assert
-      expect(result, equals(Right(testSearchResults)));
+      expect(result, equals(Right(tKanjiList)));
       verify(
         () => mockKanjiRepository.searchKanji(
           query: 'sun',
@@ -116,13 +102,13 @@ void main() {
           limit: any(named: 'limit'),
           sortBy: any(named: 'sortBy'),
         ),
-      ).thenAnswer((_) async => Right(testSearchResults));
+      ).thenAnswer((_) async => Right(tKanjiList));
 
       // act
       final result = await usecase(query: 'sun', grades: [1, 2]);
 
       // assert
-      expect(result, equals(Right(testSearchResults)));
+      expect(result, equals(Right(tKanjiList)));
       verify(
         () => mockKanjiRepository.searchKanji(
           query: 'sun',
@@ -150,13 +136,13 @@ void main() {
           limit: any(named: 'limit'),
           sortBy: any(named: 'sortBy'),
         ),
-      ).thenAnswer((_) async => Right(testSearchResults));
+      ).thenAnswer((_) async => Right(tKanjiList));
 
       // act
       final result = await usecase(query: 'sun', minStrokes: 1, maxStrokes: 5);
 
       // assert
-      expect(result, equals(Right(testSearchResults)));
+      expect(result, equals(Right(tKanjiList)));
       verify(
         () => mockKanjiRepository.searchKanji(
           query: 'sun',
@@ -184,13 +170,13 @@ void main() {
           limit: any(named: 'limit'),
           sortBy: any(named: 'sortBy'),
         ),
-      ).thenAnswer((_) async => Right(testSearchResults));
+      ).thenAnswer((_) async => Right(tKanjiList));
 
       // act
       final result = await usecase(query: 'sun', page: 2, limit: 10);
 
       // assert
-      expect(result, equals(Right(testSearchResults)));
+      expect(result, equals(Right(tKanjiList)));
       verify(
         () => mockKanjiRepository.searchKanji(
           query: 'sun',
@@ -218,13 +204,13 @@ void main() {
           limit: any(named: 'limit'),
           sortBy: any(named: 'sortBy'),
         ),
-      ).thenAnswer((_) async => Right(testSearchResults));
+      ).thenAnswer((_) async => Right(tKanjiList));
 
       // act
       final result = await usecase(query: 'sun', sortBy: 'frequency');
 
       // assert
-      expect(result, equals(Right(testSearchResults)));
+      expect(result, equals(Right(tKanjiList)));
       verify(
         () => mockKanjiRepository.searchKanji(
           query: 'sun',
@@ -324,7 +310,7 @@ void main() {
           limit: any(named: 'limit'),
           sortBy: any(named: 'sortBy'),
         ),
-      ).thenAnswer((_) async => Right(testSearchResults));
+      ).thenAnswer((_) async => Right(tKanjiList));
 
       // act
       final result = await usecase(
@@ -339,7 +325,7 @@ void main() {
       );
 
       // assert
-      expect(result, equals(Right(testSearchResults)));
+      expect(result, equals(Right(tKanjiList)));
       verify(
         () => mockKanjiRepository.searchKanji(
           query: 'sun',

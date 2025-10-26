@@ -11,59 +11,49 @@ abstract class Failure extends Equatable {
 
 // Network Failures
 class ServerFailure extends Failure {
-  const ServerFailure([String message = 'Server error occurred'])
-    : super(message);
+  const ServerFailure([super.message = 'Server error occurred']);
 }
 
 class NetworkFailure extends Failure {
-  const NetworkFailure([String message = 'No internet connection'])
-    : super(message);
+  const NetworkFailure([super.message = 'No internet connection']);
 }
 
 class TimeoutFailure extends Failure {
-  const TimeoutFailure([String message = 'Request timeout']) : super(message);
+  const TimeoutFailure([super.message = 'Request timeout']);
 }
 
 // Auth Failures
 class AuthFailure extends Failure {
-  const AuthFailure([String message = 'Authentication failed'])
-    : super(message);
+  const AuthFailure([super.message = 'Authentication failed']);
 }
 
 class UnauthorizedFailure extends Failure {
-  const UnauthorizedFailure([String message = 'Unauthorized access'])
-    : super(message);
+  const UnauthorizedFailure([super.message = 'Unauthorized access']);
 }
 
 class TokenExpiredFailure extends Failure {
-  const TokenExpiredFailure([String message = 'Session expired'])
-    : super(message);
+  const TokenExpiredFailure([super.message = 'Session expired']);
 }
 
 // Data Failures
 class CacheFailure extends Failure {
-  const CacheFailure([String message = 'Cache error occurred'])
-    : super(message);
+  const CacheFailure([super.message = 'Cache error occurred']);
 }
 
 class ValidationFailure extends Failure {
-  const ValidationFailure([String message = 'Validation failed'])
-    : super(message);
+  const ValidationFailure([super.message = 'Validation failed']);
 }
 
 class NotFoundFailure extends Failure {
-  const NotFoundFailure([String message = 'Resource not found'])
-    : super(message);
+  const NotFoundFailure([super.message = 'Resource not found']);
 }
 
 // Permission Failures
 class PermissionDeniedFailure extends Failure {
-  const PermissionDeniedFailure([String message = 'Permission denied'])
-    : super(message);
+  const PermissionDeniedFailure([super.message = 'Permission denied']);
 }
 
 // Generic Failure
 class UnknownFailure extends Failure {
-  const UnknownFailure([String message = 'An unknown error occurred'])
-    : super(message);
+  const UnknownFailure([super.message = 'An unknown error occurred']);
 }

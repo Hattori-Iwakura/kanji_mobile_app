@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 import '../../domain/entities/kanji.dart';
+import '../../domain/entities/kanji_recognition_result.dart';
 
 /// Base state for Kanji BLoC
 abstract class KanjiState extends Equatable {
@@ -57,6 +58,29 @@ class KanjiSearchLoaded extends KanjiState {
       hasMore: hasMore ?? this.hasMore,
     );
   }
+}
+
+/// State when kanji recognition is in progress
+class KanjiRecognitionInProgress extends KanjiState {}
+
+/// State when kanji recognition succeeds
+class KanjiRecognitionSuccess extends KanjiState {
+  final KanjiRecognitionResultEntity result;
+
+  const KanjiRecognitionSuccess(this.result);
+
+  @override
+  List<Object> get props => [result];
+}
+
+/// State when kanji recognition fails
+class KanjiRecognitionFailure extends KanjiState {
+  final String message;
+
+  const KanjiRecognitionFailure(this.message);
+
+  @override
+  List<Object> get props => [message];
 }
 
 /// Error state

@@ -1,9 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import '../di/injection.dart';
 import '../../features/auth/presentation/pages/login_page.dart';
 import '../../features/auth/presentation/pages/register_page.dart';
 import '../../features/auth/presentation/pages/forgot_password_page.dart';
 import '../../features/dashboard/presentation/pages/home_page.dart';
+import '../../features/progress/presentation/bloc/progress_bloc.dart';
+import '../../features/progress/presentation/pages/progress_overview_page.dart';
+import '../../features/progress/presentation/pages/leaderboard_page.dart';
+import '../../features/progress/presentation/pages/achievements_page.dart';
+import '../../features/user_management/presentation/bloc/user_management_bloc.dart';
+import '../../features/user_management/presentation/pages/user_management_page.dart';
+import '../../features/admin/presentation/pages/admin_dashboard_page_real.dart';
 
 class AppRouter {
   static const String login = '/login';
@@ -19,6 +28,12 @@ class AppRouter {
   static const String settings = '/settings';
   static const String admin = '/admin';
   static const String dashboard = '/dashboard';
+  static const String progress = '/progress';
+  static const String progressLeaderboard = '/progress/leaderboard';
+  static const String progressAchievements = '/progress/achievements';
+  static const String progressStatistics = '/progress/statistics';
+  static const String userManagement = '/admin/users';
+  static const String adminDashboard = '/admin/dashboard';
 
   static GoRouter createRouter({required bool isAuthenticated}) {
     return GoRouter(
@@ -37,6 +52,42 @@ class AppRouter {
 
         // Protected Routes
         GoRoute(path: home, builder: (context, state) => const HomePage()),
+
+        // Progress Routes
+        GoRoute(
+          path: progress,
+          builder: (context, state) => BlocProvider(
+            create: (context) => getIt<ProgressBloc>(),
+            child: const ProgressOverviewPage(),
+          ),
+        ),
+        GoRoute(
+          path: progressLeaderboard,
+          builder: (context, state) => BlocProvider(
+            create: (context) => getIt<ProgressBloc>(),
+            child: const LeaderboardPage(),
+          ),
+        ),
+        GoRoute(
+          path: progressAchievements,
+          builder: (context, state) => BlocProvider(
+            create: (context) => getIt<ProgressBloc>(),
+            child: const AchievementsPage(),
+          ),
+        ),
+
+        // Admin Routes
+        GoRoute(
+          path: userManagement,
+          builder: (context, state) => BlocProvider(
+            create: (context) => getIt<UserManagementBloc>(),
+            child: const UserManagementPage(),
+          ),
+        ),
+        GoRoute(
+          path: adminDashboard,
+          builder: (context, state) => const AdminDashboardPageReal(),
+        ),
 
         // TODO: Add other routes
       ],

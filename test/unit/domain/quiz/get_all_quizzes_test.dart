@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:dartz/dartz.dart';
 import 'package:mocktail/mocktail.dart';
-import 'package:kanji_mobile_v1/core/errors/failures.dart';
+import 'package:kanji_mobile_v1/core/error/failures.dart';
 import 'package:kanji_mobile_v1/features/quiz/domain/entities/quiz.dart';
 import 'package:kanji_mobile_v1/features/quiz/domain/repositories/quiz_repository.dart';
 import 'package:kanji_mobile_v1/features/quiz/domain/usecases/get_all_quizzes.dart';

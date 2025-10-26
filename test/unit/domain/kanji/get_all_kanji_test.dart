@@ -271,5 +271,75 @@ void main() {
         (kanjiList) => expect(kanjiList, isEmpty),
       );
     });
+
+    test('should return kanji with multiple filters (JLPT + Grade)', () async {
+      // arrange
+      when(
+        () => mockKanjiRepository.getAllKanji(
+          jlpt: any(named: 'jlpt'),
+          grade: any(named: 'grade'),
+          search: any(named: 'search'),
+          limit: any(named: 'limit'),
+          offset: any(named: 'offset'),
+        ),
+      ).thenAnswer((_) async => Right(testKanjiList));
+
+      // act
+      final result = await usecase(jlpt: 5, grade: 1);
+
+      // assert
+      expect(result.isRight(), true);
+      result.fold(
+        (failure) => fail('Expected Right but got Left'),
+        (kanjiList) => expect(kanjiList, equals(testKanjiList)),
+      );
+      verify(
+        () => mockKanjiRepository.getAllKanji(
+          jlpt: 5,
+          grade: 1,
+          search: null,
+          limit: null,
+          offset: null,
+        ),
+      ).called(1);
+    });
+
+    test('should return kanji with all filters combined', () async {
+      // arrange
+      when(
+        () => mockKanjiRepository.getAllKanji(
+          jlpt: any(named: 'jlpt'),
+          grade: any(named: 'grade'),
+          search: any(named: 'search'),
+          limit: any(named: 'limit'),
+          offset: any(named: 'offset'),
+        ),
+      ).thenAnswer((_) async => Right([testKanji1]));
+
+      // act
+      final result = await usecase(
+        jlpt: 5,
+        grade: 1,
+        search: 'sun',
+        limit: 10,
+        offset: 0,
+      );
+
+      // assert
+      expect(result.isRight(), true);
+      result.fold(
+        (failure) => fail('Expected Right but got Left'),
+        (kanjiList) => expect(kanjiList, equals([testKanji1])),
+      );
+      verify(
+        () => mockKanjiRepository.getAllKanji(
+          jlpt: 5,
+          grade: 1,
+          search: 'sun',
+          limit: 10,
+          offset: 0,
+        ),
+      ).called(1);
+    });
   });
 }

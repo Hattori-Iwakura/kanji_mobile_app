@@ -106,4 +106,67 @@ class QuizRemoteDataSource {
   Future<void> retryQuiz(String quizId) async {
     await dioClient.dio.post('${ApiEndpoints.quizzes}/$quizId/retry');
   }
+
+  /// Add a new question to a quiz
+  Future<QuestionModel> addQuestion({
+    required String quizId,
+    required String type,
+    required String questionText,
+    required List<String> options,
+    required String correctAnswer,
+    String? explanation,
+    int points = 10,
+    List<String> meanings = const [],
+  }) async {
+    final response = await dioClient.dio.post(
+      '${ApiEndpoints.quizzes}/$quizId/questions',
+      data: {
+        'type': type,
+        'questionText': questionText,
+        'options': options,
+        'correctAnswer': correctAnswer,
+        if (explanation != null) 'explanation': explanation,
+        'points': points,
+        'meanings': meanings,
+      },
+    );
+    return QuestionModel.fromJson(response.data);
+  }
+
+  /// Update an existing question
+  Future<QuestionModel> updateQuestion({
+    required String quizId,
+    required String questionId,
+    String? type,
+    String? questionText,
+    List<String>? options,
+    String? correctAnswer,
+    String? explanation,
+    int? points,
+    List<String>? meanings,
+  }) async {
+    final response = await dioClient.dio.put(
+      '${ApiEndpoints.quizzes}/$quizId/questions/$questionId',
+      data: {
+        if (type != null) 'type': type,
+        if (questionText != null) 'questionText': questionText,
+        if (options != null) 'options': options,
+        if (correctAnswer != null) 'correctAnswer': correctAnswer,
+        if (explanation != null) 'explanation': explanation,
+        if (points != null) 'points': points,
+        if (meanings != null) 'meanings': meanings,
+      },
+    );
+    return QuestionModel.fromJson(response.data);
+  }
+
+  /// Delete a question from a quiz
+  Future<void> deleteQuestion({
+    required String quizId,
+    required String questionId,
+  }) async {
+    await dioClient.dio.delete(
+      '${ApiEndpoints.quizzes}/$quizId/questions/$questionId',
+    );
+  }
 }

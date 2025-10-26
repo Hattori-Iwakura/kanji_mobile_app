@@ -12,47 +12,40 @@ abstract class Failure extends Equatable {
 
 /// Server failure (5xx errors)
 class ServerFailure extends Failure {
-  const ServerFailure([String message = 'Server error occurred'])
-    : super(message);
+  const ServerFailure([super.message = 'Server error occurred']);
 }
 
 /// Network failure (connection issues)
 class NetworkFailure extends Failure {
-  const NetworkFailure([String message = 'Network connection failed'])
-    : super(message);
+  const NetworkFailure([super.message = 'Network connection failed']);
 }
 
 /// Unauthorized failure (401, 403)
 class UnauthorizedFailure extends Failure {
-  const UnauthorizedFailure([String message = 'Unauthorized access'])
-    : super(message);
+  const UnauthorizedFailure([super.message = 'Unauthorized access']);
 }
 
 /// Not found failure (404)
 class NotFoundFailure extends Failure {
-  const NotFoundFailure([String message = 'Resource not found'])
-    : super(message);
+  const NotFoundFailure([super.message = 'Resource not found']);
 }
 
 /// Bad request failure (400)
 class BadRequestFailure extends Failure {
-  const BadRequestFailure([String message = 'Bad request']) : super(message);
+  const BadRequestFailure([super.message = 'Bad request']);
 }
 
 /// Cache failure (local storage)
 class CacheFailure extends Failure {
-  const CacheFailure([String message = 'Cache error occurred'])
-    : super(message);
+  const CacheFailure([super.message = 'Cache error occurred']);
 }
 
 /// Validation failure
 class ValidationFailure extends Failure {
-  const ValidationFailure([String message = 'Validation failed'])
-    : super(message);
+  const ValidationFailure([super.message = 'Validation failed']);
 }
 
 /// Unknown failure
 class UnknownFailure extends Failure {
-  const UnknownFailure([String message = 'An unknown error occurred'])
-    : super(message);
+  const UnknownFailure([super.message = 'An unknown error occurred']);
 }

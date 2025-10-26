@@ -1,5 +1,5 @@
 import 'package:dartz/dartz.dart';
-import '../../../../core/errors/failures.dart';
+import '../../../../core/error/failures.dart';
 import '../entities/quiz.dart';
 import '../entities/question.dart';
 import '../entities/quiz_result.dart';
@@ -45,4 +45,35 @@ abstract class QuizRepository {
 
   /// Retry quiz (reset progress)
   Future<Either<Failure, void>> retryQuiz(String quizId);
+
+  /// Add question to quiz
+  Future<Either<Failure, Question>> addQuestion({
+    required String quizId,
+    required String type,
+    required String questionText,
+    required List<String> options,
+    required String correctAnswer,
+    String? explanation,
+    int points = 10,
+    List<String> meanings = const [],
+  });
+
+  /// Update question in quiz
+  Future<Either<Failure, Question>> updateQuestion({
+    required String quizId,
+    required String questionId,
+    String? type,
+    String? questionText,
+    List<String>? options,
+    String? correctAnswer,
+    String? explanation,
+    int? points,
+    List<String>? meanings,
+  });
+
+  /// Delete question from quiz
+  Future<Either<Failure, void>> deleteQuestion({
+    required String quizId,
+    required String questionId,
+  });
 }

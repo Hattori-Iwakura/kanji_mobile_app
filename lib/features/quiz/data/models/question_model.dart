@@ -13,6 +13,7 @@ class QuestionModel extends Question {
     required super.points,
     required super.orderIndex,
     required super.createdAt,
+    super.meanings,
   });
 
   /// Create QuestionModel from JSON
@@ -32,6 +33,11 @@ class QuestionModel extends Question {
       points: json['points'] as int,
       orderIndex: json['orderIndex'] as int,
       createdAt: DateTime.parse(json['createdAt'] as String),
+      meanings:
+          (json['meanings'] as List<dynamic>?)
+              ?.map((e) => e as String)
+              .toList() ??
+          [],
     );
   }
 
@@ -48,6 +54,7 @@ class QuestionModel extends Question {
       'points': points,
       'orderIndex': orderIndex,
       'createdAt': createdAt.toIso8601String(),
+      'meanings': meanings,
     };
   }
 
@@ -64,6 +71,7 @@ class QuestionModel extends Question {
       points: question.points,
       orderIndex: question.orderIndex,
       createdAt: question.createdAt,
+      meanings: question.meanings,
     );
   }
 }

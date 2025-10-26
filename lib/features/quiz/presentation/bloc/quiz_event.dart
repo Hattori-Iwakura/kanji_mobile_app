@@ -85,3 +85,88 @@ class ViewQuizResultEvent extends QuizEvent {
   @override
   List<Object> get props => [resultId];
 }
+
+// ========== QUESTION MANAGEMENT EVENTS ==========
+/// Event to add question to quiz
+class AddQuestionEvent extends QuizEvent {
+  final String quizId;
+  final String type;
+  final String questionText;
+  final List<String> options;
+  final String correctAnswer;
+  final String? explanation;
+  final int points;
+  final List<String> meanings;
+
+  const AddQuestionEvent({
+    required this.quizId,
+    required this.type,
+    required this.questionText,
+    required this.options,
+    required this.correctAnswer,
+    this.explanation,
+    this.points = 10,
+    this.meanings = const [],
+  });
+
+  @override
+  List<Object?> get props => [
+    quizId,
+    type,
+    questionText,
+    options,
+    correctAnswer,
+    explanation,
+    points,
+    meanings,
+  ];
+}
+
+/// Event to update question
+class UpdateQuestionEvent extends QuizEvent {
+  final String quizId;
+  final String questionId;
+  final String? type;
+  final String? questionText;
+  final List<String>? options;
+  final String? correctAnswer;
+  final String? explanation;
+  final int? points;
+  final List<String>? meanings;
+
+  const UpdateQuestionEvent({
+    required this.quizId,
+    required this.questionId,
+    this.type,
+    this.questionText,
+    this.options,
+    this.correctAnswer,
+    this.explanation,
+    this.points,
+    this.meanings,
+  });
+
+  @override
+  List<Object?> get props => [
+    quizId,
+    questionId,
+    type,
+    questionText,
+    options,
+    correctAnswer,
+    explanation,
+    points,
+    meanings,
+  ];
+}
+
+/// Event to delete question
+class DeleteQuestionEvent extends QuizEvent {
+  final String quizId;
+  final String questionId;
+
+  const DeleteQuestionEvent({required this.quizId, required this.questionId});
+
+  @override
+  List<Object> get props => [quizId, questionId];
+}

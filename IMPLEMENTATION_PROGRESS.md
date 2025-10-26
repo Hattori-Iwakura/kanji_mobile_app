@@ -222,6 +222,32 @@ lib/
 
 ## 📊 Progress Summary
 
+### Backend Progress (kanji-web-be)
+
+| Module | Endpoints | Functionality | Unit Tests | E2E Tests |
+|--------|-----------|---------------|------------|-----------|
+| **Auth Module** | 13/13 | ✅ 100% | ✅ Complete (30+ tests) | ✅ Complete (30+ tests) |
+| **Mail Module** | 4/4 | ✅ 100% | ⏳ Pending | ✅ Included in Auth flow |
+| **Admin Module** | 13/13 | ✅ 100% | ⏳ Pending | ⏳ Pending |
+| **Flashcard Sessions** | 8/8 | ✅ 100% | ⏳ Pending | ✅ Complete (40+ tests) |
+| **Progress Module** | 8/8 | ✅ 100% | ✅ Complete (40+ tests) | ✅ Included in flows |
+| **Quiz Module** | 15/15 | ✅ Enhanced | ⏳ Pending | ✅ Complete (50+ tests) |
+| **Schema & DB** | - | ✅ Optimized | - | - |
+
+**Backend Status:**
+- 📊 **Implementation:** 103/108 endpoints (95%)
+- 🧪 **Unit Tests:** 2/6 services (33%)
+- 🎯 **E2E Tests:** 6 test suites (120+ test cases)
+- 📈 **Test Coverage:** ~60% (Target: 80%+)
+
+**Recent Backend Achievements:**
+- ✅ Schema Migration: Added correctAnswers, totalQuestions, timeSpent to QuizAttempt
+- ✅ Progress Module: 100% functional, removed N+1 queries, quiz time tracking working
+- ✅ Testing Infrastructure: Unit tests for ProgressService and AuthService (875 lines)
+- ✅ E2E Tests: Authentication flow, Flashcard study flow, Quiz flow (1376 lines)
+
+### Frontend Progress (kanji_mobile_v1)
+
 | Category | Status | Progress |
 |----------|--------|----------|
 | **Dependencies** | ✅ Complete | 100% |

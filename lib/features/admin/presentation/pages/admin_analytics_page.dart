@@ -351,7 +351,7 @@ class AdminAnalyticsPage extends StatelessWidget {
               ],
             ),
           );
-        }).toList(),
+        }),
       ],
     );
   }
