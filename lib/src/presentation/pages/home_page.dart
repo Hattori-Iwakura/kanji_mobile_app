@@ -9,6 +9,7 @@ import '../../../features/flashcard/presentation/pages/flashcard_deck_list_page.
 import '../../../features/kanji/presentation/pages/kanji_list_page.dart';
 import '../../../features/kanji_table/presentation/pages/kanji_table_list_page.dart';
 import '../../../features/kanji_table/presentation/bloc/kanji_table_bloc.dart';
+import '../../../features/progress/presentation/pages/progress_statistics_page.dart';
 import '../../../features/quiz/presentation/bloc/quiz_bloc.dart';
 import '../../../features/quiz/presentation/pages/quiz_list_page.dart';
 import '../../../features/profile/presentation/pages/profile_page.dart';
@@ -247,6 +248,19 @@ class HomePage extends StatelessWidget {
                                                   child:
                                                       const KanjiTableListPage(),
                                                 ),
+                                              ),
+                                            );
+                                          }
+                                        : index == 2
+                                        ? () {
+                                            Navigator.push(
+                                              context,
+                                              MaterialPageRoute(
+                                                builder: (_) =>
+                                                    ProgressStatisticsPage(
+                                                      apiClient:
+                                                          sl<ApiClient>(),
+                                                    ),
                                               ),
                                             );
                                           }
