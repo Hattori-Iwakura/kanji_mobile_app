@@ -1,391 +1,286 @@
 import 'package:dio/dio.dart';
-import '../models/flashcard_model.dart';
+import '../../../../core/network/api_client.dart';
+import '../../../../core/storage/secure_storage.dart';
 import '../models/flashcard_deck_model.dart';
-import '../models/study_progress_model.dart';
+import '../models/study_session_model.dart';
+import '../models/next_card_model.dart';
+import '../models/deck_statistics_model.dart';
 
-/// Remote data source for Flashcard API
 abstract class FlashcardRemoteDataSource {
-  // Deck operations
-  Future<List<FlashcardDeckModel>> getAllDecks();
-  Future<FlashcardDeckModel> getDeckById(String deckId);
+  Future<List<FlashcardDeckModel>> getDecks({String? search});
+  Future<FlashcardDeckModel> getDeckById(int deckId);
   Future<FlashcardDeckModel> createDeck({
     required String name,
     String? description,
+    List<int>? kanjiIds,
   });
   Future<FlashcardDeckModel> updateDeck({
-    required String deckId,
+    required int deckId,
     String? name,
     String? description,
+    bool? isPublic,
   });
-  Future<void> deleteDeck(String deckId);
-
-  // Flashcard operations
-  Future<List<FlashcardModel>> getCardsByDeck(String deckId);
-  Future<List<FlashcardModel>> getDueCards(String deckId);
-  Future<List<FlashcardModel>> getNewCards(String deckId, {int limit = 20});
-  Future<FlashcardModel> getCardById(String cardId);
-  Future<FlashcardModel> createCard({
-    required String deckId,
-    required String kanjiId,
-    required String front,
-    required String back,
-    String? hint,
+  Future<void> deleteDeck(int deckId);
+  Future<FlashcardDeckModel> addCardToDeck({
+    required int deckId,
+    required int kanjiId,
   });
-  Future<FlashcardModel> updateCardReview({
-    required String cardId,
+  Future<FlashcardDeckModel> removeCardFromDeck({
+    required int deckId,
+    required int kanjiId,
+  });
+  Future<StudySessionModel> startSession({
+    required int deckId,
+    int? maxNewCards,
+    int? maxReviewCards,
+  });
+  Future<StudySessionModel> getSessionProgress(int sessionId);
+  Future<NextCardModel?> getNextCard(int sessionId);
+  Future<void> reviewCard({
+    required int sessionId,
+    required int cardId,
     required int quality,
+    double? timeSpent,
   });
-  Future<void> deleteCard(String cardId);
-
-  // Progress operations
-  Future<StudyProgressModel> saveProgress({
-    required String deckId,
-    required int cardsStudied,
-    required int cardsCorrect,
-    required int cardsIncorrect,
-    required int studyDuration,
-  });
-  Future<List<StudyProgressModel>> getProgressHistory({
-    String? deckId,
-    DateTime? startDate,
-    DateTime? endDate,
-  });
-  Future<Map<String, dynamic>> getStudyStatistics();
+  Future<StudySessionModel> completeSession(int sessionId);
+  Future<Map<String, dynamic>> getDueCards(int deckId);
+  Future<DeckStatisticsModel> getDeckStatistics(int deckId);
 }
 
 class FlashcardRemoteDataSourceImpl implements FlashcardRemoteDataSource {
-  final Dio dio;
+  final ApiClient apiClient;
+  final SecureStorage secureStorage;
 
-  FlashcardRemoteDataSourceImpl({required this.dio});
+  FlashcardRemoteDataSourceImpl({
+    required this.apiClient,
+    required this.secureStorage,
+  });
 
-  @override
-  Future<List<FlashcardDeckModel>> getAllDecks() async {
-    try {
-      final response = await dio.get('/flashcard/decks');
+  Future<Options> _getAuthHeaders() async {
+    final token = await secureStorage.getToken();
+    return Options(headers: {'Authorization': 'Bearer $token'});
+  }
 
-      if (response.statusCode == 200) {
-        final data = response.data;
-        final decks = data['data'] as List;
-        return decks.map((json) => FlashcardDeckModel.fromJson(json)).toList();
-      } else {
-        throw Exception('Failed to load decks');
-      }
-    } on DioException catch (e) {
-      throw _handleDioError(e);
+  // Helper to extract data from response wrapper {statusCode, data: {...}, timestamp}
+  Map<String, dynamic> _extractData(dynamic responseData) {
+    if (responseData is Map<String, dynamic> &&
+        responseData.containsKey('data')) {
+      return responseData['data'] as Map<String, dynamic>;
     }
+    return responseData as Map<String, dynamic>;
   }
 
   @override
-  Future<FlashcardDeckModel> getDeckById(String deckId) async {
-    try {
-      final response = await dio.get('/flashcard/decks/$deckId');
-
-      if (response.statusCode == 200) {
-        return FlashcardDeckModel.fromJson(response.data['data']);
-      } else {
-        throw Exception('Failed to load deck');
-      }
-    } on DioException catch (e) {
-      throw _handleDioError(e);
+  Future<List<FlashcardDeckModel>> getDecks({String? search}) async {
+    final options = await _getAuthHeaders();
+    final queryParams = <String, dynamic>{};
+    if (search != null && search.isNotEmpty) {
+      queryParams['search'] = search;
     }
+
+    final response = await apiClient.dio.get(
+      '/flashcard-decks',
+      queryParameters: queryParams,
+      options: options,
+    );
+
+    final responseData = response.data;
+    // Response format: {statusCode, data: {data: [...], total, limit, offset}, timestamp}
+    if (responseData is Map<String, dynamic> &&
+        responseData.containsKey('data')) {
+      final data = responseData['data'];
+      if (data is Map<String, dynamic> && data.containsKey('data')) {
+        return (data['data'] as List)
+            .map((e) => FlashcardDeckModel.fromJson(e as Map<String, dynamic>))
+            .toList();
+      }
+    }
+
+    // Fallback for direct array response
+    return (responseData as List)
+        .map((e) => FlashcardDeckModel.fromJson(e as Map<String, dynamic>))
+        .toList();
+  }
+
+  @override
+  Future<FlashcardDeckModel> getDeckById(int deckId) async {
+    final options = await _getAuthHeaders();
+    final response = await apiClient.dio.get(
+      '/flashcard-decks/$deckId',
+      options: options,
+    );
+    return FlashcardDeckModel.fromJson(_extractData(response.data));
   }
 
   @override
   Future<FlashcardDeckModel> createDeck({
     required String name,
     String? description,
+    List<int>? kanjiIds,
   }) async {
-    try {
-      final response = await dio.post(
-        '/flashcard/decks',
-        data: {
-          'name': name,
-          if (description != null) 'description': description,
-        },
-      );
+    final options = await _getAuthHeaders();
+    final response = await apiClient.dio.post(
+      '/flashcard-decks',
+      data: {
+        'name': name,
+        if (description != null) 'description': description,
+        if (kanjiIds != null) 'kanjiIds': kanjiIds,
+      },
+      options: options,
+    );
 
-      if (response.statusCode == 201) {
-        return FlashcardDeckModel.fromJson(response.data['data']);
-      } else {
-        throw Exception('Failed to create deck');
-      }
-    } on DioException catch (e) {
-      throw _handleDioError(e);
+    // Response format: {statusCode, data: {deck_object}, timestamp}
+    final responseData = response.data;
+    if (responseData is Map<String, dynamic> &&
+        responseData.containsKey('data')) {
+      return FlashcardDeckModel.fromJson(
+        responseData['data'] as Map<String, dynamic>,
+      );
     }
+    return FlashcardDeckModel.fromJson(responseData as Map<String, dynamic>);
   }
 
   @override
   Future<FlashcardDeckModel> updateDeck({
-    required String deckId,
+    required int deckId,
     String? name,
     String? description,
+    bool? isPublic,
   }) async {
-    try {
-      final response = await dio.patch(
-        '/flashcard/decks/$deckId',
-        data: {
-          if (name != null) 'name': name,
-          if (description != null) 'description': description,
-        },
-      );
-
-      if (response.statusCode == 200) {
-        return FlashcardDeckModel.fromJson(response.data['data']);
-      } else {
-        throw Exception('Failed to update deck');
-      }
-    } on DioException catch (e) {
-      throw _handleDioError(e);
-    }
+    final options = await _getAuthHeaders();
+    final response = await apiClient.dio.put(
+      '/flashcard-decks/$deckId',
+      data: {
+        if (name != null) 'name': name,
+        if (description != null) 'description': description,
+        if (isPublic != null) 'isPublic': isPublic,
+      },
+      options: options,
+    );
+    return FlashcardDeckModel.fromJson(_extractData(response.data));
   }
 
   @override
-  Future<void> deleteDeck(String deckId) async {
-    try {
-      final response = await dio.delete('/flashcard/decks/$deckId');
-
-      if (response.statusCode != 200 && response.statusCode != 204) {
-        throw Exception('Failed to delete deck');
-      }
-    } on DioException catch (e) {
-      throw _handleDioError(e);
-    }
+  Future<void> deleteDeck(int deckId) async {
+    final options = await _getAuthHeaders();
+    await apiClient.dio.delete('/flashcard-decks/$deckId', options: options);
   }
 
   @override
-  Future<List<FlashcardModel>> getCardsByDeck(String deckId) async {
-    try {
-      final response = await dio.get('/flashcard/decks/$deckId/cards');
-
-      if (response.statusCode == 200) {
-        final data = response.data;
-        final cards = data['data'] as List;
-        return cards.map((json) => FlashcardModel.fromJson(json)).toList();
-      } else {
-        throw Exception('Failed to load cards');
-      }
-    } on DioException catch (e) {
-      throw _handleDioError(e);
-    }
-  }
-
-  @override
-  Future<List<FlashcardModel>> getDueCards(String deckId) async {
-    try {
-      final response = await dio.get('/flashcard/decks/$deckId/due');
-
-      if (response.statusCode == 200) {
-        final data = response.data;
-        final cards = data['data'] as List;
-        return cards.map((json) => FlashcardModel.fromJson(json)).toList();
-      } else {
-        throw Exception('Failed to load due cards');
-      }
-    } on DioException catch (e) {
-      throw _handleDioError(e);
-    }
-  }
-
-  @override
-  Future<List<FlashcardModel>> getNewCards(
-    String deckId, {
-    int limit = 20,
+  Future<FlashcardDeckModel> addCardToDeck({
+    required int deckId,
+    required int kanjiId,
   }) async {
-    try {
-      final response = await dio.get(
-        '/flashcard/decks/$deckId/new',
-        queryParameters: {'limit': limit},
-      );
-
-      if (response.statusCode == 200) {
-        final data = response.data;
-        final cards = data['data'] as List;
-        return cards.map((json) => FlashcardModel.fromJson(json)).toList();
-      } else {
-        throw Exception('Failed to load new cards');
-      }
-    } on DioException catch (e) {
-      throw _handleDioError(e);
-    }
+    final options = await _getAuthHeaders();
+    final response = await apiClient.dio.post(
+      '/flashcard-decks/$deckId/cards/$kanjiId',
+      options: options,
+    );
+    return FlashcardDeckModel.fromJson(_extractData(response.data));
   }
 
   @override
-  Future<FlashcardModel> getCardById(String cardId) async {
-    try {
-      final response = await dio.get('/flashcard/cards/$cardId');
-
-      if (response.statusCode == 200) {
-        return FlashcardModel.fromJson(response.data['data']);
-      } else {
-        throw Exception('Failed to load card');
-      }
-    } on DioException catch (e) {
-      throw _handleDioError(e);
-    }
-  }
-
-  @override
-  Future<FlashcardModel> createCard({
-    required String deckId,
-    required String kanjiId,
-    required String front,
-    required String back,
-    String? hint,
+  Future<FlashcardDeckModel> removeCardFromDeck({
+    required int deckId,
+    required int kanjiId,
   }) async {
-    try {
-      final response = await dio.post(
-        '/flashcard/cards',
-        data: {
-          'deckId': deckId,
-          'kanjiId': kanjiId,
-          'front': front,
-          'back': back,
-          if (hint != null) 'hint': hint,
-        },
-      );
+    final options = await _getAuthHeaders();
+    final response = await apiClient.dio.delete(
+      '/flashcard-decks/$deckId/cards/$kanjiId',
+      options: options,
+    );
+    return FlashcardDeckModel.fromJson(_extractData(response.data));
+  }
 
-      if (response.statusCode == 201) {
-        return FlashcardModel.fromJson(response.data['data']);
-      } else {
-        throw Exception('Failed to create card');
-      }
+  @override
+  Future<StudySessionModel> startSession({
+    required int deckId,
+    int? maxNewCards,
+    int? maxReviewCards,
+  }) async {
+    final options = await _getAuthHeaders();
+    final response = await apiClient.dio.post(
+      '/flashcard-sessions/start',
+      data: {
+        'deckId': deckId,
+        if (maxNewCards != null) 'maxNewCards': maxNewCards,
+        if (maxReviewCards != null) 'maxReviewCards': maxReviewCards,
+      },
+      options: options,
+    );
+    return StudySessionModel.fromJson(_extractData(response.data));
+  }
+
+  @override
+  Future<StudySessionModel> getSessionProgress(int sessionId) async {
+    final options = await _getAuthHeaders();
+    final response = await apiClient.dio.get(
+      '/flashcard-sessions/$sessionId',
+      options: options,
+    );
+    return StudySessionModel.fromJson(_extractData(response.data));
+  }
+
+  @override
+  Future<NextCardModel?> getNextCard(int sessionId) async {
+    try {
+      final options = await _getAuthHeaders();
+      final response = await apiClient.dio.get(
+        '/flashcard-sessions/$sessionId/next-card',
+        options: options,
+      );
+      return NextCardModel.fromJson(_extractData(response.data));
     } on DioException catch (e) {
-      throw _handleDioError(e);
+      // When session is complete, backend returns 404
+      if (e.response?.statusCode == 404) {
+        return null; // No more cards available
+      }
+      rethrow;
     }
   }
 
   @override
-  Future<FlashcardModel> updateCardReview({
-    required String cardId,
+  Future<void> reviewCard({
+    required int sessionId,
+    required int cardId,
     required int quality,
+    double? timeSpent,
   }) async {
-    try {
-      final response = await dio.post(
-        '/flashcard/cards/$cardId/review',
-        data: {'quality': quality},
-      );
-
-      if (response.statusCode == 200) {
-        return FlashcardModel.fromJson(response.data['data']);
-      } else {
-        throw Exception('Failed to update card review');
-      }
-    } on DioException catch (e) {
-      throw _handleDioError(e);
-    }
+    final options = await _getAuthHeaders();
+    await apiClient.dio.post(
+      '/flashcard-sessions/$sessionId/review/$cardId',
+      data: {'quality': quality, if (timeSpent != null) 'timeSpent': timeSpent},
+      options: options,
+    );
   }
 
   @override
-  Future<void> deleteCard(String cardId) async {
-    try {
-      final response = await dio.delete('/flashcard/cards/$cardId');
-
-      if (response.statusCode != 200 && response.statusCode != 204) {
-        throw Exception('Failed to delete card');
-      }
-    } on DioException catch (e) {
-      throw _handleDioError(e);
-    }
+  Future<StudySessionModel> completeSession(int sessionId) async {
+    final options = await _getAuthHeaders();
+    final response = await apiClient.dio.post(
+      '/flashcard-sessions/$sessionId/complete',
+      options: options,
+    );
+    return StudySessionModel.fromJson(_extractData(response.data));
   }
 
   @override
-  Future<StudyProgressModel> saveProgress({
-    required String deckId,
-    required int cardsStudied,
-    required int cardsCorrect,
-    required int cardsIncorrect,
-    required int studyDuration,
-  }) async {
-    try {
-      final response = await dio.post(
-        '/flashcard/progress',
-        data: {
-          'deckId': deckId,
-          'cardsStudied': cardsStudied,
-          'cardsCorrect': cardsCorrect,
-          'cardsIncorrect': cardsIncorrect,
-          'studyDuration': studyDuration,
-        },
-      );
-
-      if (response.statusCode == 201) {
-        return StudyProgressModel.fromJson(response.data['data']);
-      } else {
-        throw Exception('Failed to save progress');
-      }
-    } on DioException catch (e) {
-      throw _handleDioError(e);
-    }
+  Future<Map<String, dynamic>> getDueCards(int deckId) async {
+    final options = await _getAuthHeaders();
+    final response = await apiClient.dio.get(
+      '/flashcard-sessions/due-cards/$deckId',
+      options: options,
+    );
+    return _extractData(response.data);
   }
 
   @override
-  Future<List<StudyProgressModel>> getProgressHistory({
-    String? deckId,
-    DateTime? startDate,
-    DateTime? endDate,
-  }) async {
-    try {
-      final queryParams = <String, dynamic>{};
-      if (deckId != null) queryParams['deckId'] = deckId;
-      if (startDate != null) {
-        queryParams['startDate'] = startDate.toIso8601String();
-      }
-      if (endDate != null) queryParams['endDate'] = endDate.toIso8601String();
-
-      final response = await dio.get(
-        '/flashcard/progress',
-        queryParameters: queryParams,
-      );
-
-      if (response.statusCode == 200) {
-        final data = response.data;
-        final progressList = data['data'] as List;
-        return progressList
-            .map((json) => StudyProgressModel.fromJson(json))
-            .toList();
-      } else {
-        throw Exception('Failed to load progress history');
-      }
-    } on DioException catch (e) {
-      throw _handleDioError(e);
-    }
-  }
-
-  @override
-  Future<Map<String, dynamic>> getStudyStatistics() async {
-    try {
-      final response = await dio.get('/flashcard/statistics');
-
-      if (response.statusCode == 200) {
-        return response.data['data'] as Map<String, dynamic>;
-      } else {
-        throw Exception('Failed to load statistics');
-      }
-    } on DioException catch (e) {
-      throw _handleDioError(e);
-    }
-  }
-
-  Exception _handleDioError(DioException e) {
-    switch (e.type) {
-      case DioExceptionType.connectionTimeout:
-      case DioExceptionType.sendTimeout:
-      case DioExceptionType.receiveTimeout:
-        return Exception('Connection timeout');
-      case DioExceptionType.badResponse:
-        final statusCode = e.response?.statusCode;
-        if (statusCode == 401 || statusCode == 403) {
-          return Exception('Unauthorized');
-        } else if (statusCode == 404) {
-          return Exception('Not found');
-        } else if (statusCode == 400) {
-          return Exception('Bad request');
-        }
-        return Exception('Server error: $statusCode');
-      case DioExceptionType.cancel:
-        return Exception('Request cancelled');
-      default:
-        return Exception('Network error');
-    }
+  Future<DeckStatisticsModel> getDeckStatistics(int deckId) async {
+    final options = await _getAuthHeaders();
+    final response = await apiClient.dio.get(
+      '/flashcard-sessions/statistics/deck/$deckId',
+      options: options,
+    );
+    return DeckStatisticsModel.fromJson(_extractData(response.data));
   }
 }

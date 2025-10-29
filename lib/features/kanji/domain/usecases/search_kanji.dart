@@ -1,15 +1,13 @@
 import 'package:dartz/dartz.dart';
 import '../../../../core/error/failures.dart';
-import '../entities/kanji.dart';
 import '../repositories/kanji_repository.dart';
 
-/// Use case for searching kanji with advanced filters
 class SearchKanji {
   final KanjiRepository repository;
 
   SearchKanji(this.repository);
 
-  Future<Either<Failure, List<Kanji>>> call({
+  Future<Either<Failure, Map<String, dynamic>>> call({
     String? query,
     List<int>? jlptLevels,
     List<int>? grades,

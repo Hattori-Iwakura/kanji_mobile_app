@@ -1,33 +1,32 @@
-import 'package:dartz/dartz.dart';
-import '../../../../core/error/failures.dart';
 import '../entities/question.dart';
 import '../repositories/quiz_repository.dart';
 
-/// UseCase for adding a question to a quiz
-class AddQuestion {
+class AddQuestionUseCase {
   final QuizRepository repository;
 
-  AddQuestion(this.repository);
+  AddQuestionUseCase(this.repository);
 
-  Future<Either<Failure, Question>> call({
-    required String quizId,
-    required String type,
+  Future<Question> call({
+    required int quizId,
+    required QuestionType type,
     required String questionText,
-    required List<String> options,
     required String correctAnswer,
+    List<String>? options,
     String? explanation,
-    int points = 10,
-    List<String> meanings = const [],
-  }) {
-    return repository.addQuestion(
+    int? points,
+    List<String>? meanings,
+    int? order,
+  }) async {
+    return await repository.addQuestion(
       quizId: quizId,
       type: type,
       questionText: questionText,
-      options: options,
       correctAnswer: correctAnswer,
+      options: options,
       explanation: explanation,
       points: points,
       meanings: meanings,
+      order: order,
     );
   }
 }

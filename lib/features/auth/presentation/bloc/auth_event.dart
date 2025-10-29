@@ -7,68 +7,54 @@ abstract class AuthEvent extends Equatable {
   List<Object?> get props => [];
 }
 
-class LoginEvent extends AuthEvent {
-  final String account;
-  final String password;
+class CheckAuthStatusEvent extends AuthEvent {}
 
-  const LoginEvent({required this.account, required this.password});
+class LoginEvent extends AuthEvent {
+  final String email;
+  final String password;
+  final String? twoFactorCode;
+
+  const LoginEvent(this.email, this.password, {this.twoFactorCode});
 
   @override
-  List<Object?> get props => [account, password];
+  List<Object?> get props => [email, password, twoFactorCode];
 }
 
 class RegisterEvent extends AuthEvent {
-  final String account;
   final String email;
   final String password;
+  final String name;
 
-  const RegisterEvent({
-    required this.account,
-    required this.email,
-    required this.password,
-  });
+  const RegisterEvent(this.email, this.password, this.name);
 
   @override
-  List<Object?> get props => [account, email, password];
+  List<Object?> get props => [email, password, name];
 }
 
-class LogoutEvent extends AuthEvent {
-  const LogoutEvent();
-}
+class LogoutEvent extends AuthEvent {}
 
-class GetProfileEvent extends AuthEvent {
-  const GetProfileEvent();
-}
+class GetProfileEvent extends AuthEvent {}
 
-class UpdateProfileEvent extends AuthEvent {
-  final String? name;
-  final String? profileImage;
+// 2FA Events
+class Setup2FAEvent extends AuthEvent {}
 
-  const UpdateProfileEvent({this.name, this.profileImage});
+class Enable2FAEvent extends AuthEvent {
+  final String code;
+
+  const Enable2FAEvent(this.code);
 
   @override
-  List<Object?> get props => [name, profileImage];
+  List<Object?> get props => [code];
 }
 
-class CheckAuthStatusEvent extends AuthEvent {
-  const CheckAuthStatusEvent();
-}
+class Disable2FAEvent extends AuthEvent {
+  final String password;
+  final String code;
 
-class ForgotPasswordEvent extends AuthEvent {
-  final String email;
-
-  const ForgotPasswordEvent({required this.email});
+  const Disable2FAEvent(this.password, this.code);
 
   @override
-  List<Object?> get props => [email];
+  List<Object?> get props => [password, code];
 }
 
-class ResetPasswordEvent extends AuthEvent {
-  final String token;
-  final String newPassword;
-
-  const ResetPasswordEvent({required this.token, required this.newPassword});
-
-  @override
-  List<Object?> get props => [token, newPassword];
-}
+class SendEmailOTPEvent extends AuthEvent {}

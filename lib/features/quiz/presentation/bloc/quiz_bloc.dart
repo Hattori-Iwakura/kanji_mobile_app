@@ -1,263 +1,147 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../domain/usecases/get_all_quizzes.dart';
-import '../../domain/usecases/get_quiz_questions.dart';
-import '../../domain/usecases/submit_quiz_answer.dart';
-import '../../domain/usecases/complete_quiz.dart';
-import '../../domain/usecases/get_quiz_history.dart';
+import 'quiz_event.dart';
+import 'quiz_state.dart';
+import '../../domain/usecases/get_quizzes.dart';
+import '../../domain/usecases/get_quiz_detail.dart';
+import '../../domain/usecases/create_quiz.dart';
+import '../../domain/usecases/update_quiz.dart';
+import '../../domain/usecases/delete_quiz.dart';
 import '../../domain/usecases/add_question.dart';
 import '../../domain/usecases/update_question.dart';
 import '../../domain/usecases/delete_question.dart';
-import '../../domain/repositories/quiz_repository.dart';
-import 'quiz_event.dart';
-import 'quiz_state.dart';
+import '../../domain/usecases/start_quiz_attempt.dart';
+import '../../domain/usecases/submit_quiz_attempt.dart';
+import '../../domain/usecases/get_quiz_attempts.dart';
+import '../../domain/usecases/get_quiz_attempt_details.dart';
 
-/// BLoC for managing quiz state
 class QuizBloc extends Bloc<QuizEvent, QuizState> {
-  final GetAllQuizzes getAllQuizzes;
-  final GetQuizQuestions getQuizQuestions;
-  final SubmitQuizAnswer submitQuizAnswer;
-  final CompleteQuiz completeQuiz;
-  final GetQuizHistory getQuizHistory;
-  final AddQuestion addQuestion;
-  final UpdateQuestion updateQuestion;
-  final DeleteQuestion deleteQuestion;
-  final QuizRepository repository;
+  final GetQuizzesUseCase getQuizzesUseCase;
+  final GetQuizDetailUseCase getQuizDetailUseCase;
+  final CreateQuizUseCase createQuizUseCase;
+  final UpdateQuizUseCase updateQuizUseCase;
+  final DeleteQuizUseCase deleteQuizUseCase;
+  final AddQuestionUseCase addQuestionUseCase;
+  final UpdateQuestionUseCase updateQuestionUseCase;
+  final DeleteQuestionUseCase deleteQuestionUseCase;
+  final StartQuizAttemptUseCase startQuizAttemptUseCase;
+  final SubmitQuizAttemptUseCase submitQuizAttemptUseCase;
+  final GetQuizAttemptsUseCase getQuizAttemptsUseCase;
+  final GetQuizAttemptDetailsUseCase getQuizAttemptDetailsUseCase;
 
   QuizBloc({
-    required this.getAllQuizzes,
-    required this.getQuizQuestions,
-    required this.submitQuizAnswer,
-    required this.completeQuiz,
-    required this.getQuizHistory,
-    required this.addQuestion,
-    required this.updateQuestion,
-    required this.deleteQuestion,
-    required this.repository,
+    required this.getQuizzesUseCase,
+    required this.getQuizDetailUseCase,
+    required this.createQuizUseCase,
+    required this.updateQuizUseCase,
+    required this.deleteQuizUseCase,
+    required this.addQuestionUseCase,
+    required this.updateQuestionUseCase,
+    required this.deleteQuestionUseCase,
+    required this.startQuizAttemptUseCase,
+    required this.submitQuizAttemptUseCase,
+    required this.getQuizAttemptsUseCase,
+    required this.getQuizAttemptDetailsUseCase,
   }) : super(QuizInitial()) {
     on<LoadQuizzesEvent>(_onLoadQuizzes);
-    on<LoadQuizHistoryEvent>(_onLoadQuizHistory);
-    on<StartQuizEvent>(_onStartQuiz);
-    on<LoadQuestionsEvent>(_onLoadQuestions);
-    on<AnswerQuestionEvent>(_onAnswerQuestion);
-    on<NextQuestionEvent>(_onNextQuestion);
-    on<PreviousQuestionEvent>(_onPreviousQuestion);
-    on<SkipQuestionEvent>(_onSkipQuestion);
-    on<CompleteQuizEvent>(_onCompleteQuiz);
-    on<RetryQuizEvent>(_onRetryQuiz);
-    on<ViewQuizResultEvent>(_onViewQuizResult);
+    on<LoadQuizDetailEvent>(_onLoadQuizDetail);
+    on<CreateQuizEvent>(_onCreateQuiz);
+    on<UpdateQuizEvent>(_onUpdateQuiz);
+    on<DeleteQuizEvent>(_onDeleteQuiz);
     on<AddQuestionEvent>(_onAddQuestion);
     on<UpdateQuestionEvent>(_onUpdateQuestion);
     on<DeleteQuestionEvent>(_onDeleteQuestion);
+    on<StartQuizAttemptEvent>(_onStartQuizAttempt);
+    on<SubmitQuizAttemptEvent>(_onSubmitQuizAttempt);
+    on<LoadQuizAttemptsEvent>(_onLoadQuizAttempts);
+    on<LoadQuizAttemptDetailsEvent>(_onLoadQuizAttemptDetails);
   }
 
   Future<void> _onLoadQuizzes(
     LoadQuizzesEvent event,
     Emitter<QuizState> emit,
   ) async {
+    print('🔍 BLOC - _onLoadQuizzes called');
     emit(QuizLoading());
-
-    final result = await getAllQuizzes();
-
-    result.fold(
-      (failure) => emit(QuizError(failure.message)),
-      (quizzes) => emit(QuizzesLoaded(quizzes)),
-    );
-  }
-
-  Future<void> _onLoadQuizHistory(
-    LoadQuizHistoryEvent event,
-    Emitter<QuizState> emit,
-  ) async {
-    emit(QuizLoading());
-
-    final result = await getQuizHistory();
-
-    result.fold(
-      (failure) => emit(QuizError(failure.message)),
-      (history) => emit(QuizHistoryLoaded(history)),
-    );
-  }
-
-  Future<void> _onStartQuiz(
-    StartQuizEvent event,
-    Emitter<QuizState> emit,
-  ) async {
-    emit(QuizLoading());
-
-    // Start quiz session on backend
-    final startResult = await repository.startQuiz(event.quizId);
-
-    await startResult.fold(
-      (failure) async => emit(QuizError(failure.message)),
-      (sessionId) async {
-        // Load questions
-        final questionsResult = await getQuizQuestions(event.quizId);
-
-        questionsResult.fold((failure) => emit(QuizError(failure.message)), (
-          questions,
-        ) {
-          if (questions.isEmpty) {
-            emit(const QuizError('No questions found for this quiz'));
-          } else {
-            emit(
-              QuizSessionActive(
-                quizId: event.quizId,
-                questions: questions,
-                currentIndex: 0,
-                userAnswers: {},
-                answerResults: {},
-                startTime: DateTime.now(),
-              ),
-            );
-          }
-        });
-      },
-    );
-  }
-
-  Future<void> _onLoadQuestions(
-    LoadQuestionsEvent event,
-    Emitter<QuizState> emit,
-  ) async {
-    emit(QuizLoading());
-
-    final result = await getQuizQuestions(event.quizId);
-
-    result.fold((failure) => emit(QuizError(failure.message)), (questions) {
-      if (questions.isEmpty) {
-        emit(const QuizError('No questions found for this quiz'));
-      } else {
-        emit(
-          QuizSessionActive(
-            quizId: event.quizId,
-            questions: questions,
-            currentIndex: 0,
-            userAnswers: {},
-            answerResults: {},
-            startTime: DateTime.now(),
-          ),
-        );
-      }
-    });
-  }
-
-  Future<void> _onAnswerQuestion(
-    AnswerQuestionEvent event,
-    Emitter<QuizState> emit,
-  ) async {
-    if (state is! QuizSessionActive) return;
-
-    final currentState = state as QuizSessionActive;
-
-    // Submit answer to backend
-    final result = await submitQuizAnswer(
-      quizId: currentState.quizId,
-      questionId: event.questionId,
-      answer: event.answer,
-    );
-
-    result.fold((failure) => emit(QuizError(failure.message)), (isCorrect) {
-      // Update answers map
-      final updatedAnswers = Map<String, String>.from(currentState.userAnswers);
-      updatedAnswers[event.questionId] = event.answer;
-
-      // Update results map
-      final updatedResults = Map<String, bool>.from(currentState.answerResults);
-      updatedResults[event.questionId] = isCorrect;
-
-      // Update state
-      emit(
-        currentState.copyWith(
-          userAnswers: updatedAnswers,
-          answerResults: updatedResults,
-        ),
+    try {
+      print('🔍 BLOC - calling getQuizzesUseCase');
+      final quizzes = await getQuizzesUseCase(
+        search: event.search,
+        limit: event.limit,
+        offset: event.offset,
       );
-    });
-  }
-
-  void _onNextQuestion(NextQuestionEvent event, Emitter<QuizState> emit) {
-    if (state is! QuizSessionActive) return;
-
-    final currentState = state as QuizSessionActive;
-
-    if (!currentState.isLastQuestion) {
-      emit(currentState.copyWith(currentIndex: currentState.currentIndex + 1));
+      
+      print('🔍 BLOC - quizzes type: ${quizzes.runtimeType}');
+      print('🔍 BLOC - quizzes length: ${quizzes.length}');
+      print('🔍 BLOC - emitting QuizzesLoaded');
+      
+      emit(QuizzesLoaded(quizzes: quizzes));
+      
+      print('🔍 BLOC - QuizzesLoaded emitted successfully');
+    } catch (e, stack) {
+      print('❌ BLOC - Error: $e');
+      print('❌ BLOC - Stack: $stack');
+      emit(QuizError(message: e.toString()));
     }
   }
 
-  void _onPreviousQuestion(
-    PreviousQuestionEvent event,
+  Future<void> _onLoadQuizDetail(
+    LoadQuizDetailEvent event,
     Emitter<QuizState> emit,
-  ) {
-    if (state is! QuizSessionActive) return;
-
-    final currentState = state as QuizSessionActive;
-
-    if (!currentState.isFirstQuestion) {
-      emit(currentState.copyWith(currentIndex: currentState.currentIndex - 1));
+  ) async {
+    emit(QuizLoading());
+    try {
+      final quiz = await getQuizDetailUseCase(event.quizId);
+      emit(QuizDetailLoaded(quiz: quiz));
+    } catch (e) {
+      emit(QuizError(message: e.toString()));
     }
   }
 
-  void _onSkipQuestion(SkipQuestionEvent event, Emitter<QuizState> emit) {
-    if (state is! QuizSessionActive) return;
-
-    final currentState = state as QuizSessionActive;
-
-    // Just move to next question without answering
-    if (!currentState.isLastQuestion) {
-      emit(currentState.copyWith(currentIndex: currentState.currentIndex + 1));
+  Future<void> _onCreateQuiz(
+    CreateQuizEvent event,
+    Emitter<QuizState> emit,
+  ) async {
+    emit(QuizLoading());
+    try {
+      final quiz = await createQuizUseCase(
+        title: event.title,
+        description: event.description,
+      );
+      emit(QuizCreated(quiz: quiz));
+    } catch (e) {
+      emit(QuizError(message: e.toString()));
     }
   }
 
-  Future<void> _onCompleteQuiz(
-    CompleteQuizEvent event,
+  Future<void> _onUpdateQuiz(
+    UpdateQuizEvent event,
     Emitter<QuizState> emit,
   ) async {
-    if (state is! QuizSessionActive) return;
-
-    final currentState = state as QuizSessionActive;
-
     emit(QuizLoading());
-
-    final result = await completeQuiz(
-      quizId: currentState.quizId,
-      timeSpent: event.timeSpent,
-    );
-
-    result.fold(
-      (failure) => emit(QuizError(failure.message)),
-      (quizResult) => emit(QuizCompleted(quizResult)),
-    );
+    try {
+      final quiz = await updateQuizUseCase(
+        quizId: event.quizId,
+        title: event.title,
+        description: event.description,
+        isPublic: event.isPublic,
+      );
+      emit(QuizUpdated(quiz: quiz));
+    } catch (e) {
+      emit(QuizError(message: e.toString()));
+    }
   }
 
-  Future<void> _onRetryQuiz(
-    RetryQuizEvent event,
+  Future<void> _onDeleteQuiz(
+    DeleteQuizEvent event,
     Emitter<QuizState> emit,
   ) async {
     emit(QuizLoading());
-
-    final result = await repository.retryQuiz(event.quizId);
-
-    await result.fold((failure) async => emit(QuizError(failure.message)), (
-      _,
-    ) async {
-      // Reload questions
-      add(LoadQuestionsEvent(event.quizId));
-    });
-  }
-
-  Future<void> _onViewQuizResult(
-    ViewQuizResultEvent event,
-    Emitter<QuizState> emit,
-  ) async {
-    emit(QuizLoading());
-
-    final result = await repository.getQuizResultById(event.resultId);
-
-    result.fold(
-      (failure) => emit(QuizError(failure.message)),
-      (quizResult) => emit(QuizCompleted(quizResult)),
-    );
+    try {
+      await deleteQuizUseCase(event.quizId);
+      emit(QuizDeleted());
+    } catch (e) {
+      emit(QuizError(message: e.toString()));
+    }
   }
 
   Future<void> _onAddQuestion(
@@ -265,22 +149,21 @@ class QuizBloc extends Bloc<QuizEvent, QuizState> {
     Emitter<QuizState> emit,
   ) async {
     emit(QuizLoading());
-
-    final result = await addQuestion(
-      quizId: event.quizId,
-      type: event.type,
-      questionText: event.questionText,
-      options: event.options,
-      correctAnswer: event.correctAnswer,
-      explanation: event.explanation,
-      points: event.points,
-      meanings: event.meanings,
-    );
-
-    result.fold((failure) => emit(QuizError(failure.message)), (question) {
-      // Reload questions after adding
-      add(LoadQuestionsEvent(event.quizId));
-    });
+    try {
+      final question = await addQuestionUseCase(
+        quizId: event.quizId,
+        type: event.type,
+        questionText: event.questionText,
+        correctAnswer: event.correctAnswer,
+        options: event.options,
+        explanation: event.explanation,
+        points: event.points,
+        meanings: event.meanings,
+      );
+      emit(QuestionAdded(question: question));
+    } catch (e) {
+      emit(QuizError(message: e.toString()));
+    }
   }
 
   Future<void> _onUpdateQuestion(
@@ -288,23 +171,22 @@ class QuizBloc extends Bloc<QuizEvent, QuizState> {
     Emitter<QuizState> emit,
   ) async {
     emit(QuizLoading());
-
-    final result = await updateQuestion(
-      quizId: event.quizId,
-      questionId: event.questionId,
-      type: event.type,
-      questionText: event.questionText,
-      options: event.options,
-      correctAnswer: event.correctAnswer,
-      explanation: event.explanation,
-      points: event.points,
-      meanings: event.meanings,
-    );
-
-    result.fold((failure) => emit(QuizError(failure.message)), (question) {
-      // Reload questions after updating
-      add(LoadQuestionsEvent(event.quizId));
-    });
+    try {
+      final question = await updateQuestionUseCase(
+        quizId: event.quizId,
+        questionId: event.questionId,
+        type: event.type,
+        questionText: event.questionText,
+        correctAnswer: event.correctAnswer,
+        options: event.options,
+        explanation: event.explanation,
+        points: event.points,
+        meanings: event.meanings,
+      );
+      emit(QuestionUpdated(question: question));
+    } catch (e) {
+      emit(QuizError(message: e.toString()));
+    }
   }
 
   Future<void> _onDeleteQuestion(
@@ -312,15 +194,70 @@ class QuizBloc extends Bloc<QuizEvent, QuizState> {
     Emitter<QuizState> emit,
   ) async {
     emit(QuizLoading());
+    try {
+      await deleteQuestionUseCase(
+        quizId: event.quizId,
+        questionId: event.questionId,
+      );
+      emit(QuestionDeleted());
+    } catch (e) {
+      emit(QuizError(message: e.toString()));
+    }
+  }
 
-    final result = await deleteQuestion(
-      quizId: event.quizId,
-      questionId: event.questionId,
-    );
+  Future<void> _onStartQuizAttempt(
+    StartQuizAttemptEvent event,
+    Emitter<QuizState> emit,
+  ) async {
+    emit(QuizLoading());
+    try {
+      final attempt = await startQuizAttemptUseCase(event.quizId);
+      emit(QuizAttemptStarted(attempt: attempt));
+    } catch (e) {
+      emit(QuizError(message: e.toString()));
+    }
+  }
 
-    result.fold((failure) => emit(QuizError(failure.message)), (_) {
-      // Reload questions after deleting
-      add(LoadQuestionsEvent(event.quizId));
-    });
+  Future<void> _onSubmitQuizAttempt(
+    SubmitQuizAttemptEvent event,
+    Emitter<QuizState> emit,
+  ) async {
+    emit(QuizLoading());
+    try {
+      final attempt = await submitQuizAttemptUseCase(
+        attemptId: event.attemptId,
+        answers: event.answers,
+        timeSpent: event.timeSpent,
+      );
+      emit(QuizAttemptSubmitted(attempt: attempt));
+    } catch (e) {
+      emit(QuizError(message: e.toString()));
+    }
+  }
+
+  Future<void> _onLoadQuizAttempts(
+    LoadQuizAttemptsEvent event,
+    Emitter<QuizState> emit,
+  ) async {
+    emit(QuizLoading());
+    try {
+      final attempts = await getQuizAttemptsUseCase(event.quizId);
+      emit(QuizAttemptsLoaded(attempts: attempts));
+    } catch (e) {
+      emit(QuizError(message: e.toString()));
+    }
+  }
+
+  Future<void> _onLoadQuizAttemptDetails(
+    LoadQuizAttemptDetailsEvent event,
+    Emitter<QuizState> emit,
+  ) async {
+    emit(QuizLoading());
+    try {
+      final attempt = await getQuizAttemptDetailsUseCase(event.attemptId);
+      emit(QuizAttemptDetailsLoaded(attempt: attempt));
+    } catch (e) {
+      emit(QuizError(message: e.toString()));
+    }
   }
 }

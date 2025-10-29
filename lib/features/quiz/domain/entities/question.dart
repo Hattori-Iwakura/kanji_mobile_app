@@ -1,73 +1,61 @@
-import 'package:equatable/equatable.dart';
+enum QuestionType { multipleChoice, fillBlank, drawing }
 
-/// Entity representing a quiz question
-class Question extends Equatable {
-  final String id;
-  final String quizId;
-  final String type; // MULTIPLE_CHOICE, TRUE_FALSE, FILL_IN_BLANK, DRAWING
+class Question {
+  final int id;
+  final int quizId;
+  final QuestionType type;
   final String questionText;
-  final List<String> options; // For multiple choice, empty for others
   final String correctAnswer;
+  final List<String>? options;
   final String? explanation;
   final int points;
-  final int orderIndex;
+  final List<String>? meanings;
+  final int order;
   final DateTime createdAt;
-  final List<String> meanings; // For DRAWING type - kanji meanings
+  final DateTime updatedAt;
 
-  const Question({
+  Question({
     required this.id,
     required this.quizId,
     required this.type,
     required this.questionText,
-    required this.options,
     required this.correctAnswer,
+    this.options,
     this.explanation,
     required this.points,
-    required this.orderIndex,
+    this.meanings,
+    required this.order,
     required this.createdAt,
-    this.meanings = const [],
+    required this.updatedAt,
   });
 
-  @override
-  List<Object?> get props => [
-    id,
-    quizId,
-    type,
-    questionText,
-    options,
-    correctAnswer,
-    explanation,
-    points,
-    orderIndex,
-    createdAt,
-    meanings,
-  ];
-
-  /// Check if question is multiple choice
-  bool get isMultipleChoice => type == 'MULTIPLE_CHOICE';
-
-  /// Check if question is true/false
-  bool get isTrueFalse => type == 'TRUE_FALSE';
-
-  /// Check if question is fill in blank
-  bool get isFillInBlank => type == 'FILL_IN_BLANK';
-
-  /// Check if question is drawing
-  bool get isDrawing => type == 'DRAWING';
-
-  /// Get question type display name
-  String get typeDisplayName {
-    switch (type) {
-      case 'MULTIPLE_CHOICE':
-        return 'Multiple Choice';
-      case 'TRUE_FALSE':
-        return 'True/False';
-      case 'FILL_IN_BLANK':
-        return 'Fill in Blank';
-      case 'DRAWING':
-        return 'Draw Kanji';
-      default:
-        return type;
-    }
+  Question copyWith({
+    int? id,
+    int? quizId,
+    QuestionType? type,
+    String? questionText,
+    String? correctAnswer,
+    List<String>? options,
+    String? explanation,
+    int? points,
+    List<String>? meanings,
+    int? order,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  }) {
+    return Question(
+      id: id ?? this.id,
+      quizId: quizId ?? this.quizId,
+      type: type ?? this.type,
+      questionText: questionText ?? this.questionText,
+      correctAnswer: correctAnswer ?? this.correctAnswer,
+      options: options ?? this.options,
+      explanation: explanation ?? this.explanation,
+      points: points ?? this.points,
+      meanings: meanings ?? this.meanings,
+      order: order ?? this.order,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+    );
   }
 }

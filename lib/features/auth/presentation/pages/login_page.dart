@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
-import '../../../../core/routes/app_router.dart';
-import '../../../../core/utils/validators.dart';
-import '../../../../core/widgets/loading_widget.dart';
 import '../bloc/auth_bloc.dart';
 import '../bloc/auth_event.dart';
 import '../bloc/auth_state.dart';
+import 'register_page.dart';
+import 'two_factor_verify_page.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -15,54 +13,23 @@ class LoginPage extends StatefulWidget {
   State<LoginPage> createState() => _LoginPageState();
 }
 
-class _LoginPageState extends State<LoginPage>
-    with SingleTickerProviderStateMixin {
+class _LoginPageState extends State<LoginPage> {
   final _formKey = GlobalKey<FormState>();
-  final _accountController = TextEditingController();
+  final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _obscurePassword = true;
-  late AnimationController _animationController;
-  late Animation<double> _fadeAnimation;
-  late Animation<Offset> _slideAnimation;
-
-  @override
-  void initState() {
-    super.initState();
-    _animationController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 800),
-    );
-
-    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _animationController, curve: Curves.easeIn),
-    );
-
-    _slideAnimation =
-        Tween<Offset>(begin: const Offset(0, 0.3), end: Offset.zero).animate(
-          CurvedAnimation(
-            parent: _animationController,
-            curve: Curves.easeOutCubic,
-          ),
-        );
-
-    _animationController.forward();
-  }
 
   @override
   void dispose() {
-    _animationController.dispose();
-    _accountController.dispose();
+    _emailController.dispose();
     _passwordController.dispose();
     super.dispose();
   }
 
-  void _handleLogin() {
+  void _login() {
     if (_formKey.currentState!.validate()) {
       context.read<AuthBloc>().add(
-        LoginEvent(
-          account: _accountController.text.trim(),
-          password: _passwordController.text,
-        ),
+        LoginEvent(_emailController.text.trim(), _passwordController.text),
       );
     }
   }
@@ -70,252 +37,260 @@ class _LoginPageState extends State<LoginPage>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.black,
-      body: BlocConsumer<AuthBloc, AuthState>(
-        listener: (context, state) {
-          if (state is LoginSuccess) {
-            // Don't navigate here - let the router handle it
-            // The app will rebuild with Authenticated state
-          } else if (state is AuthError) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(state.message),
-                backgroundColor: Colors.red,
-              ),
-            );
-          }
-        },
-        builder: (context, state) {
-          if (state is AuthLoading) {
-            return const LoadingWidget(message: 'Logging in...');
-          }
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [Color(0xFF071126), Color(0xFF0B0F14)],
+          ),
+        ),
+        child: SafeArea(
+          child: BlocConsumer<AuthBloc, AuthState>(
+            listener: (context, state) {
+              print('=== LOGIN PAGE LISTENER ===');
+              print('State: ${state.runtimeType}');
 
-          return SafeArea(
-            child: Center(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(24.0),
-                child: FadeTransition(
-                  opacity: _fadeAnimation,
-                  child: SlideTransition(
-                    position: _slideAnimation,
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        // App Logo/Icon
-                        const Icon(
-                          Icons.translate,
-                          size: 100,
-                          color: Colors.white,
-                        ),
-                        const SizedBox(height: 24),
-
-                        // App Title
-                        Text(
-                          'Kanji Master',
-                          textAlign: TextAlign.center,
-                          style: Theme.of(context).textTheme.headlineLarge
-                              ?.copyWith(
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
-                              ),
-                        ),
-                        const SizedBox(height: 8),
-
-                        Text(
-                          'Learning Japanese Made Easy',
-                          textAlign: TextAlign.center,
-                          style: Theme.of(context).textTheme.bodyLarge
-                              ?.copyWith(color: Colors.white70),
-                        ),
-                        const SizedBox(height: 48),
-
-                        // Login Form
-                        Form(
-                          key: _formKey,
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: [
-                              // Account/Email Field
-                              TextFormField(
-                                controller: _accountController,
-                                decoration: const InputDecoration(
-                                  labelText: 'Account or Email',
-                                  hintText: 'Enter your account or email',
-                                  prefixIcon: Icon(Icons.person_outline),
-                                ),
-                                keyboardType: TextInputType.emailAddress,
-                                textInputAction: TextInputAction.next,
-                                validator: (value) => Validators.required(
-                                  value,
-                                  fieldName: 'Account or Email',
-                                ),
-                              ),
-                              const SizedBox(height: 16),
-
-                              // Password Field
-                              TextFormField(
-                                controller: _passwordController,
-                                decoration: InputDecoration(
-                                  labelText: 'Password',
-                                  hintText: 'Enter your password',
-                                  prefixIcon: const Icon(Icons.lock_outline),
-                                  suffixIcon: IconButton(
-                                    icon: Icon(
-                                      _obscurePassword
-                                          ? Icons.visibility_off_outlined
-                                          : Icons.visibility_outlined,
-                                    ),
-                                    onPressed: () {
-                                      setState(() {
-                                        _obscurePassword = !_obscurePassword;
-                                      });
-                                    },
-                                  ),
-                                ),
-                                obscureText: _obscurePassword,
-                                textInputAction: TextInputAction.done,
-                                onFieldSubmitted: (_) => _handleLogin(),
-                                validator: (value) => Validators.required(
-                                  value,
-                                  fieldName: 'Password',
-                                ),
-                              ),
-                              const SizedBox(height: 12),
-
-                              // Forgot Password Link
-                              Align(
-                                alignment: Alignment.centerRight,
-                                child: TextButton(
-                                  onPressed: () {
-                                    context.push(AppRouter.forgotPassword);
-                                  },
-                                  child: const Text('Forgot Password?'),
-                                ),
-                              ),
-                              const SizedBox(height: 24),
-
-                              // Login Button
-                              ElevatedButton(
-                                onPressed: _handleLogin,
-                                style: ElevatedButton.styleFrom(
-                                  padding: const EdgeInsets.symmetric(
-                                    vertical: 16,
-                                  ),
-                                ),
-                                child: const Text(
-                                  'Login',
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(height: 24),
-
-                              // Divider with "OR"
-                              Row(
-                                children: [
-                                  const Expanded(
-                                    child: Divider(color: Colors.white24),
-                                  ),
-                                  Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 16,
-                                    ),
-                                    child: Text(
-                                      'OR',
-                                      style: TextStyle(
-                                        color: Colors.white.withOpacity(0.6),
-                                      ),
-                                    ),
-                                  ),
-                                  const Expanded(
-                                    child: Divider(color: Colors.white24),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 24),
-
-                              // Social Login Buttons
-                              OutlinedButton.icon(
-                                onPressed: () {
-                                  // TODO: Implement Google login
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Text(
-                                        'Google login - Coming soon',
-                                      ),
-                                    ),
-                                  );
-                                },
-                                icon: const Icon(Icons.g_mobiledata, size: 28),
-                                label: const Text('Continue with Google'),
-                                style: OutlinedButton.styleFrom(
-                                  padding: const EdgeInsets.symmetric(
-                                    vertical: 12,
-                                  ),
-                                  side: const BorderSide(color: Colors.white24),
-                                ),
-                              ),
-                              const SizedBox(height: 12),
-
-                              OutlinedButton.icon(
-                                onPressed: () {
-                                  // TODO: Implement Facebook login
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Text(
-                                        'Facebook login - Coming soon',
-                                      ),
-                                    ),
-                                  );
-                                },
-                                icon: const Icon(Icons.facebook, size: 24),
-                                label: const Text('Continue with Facebook'),
-                                style: OutlinedButton.styleFrom(
-                                  padding: const EdgeInsets.symmetric(
-                                    vertical: 12,
-                                  ),
-                                  side: const BorderSide(color: Colors.white24),
-                                ),
-                              ),
-                              const SizedBox(height: 32),
-
-                              // Register Link
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Text(
-                                    "Don't have an account? ",
-                                    style: TextStyle(
-                                      color: Colors.white.withOpacity(0.7),
-                                    ),
-                                  ),
-                                  TextButton(
-                                    onPressed: () {
-                                      context.push(AppRouter.register);
-                                    },
-                                    child: const Text(
-                                      'Register',
-                                      style: TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
+              if (state is Authenticated) {
+                print('State is Authenticated');
+                Navigator.of(context).pop();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Đăng nhập thành công!'),
+                    backgroundColor: Colors.green,
+                  ),
+                );
+              } else if (state is TwoFactorRequired) {
+                print('=== State is TwoFactorRequired - NAVIGATING ===');
+                // Navigate to 2FA verification page
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => TwoFactorVerifyPage(
+                      email: state.email,
+                      password: state.password,
                     ),
                   ),
+                );
+              } else if (state is AuthError) {
+                print('State is AuthError: ${state.message}');
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(state.message),
+                    backgroundColor: Colors.red,
+                  ),
+                );
+              }
+            },
+            builder: (context, state) {
+              return SingleChildScrollView(
+                padding: const EdgeInsets.all(24.0),
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      const SizedBox(height: 40),
+                      // Back button
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: IconButton(
+                          icon: const Icon(
+                            Icons.arrow_back,
+                            color: Colors.white,
+                          ),
+                          onPressed: () => Navigator.of(context).pop(),
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                      // Title
+                      const Text(
+                        'Đăng nhập',
+                        style: TextStyle(
+                          fontSize: 32,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      const Text(
+                        'Chào mừng bạn trở lại!',
+                        style: TextStyle(fontSize: 16, color: Colors.white70),
+                      ),
+                      const SizedBox(height: 40),
+                      // Email field
+                      TextFormField(
+                        controller: _emailController,
+                        keyboardType: TextInputType.emailAddress,
+                        style: const TextStyle(color: Colors.white),
+                        decoration: InputDecoration(
+                          labelText: 'Email',
+                          labelStyle: const TextStyle(color: Colors.white70),
+                          prefixIcon: const Icon(
+                            Icons.email,
+                            color: Colors.tealAccent,
+                          ),
+                          filled: true,
+                          fillColor: Colors.white10,
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide.none,
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: const BorderSide(color: Colors.white10),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: const BorderSide(
+                              color: Colors.tealAccent,
+                              width: 2,
+                            ),
+                          ),
+                        ),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Vui lòng nhập email';
+                          }
+                          if (!value.contains('@')) {
+                            return 'Email không hợp lệ';
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 20),
+                      // Password field
+                      TextFormField(
+                        controller: _passwordController,
+                        obscureText: _obscurePassword,
+                        style: const TextStyle(color: Colors.white),
+                        decoration: InputDecoration(
+                          labelText: 'Mật khẩu',
+                          labelStyle: const TextStyle(color: Colors.white70),
+                          prefixIcon: const Icon(
+                            Icons.lock,
+                            color: Colors.tealAccent,
+                          ),
+                          suffixIcon: IconButton(
+                            icon: Icon(
+                              _obscurePassword
+                                  ? Icons.visibility
+                                  : Icons.visibility_off,
+                              color: Colors.white70,
+                            ),
+                            onPressed: () {
+                              setState(() {
+                                _obscurePassword = !_obscurePassword;
+                              });
+                            },
+                          ),
+                          filled: true,
+                          fillColor: Colors.white10,
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide.none,
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: const BorderSide(color: Colors.white10),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: const BorderSide(
+                              color: Colors.tealAccent,
+                              width: 2,
+                            ),
+                          ),
+                        ),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Vui lòng nhập mật khẩu';
+                          }
+                          if (value.length < 6) {
+                            return 'Mật khẩu phải có ít nhất 6 ký tự';
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 12),
+                      // Forgot password
+                      Align(
+                        alignment: Alignment.centerRight,
+                        child: TextButton(
+                          onPressed: () {
+                            // TODO: Implement forgot password
+                          },
+                          child: const Text(
+                            'Quên mật khẩu?',
+                            style: TextStyle(color: Colors.tealAccent),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+                      // Login button
+                      ElevatedButton(
+                        onPressed: state is AuthLoading ? null : _login,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.tealAccent.shade700,
+                          foregroundColor: Colors.black87,
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          elevation: 4,
+                        ),
+                        child: state is AuthLoading
+                            ? const SizedBox(
+                                height: 20,
+                                width: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                    Colors.black87,
+                                  ),
+                                ),
+                              )
+                            : const Text(
+                                'Đăng nhập',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                      ),
+                      const SizedBox(height: 24),
+                      // Register link
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Text(
+                            'Chưa có tài khoản? ',
+                            style: TextStyle(color: Colors.white70),
+                          ),
+                          TextButton(
+                            onPressed: () {
+                              Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (context) => const RegisterPage(),
+                                ),
+                              );
+                            },
+                            child: const Text(
+                              'Đăng ký ngay',
+                              style: TextStyle(
+                                color: Colors.tealAccent,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-            ),
-          );
-        },
+              );
+            },
+          ),
+        ),
       ),
     );
   }

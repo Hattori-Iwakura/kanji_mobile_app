@@ -1,27 +1,45 @@
-import 'package:equatable/equatable.dart';
+import 'question.dart';
 
-/// Entity representing user's answer to a question
-class QuizAnswer extends Equatable {
-  final String questionId;
+class QuizAnswer {
+  final int id;
+  final int attemptId;
+  final int questionId;
   final String userAnswer;
   final bool isCorrect;
-  final int pointsEarned;
-  final DateTime answeredAt;
+  final int points;
+  final DateTime createdAt;
+  final Question? question;
 
-  const QuizAnswer({
+  QuizAnswer({
+    required this.id,
+    required this.attemptId,
     required this.questionId,
     required this.userAnswer,
     required this.isCorrect,
-    required this.pointsEarned,
-    required this.answeredAt,
+    required this.points,
+    required this.createdAt,
+    this.question,
   });
 
-  @override
-  List<Object?> get props => [
-    questionId,
-    userAnswer,
-    isCorrect,
-    pointsEarned,
-    answeredAt,
-  ];
+  QuizAnswer copyWith({
+    int? id,
+    int? attemptId,
+    int? questionId,
+    String? userAnswer,
+    bool? isCorrect,
+    int? points,
+    DateTime? createdAt,
+    Question? question,
+  }) {
+    return QuizAnswer(
+      id: id ?? this.id,
+      attemptId: attemptId ?? this.attemptId,
+      questionId: questionId ?? this.questionId,
+      userAnswer: userAnswer ?? this.userAnswer,
+      isCorrect: isCorrect ?? this.isCorrect,
+      points: points ?? this.points,
+      createdAt: createdAt ?? this.createdAt,
+      question: question ?? this.question,
+    );
+  }
 }

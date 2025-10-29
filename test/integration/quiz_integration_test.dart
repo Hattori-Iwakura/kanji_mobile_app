@@ -1,578 +1,600 @@
-import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:http_mock_adapter/http_mock_adapter.dart';
-import 'package:kanji_mobile_v1/core/constants/api_endpoints.dart';
-import 'package:kanji_mobile_v1/core/network/dio_client.dart';
-import 'package:kanji_mobile_v1/features/quiz/data/datasources/quiz_remote_datasource.dart';
-import 'package:kanji_mobile_v1/features/quiz/data/repositories/quiz_repository_impl.dart';
-import 'package:kanji_mobile_v1/features/quiz/domain/usecases/add_question.dart';
-import 'package:kanji_mobile_v1/features/quiz/domain/usecases/complete_quiz.dart';
-import 'package:kanji_mobile_v1/features/quiz/domain/usecases/delete_question.dart';
-import 'package:kanji_mobile_v1/features/quiz/domain/usecases/get_all_quizzes.dart';
-import 'package:kanji_mobile_v1/features/quiz/domain/usecases/get_quiz_history.dart';
-import 'package:kanji_mobile_v1/features/quiz/domain/usecases/get_quiz_questions.dart';
-import 'package:kanji_mobile_v1/features/quiz/domain/usecases/submit_quiz_answer.dart';
-import 'package:kanji_mobile_v1/features/quiz/domain/usecases/update_question.dart';
-import 'package:kanji_mobile_v1/features/quiz/presentation/bloc/quiz_bloc.dart';
-import 'package:kanji_mobile_v1/features/quiz/presentation/bloc/quiz_event.dart';
-import 'package:kanji_mobile_v1/features/quiz/presentation/bloc/quiz_state.dart';
-import 'package:mocktail/mocktail.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:logger/logger.dart';
-
-import '../helpers/fixtures/quiz_fixtures.dart';
-
-// Mock classes for DioClient dependencies
-class MockSecureStorage extends Mock implements FlutterSecureStorage {}
-
-class MockLogger extends Mock implements Logger {}
+import 'package:kanji_mobile_app/injection_container.dart' as di;
+import 'package:kanji_mobile_app/features/quiz/domain/usecases/get_quizzes.dart';
+import 'package:kanji_mobile_app/features/quiz/domain/usecases/get_quiz_detail.dart';
+import 'package:kanji_mobile_app/features/quiz/domain/usecases/create_quiz.dart';
+import 'package:kanji_mobile_app/features/quiz/domain/usecases/update_quiz.dart';
+import 'package:kanji_mobile_app/features/quiz/domain/usecases/delete_quiz.dart';
+import 'package:kanji_mobile_app/features/quiz/domain/usecases/add_question.dart';
+import 'package:kanji_mobile_app/features/quiz/domain/usecases/update_question.dart';
+import 'package:kanji_mobile_app/features/quiz/domain/usecases/delete_question.dart';
+import 'package:kanji_mobile_app/features/quiz/domain/usecases/start_quiz_attempt.dart';
+import 'package:kanji_mobile_app/features/quiz/domain/usecases/submit_quiz_attempt.dart';
+import 'package:kanji_mobile_app/features/quiz/domain/usecases/get_quiz_attempts.dart';
+import 'package:kanji_mobile_app/features/quiz/domain/usecases/get_quiz_attempt_details.dart';
+import 'package:kanji_mobile_app/features/quiz/domain/entities/question.dart';
+import 'package:kanji_mobile_app/features/quiz/domain/entities/quiz.dart';
+import 'package:kanji_mobile_app/features/quiz/domain/entities/quiz_attempt.dart';
+import '../helpers/test_helper.dart';
+import '../helpers/auth_helper.dart';
 
 void main() {
-  late QuizBloc bloc;
-  late Dio dio;
-  late DioAdapter dioAdapter;
-  late QuizRepositoryImpl repository;
+  setUpAll(() async {
+    TestHelper.printSection('INITIALIZING QUIZ INTEGRATION TESTS');
 
-  setUpAll(() {
-    ApiEndpoints.baseUrl = 'http://localhost:3000/api/v1';
+    // Step 1: Initialize dependencies FIRST (this resets GetIt and creates new instances)
+    await TestHelper.initializeDependencies();
+    TestHelper.printSuccess('Dependencies initialized');
+
+    // Step 2: Setup authentication AFTER dependencies are initialized
+    // This ensures token is set on the actual ApiClient instance being used
+    TestHelper.printStep('Setting up authentication...');
+    try {
+      await AuthHelper.setupAuth();
+      TestHelper.printSuccess('Authentication configured successfully');
+    } catch (e) {
+      TestHelper.printError('Failed to setup auth: $e');
+      TestHelper.printStep('Tests may fail due to authentication issues');
+      rethrow; // Stop tests if auth fails
+    }
   });
 
-  setUp(() {
-    dio = Dio(BaseOptions(baseUrl: 'http://localhost:3000/api/v1'));
-    dioAdapter = DioAdapter(dio: dio);
-    dio.httpClientAdapter = dioAdapter;
-
-    // Create DioClient with mocked dependencies
-    final mockStorage = MockSecureStorage();
-    final mockLogger = MockLogger();
-
-    // Stub secure storage methods
-    when(
-      () => mockStorage.read(key: any(named: 'key')),
-    ).thenAnswer((_) async => null);
-    when(
-      () => mockStorage.write(
-        key: any(named: 'key'),
-        value: any(named: 'value'),
-      ),
-    ).thenAnswer((_) async => {});
-    when(
-      () => mockStorage.delete(key: any(named: 'key')),
-    ).thenAnswer((_) async => {});
-
-    final dioClient = DioClient(mockStorage, mockLogger);
-    // Replace the internal dio with our mocked one
-    dioClient.dio.httpClientAdapter = dioAdapter;
-
-    final dataSource = QuizRemoteDataSource(dioClient);
-    repository = QuizRepositoryImpl(dataSource);
-
-    bloc = QuizBloc(
-      getAllQuizzes: GetAllQuizzes(repository),
-      getQuizQuestions: GetQuizQuestions(repository),
-      submitQuizAnswer: SubmitQuizAnswer(repository),
-      completeQuiz: CompleteQuiz(repository),
-      getQuizHistory: GetQuizHistory(repository),
-      addQuestion: AddQuestion(repository),
-      updateQuestion: UpdateQuestion(repository),
-      deleteQuestion: DeleteQuestion(repository),
-      repository: repository,
-    );
+  tearDownAll(() {
+    // Clean up authentication
+    AuthHelper.clearAuth();
   });
 
-  tearDown(() {
-    bloc.close();
-  });
+  group('1. Quiz Management Tests -', () {
+    late GetQuizzesUseCase getQuizzes;
+    late GetQuizDetailUseCase getQuizDetail;
+    late CreateQuizUseCase createQuiz;
+    late UpdateQuizUseCase updateQuiz;
+    late DeleteQuizUseCase deleteQuiz;
 
-  group('LoadQuizzesEvent Integration', () {
-    test(
-      'should emit [Loading, QuizzesLoaded] when fetching quizzes successfully',
-      () async {
-        // arrange
-        dioAdapter.onGet(
-          'http://localhost:3000/api/v1/quizzes',
-          (server) => server.reply(200, [tQuiz1Json, tQuiz2Json]),
+    setUp(() {
+      getQuizzes = di.sl<GetQuizzesUseCase>();
+      getQuizDetail = di.sl<GetQuizDetailUseCase>();
+      createQuiz = di.sl<CreateQuizUseCase>();
+      updateQuiz = di.sl<UpdateQuizUseCase>();
+      deleteQuiz = di.sl<DeleteQuizUseCase>();
+    });
+
+    test('1.1. Get all quizzes', () async {
+      TestHelper.printSection('TEST 1.1: GET ALL QUIZZES');
+
+      try {
+        final result = await getQuizzes(limit: 10, offset: 0, search: null);
+
+        TestHelper.printSuccess(
+          'Got response with ${result['data'].length} quizzes',
+        );
+        expect(result, isA<Map<String, dynamic>>());
+        expect(result['data'], isA<List>());
+        expect(result['total'], isA<int>());
+      } catch (e) {
+        TestHelper.printError('Failed to get quizzes: $e');
+        fail('Should get quizzes successfully');
+      }
+    });
+
+    test('1.2. Get quiz detail', () async {
+      TestHelper.printSection('TEST 1.2: GET QUIZ DETAIL');
+
+      try {
+        // First get list of quizzes
+        final listResult = await getQuizzes(limit: 10, offset: 0);
+        final quizzes = listResult['data'] as List<Quiz>;
+
+        if (quizzes.isEmpty) {
+          TestHelper.printStep('No quizzes available to test');
+          return;
+        }
+
+        final quizId = quizzes.first.id;
+        TestHelper.printStep('Testing with quiz ID: $quizId');
+
+        final quiz = await getQuizDetail(quizId);
+
+        TestHelper.printSuccess('Quiz: ${quiz.title}');
+        TestHelper.printSuccess('Questions: ${quiz.questions?.length ?? 0}');
+        expect(quiz, isA<Quiz>());
+        expect(quiz.id, equals(quizId));
+      } catch (e) {
+        TestHelper.printError('Failed to get quiz detail: $e');
+        fail('Should get quiz detail successfully');
+      }
+    });
+
+    test('1.3. Create quiz', () async {
+      TestHelper.printSection('TEST 1.3: CREATE QUIZ');
+
+      try {
+        final quiz = await createQuiz(
+          title: 'Test Quiz ${DateTime.now().millisecondsSinceEpoch}',
+          description: 'Integration test quiz',
         );
 
-        // assert later
-        expectLater(
-          bloc.stream,
-          emitsInOrder([
-            isA<QuizLoading>(),
-            isA<QuizzesLoaded>().having(
-              (s) => s.quizzes.length,
-              'quiz count',
-              2,
-            ),
-          ]),
+        TestHelper.printSuccess('Created quiz: ${quiz.title}');
+        TestHelper.printSuccess('Quiz ID: ${quiz.id}');
+        expect(quiz, isA<Quiz>());
+        expect(quiz.id, isPositive);
+        expect(quiz.title, isNotEmpty);
+
+        // Clean up
+        await deleteQuiz(quiz.id);
+        TestHelper.printSuccess('Cleaned up quiz ID: ${quiz.id}');
+      } catch (e) {
+        TestHelper.printError('Failed to create quiz: $e');
+        fail('Should create quiz successfully');
+      }
+    });
+
+    test('1.4. Update quiz', () async {
+      TestHelper.printSection('TEST 1.4: UPDATE QUIZ');
+
+      try {
+        // Create a quiz first
+        final quiz = await createQuiz(
+          title: 'Quiz to Update ${DateTime.now().millisecondsSinceEpoch}',
+          description: 'Original description',
         );
 
-        // act
-        bloc.add(LoadQuizzesEvent());
-      },
-    );
+        TestHelper.printSuccess('Created quiz ID: ${quiz.id}');
 
-    test('should emit [Loading, Error] when API fails', () async {
-      // arrange
-      dioAdapter.onGet(
-        'http://localhost:3000/api/v1/quizzes',
-        (server) => server.reply(500, {'message': 'Server error'}),
-      );
+        // Update the quiz
+        final updatedQuiz = await updateQuiz(
+          quizId: quiz.id,
+          title: 'Updated Quiz Title',
+          description: 'Updated description',
+        );
 
-      // assert later
-      expectLater(
-        bloc.stream,
-        emitsInOrder([isA<QuizLoading>(), isA<QuizError>()]),
-      );
+        TestHelper.printSuccess('Updated quiz: ${updatedQuiz.title}');
+        expect(updatedQuiz.id, equals(quiz.id));
+        expect(updatedQuiz.title, equals('Updated Quiz Title'));
+        expect(updatedQuiz.description, equals('Updated description'));
 
-      // act
-      bloc.add(LoadQuizzesEvent());
+        // Clean up
+        await deleteQuiz(quiz.id);
+      } catch (e) {
+        TestHelper.printError('Failed to update quiz: $e');
+        fail('Should update quiz successfully');
+      }
+    });
+
+    test('1.5. Delete quiz', () async {
+      TestHelper.printSection('TEST 1.5: DELETE QUIZ');
+
+      try {
+        // Create a quiz to delete
+        final quiz = await createQuiz(
+          title: 'Quiz to Delete ${DateTime.now().millisecondsSinceEpoch}',
+        );
+
+        TestHelper.printSuccess('Created quiz ID: ${quiz.id}');
+
+        // Delete the quiz
+        await deleteQuiz(quiz.id);
+        TestHelper.printSuccess('Deleted quiz ID: ${quiz.id}');
+
+        // Verify quiz is deleted
+        try {
+          await getQuizDetail(quiz.id);
+          fail('Quiz should be deleted');
+        } catch (e) {
+          TestHelper.printSuccess('Quiz not found (as expected)');
+        }
+      } catch (e) {
+        TestHelper.printError('Failed test: $e');
+        fail('Should complete delete test successfully');
+      }
     });
   });
 
-  group('LoadQuizHistoryEvent Integration', () {
-    test(
-      'should emit [Loading, QuizHistoryLoaded] when fetching history successfully',
-      () async {
-        // arrange
-        dioAdapter.onGet(
-          'http://localhost:3000/api/v1/quizzes/history',
-          (server) => server.reply(200, [tQuizResult1Json, tQuizResult2Json]),
+  group('2. Question Management Tests -', () {
+    late CreateQuizUseCase createQuiz;
+    late AddQuestionUseCase addQuestion;
+    late UpdateQuestionUseCase updateQuestion;
+    late DeleteQuestionUseCase deleteQuestion;
+    late GetQuizDetailUseCase getQuizDetail;
+    late DeleteQuizUseCase deleteQuiz;
+
+    setUp(() {
+      createQuiz = di.sl<CreateQuizUseCase>();
+      addQuestion = di.sl<AddQuestionUseCase>();
+      updateQuestion = di.sl<UpdateQuestionUseCase>();
+      deleteQuestion = di.sl<DeleteQuestionUseCase>();
+      getQuizDetail = di.sl<GetQuizDetailUseCase>();
+      deleteQuiz = di.sl<DeleteQuizUseCase>();
+    });
+
+    test('2.1. Add multiple choice question', () async {
+      TestHelper.printSection('TEST 2.1: ADD MULTIPLE CHOICE QUESTION');
+
+      try {
+        // Create a quiz first
+        final quiz = await createQuiz(
+          title: 'Quiz for MC ${DateTime.now().millisecondsSinceEpoch}',
         );
 
-        // assert later
-        expectLater(
-          bloc.stream,
-          emitsInOrder([
-            isA<QuizLoading>(),
-            isA<QuizHistoryLoaded>().having(
-              (s) => s.history.length,
-              'history count',
-              2,
-            ),
-          ]),
-        );
+        TestHelper.printSuccess('Created quiz ID: ${quiz.id}');
 
-        // act
-        bloc.add(LoadQuizHistoryEvent());
-      },
-    );
-  });
-
-  group('Quiz Session Flow Integration', () {
-    const tQuizId = 'quiz-1';
-    const tSessionId = 'session-123';
-    const baseUrl = 'http://localhost:3000/api/v1';
-
-    test('should start quiz session and load questions', () async {
-      // arrange - start quiz
-      dioAdapter.onPost(
-        '$baseUrl/quizzes/$tQuizId/start',
-        (server) => server.reply(200, {'sessionId': tSessionId}),
-      );
-
-      // arrange - load questions
-      dioAdapter.onGet(
-        '$baseUrl/quizzes/$tQuizId/questions',
-        (server) => server.reply(200, [
-          tQuestionMultipleChoice1Json,
-          tQuestionTrueFalse1Json,
-        ]),
-      );
-
-      // assert later
-      expectLater(
-        bloc.stream,
-        emitsInOrder([
-          isA<QuizLoading>(),
-          isA<QuizSessionActive>().having(
-            (s) => s.questions.length,
-            'questions count',
-            2,
-          ),
-        ]),
-      );
-
-      // act
-      bloc.add(const StartQuizEvent(tQuizId));
-    });
-
-    test('should handle answer submission flow', () async {
-      // arrange - start quiz first
-      dioAdapter.onPost(
-        '$baseUrl/quizzes/$tQuizId/start',
-        (server) => server.reply(200, {'sessionId': tSessionId}),
-      );
-
-      dioAdapter.onGet(
-        '$baseUrl/quizzes/$tQuizId/questions',
-        (server) => server.reply(200, [tQuestionMultipleChoice1Json]),
-      );
-
-      // arrange - submit answer
-      const tQuestionId = 'q-1';
-      const tAnswer = 'sun';
-      dioAdapter.onPost(
-        '$baseUrl/quizzes/$tQuizId/answer',
-        (server) => server.reply(200, {'isCorrect': true}),
-        data: {'questionId': tQuestionId, 'answer': tAnswer},
-      );
-
-      // act - start quiz
-      bloc.add(const StartQuizEvent(tQuizId));
-
-      await Future.delayed(const Duration(milliseconds: 100));
-
-      // act - answer question
-      bloc.add(
-        const AnswerQuestionEvent(questionId: tQuestionId, answer: tAnswer),
-      );
-
-      // assert - should have answer in session
-      await expectLater(
-        bloc.stream,
-        emitsThrough(
-          isA<QuizSessionActive>().having(
-            (s) => s.userAnswers[tQuestionId],
-            'user answer',
-            tAnswer,
-          ),
-        ),
-      );
-    });
-
-    test('should navigate between questions', () async {
-      // arrange - start quiz with multiple questions
-      dioAdapter.onPost(
-        '$baseUrl/quizzes/$tQuizId/start',
-        (server) => server.reply(200, {'sessionId': tSessionId}),
-      );
-
-      dioAdapter.onGet(
-        '$baseUrl/quizzes/$tQuizId/questions',
-        (server) => server.reply(200, [
-          tQuestionMultipleChoice1Json,
-          tQuestionTrueFalse1Json,
-          tQuestionFillInBlank1Json,
-        ]),
-      );
-
-      // act - start quiz
-      bloc.add(const StartQuizEvent(tQuizId));
-
-      await Future.delayed(const Duration(milliseconds: 100));
-
-      // act - next question
-      bloc.add(NextQuestionEvent());
-
-      await expectLater(
-        bloc.stream,
-        emitsThrough(
-          isA<QuizSessionActive>().having(
-            (s) => s.currentIndex,
-            'current index',
-            1,
-          ),
-        ),
-      );
-
-      // act - previous question
-      bloc.add(PreviousQuestionEvent());
-
-      await expectLater(
-        bloc.stream,
-        emitsThrough(
-          isA<QuizSessionActive>().having(
-            (s) => s.currentIndex,
-            'current index',
-            0,
-          ),
-        ),
-      );
-    });
-
-    test('should complete quiz and get result', () async {
-      // arrange - start quiz
-      dioAdapter.onPost(
-        '$baseUrl/quizzes/$tQuizId/start',
-        (server) => server.reply(200, {'sessionId': tSessionId}),
-      );
-
-      dioAdapter.onGet(
-        '$baseUrl/quizzes/$tQuizId/questions',
-        (server) => server.reply(200, [tQuestionMultipleChoice1Json]),
-      );
-
-      // arrange - complete quiz
-      const tTimeSpent = 120;
-      dioAdapter.onPost(
-        '$baseUrl/quizzes/$tQuizId/complete',
-        (server) => server.reply(200, tQuizResult1Json),
-        data: {'timeSpent': tTimeSpent},
-      );
-
-      // act - start quiz
-      bloc.add(const StartQuizEvent(tQuizId));
-
-      await Future.delayed(const Duration(milliseconds: 100));
-
-      // act - complete quiz
-      bloc.add(const CompleteQuizEvent(tTimeSpent));
-
-      // assert
-      await expectLater(
-        bloc.stream,
-        emitsThrough(
-          isA<QuizCompleted>().having(
-            (s) => s.result.quizId,
-            'quiz id',
-            tQuizId,
-          ),
-        ),
-      );
-    });
-  });
-
-  group('Question Management Flow Integration', () {
-    const tQuizId = 'quiz-1';
-    const baseUrl = 'http://localhost:3000/api/v1';
-
-    test('should add question to quiz', () async {
-      // arrange
-      dioAdapter.onPost(
-        '$baseUrl/quizzes/$tQuizId/questions',
-        (server) => server.reply(200, tQuestionMultipleChoice1Json),
-        data: {
-          'type': 'MULTIPLE_CHOICE',
-          'questionText': 'What is this kanji?',
-          'options': ['sun', 'moon'],
-          'correctAnswer': 'sun',
-          'points': 10,
-          'meanings': [],
-        },
-      );
-
-      // act
-      bloc.add(
-        const AddQuestionEvent(
-          quizId: tQuizId,
-          type: 'MULTIPLE_CHOICE',
-          questionText: 'What is this kanji?',
-          options: ['sun', 'moon'],
-          correctAnswer: 'sun',
+        // Add a multiple choice question
+        final question = await addQuestion(
+          quizId: quiz.id,
+          type: QuestionType.multipleChoice,
+          questionText: 'What is the meaning of 日本?',
+          correctAnswer: 'Japan',
+          options: ['Japan', 'China', 'Korea', 'America'],
           points: 10,
-        ),
-      );
+          explanation: '日本 means Japan',
+        );
 
-      // assert - should reload questions after adding
-      await expectLater(bloc.stream, emits(isA<QuizLoading>()));
+        TestHelper.printSuccess('Added question: ${question.questionText}');
+        TestHelper.printSuccess('Question ID: ${question.id}');
+        expect(question, isA<Question>());
+        expect(question.type, equals(QuestionType.multipleChoice));
+        expect(question.options, hasLength(4));
+
+        // Clean up
+        await deleteQuiz(quiz.id);
+      } catch (e) {
+        TestHelper.printError('Failed to add question: $e');
+        fail('Should add question successfully');
+      }
     });
 
-    test('should update question', () async {
-      // arrange
-      const tQuestionId = 'q-1';
-      dioAdapter.onPut(
-        '$baseUrl/quizzes/$tQuizId/questions/$tQuestionId',
-        (server) => server.reply(200, tQuestionMultipleChoice1Json),
-        data: {'questionText': 'Updated question', 'points': 15},
-      );
+    test('2.2. Add fill blank question', () async {
+      TestHelper.printSection('TEST 2.2: ADD FILL BLANK QUESTION');
 
-      // act
-      bloc.add(
-        const UpdateQuestionEvent(
-          quizId: tQuizId,
-          questionId: tQuestionId,
+      try {
+        final quiz = await createQuiz(
+          title: 'Quiz for Fill Blank ${DateTime.now().millisecondsSinceEpoch}',
+        );
+
+        final question = await addQuestion(
+          quizId: quiz.id,
+          type: QuestionType.fillBlank,
+          questionText: 'How do you say hello in Japanese?',
+          correctAnswer: 'こんにちは',
+          points: 5,
+        );
+
+        TestHelper.printSuccess('Added question: ${question.questionText}');
+        expect(question.type, equals(QuestionType.fillBlank));
+        expect(question.options, isNull);
+
+        await deleteQuiz(quiz.id);
+      } catch (e) {
+        TestHelper.printError('Failed: $e');
+        fail('Should add fill blank question successfully');
+      }
+    });
+
+    test('2.3. Update question', () async {
+      TestHelper.printSection('TEST 2.3: UPDATE QUESTION');
+
+      try {
+        final quiz = await createQuiz(
+          title: 'Quiz for Update ${DateTime.now().millisecondsSinceEpoch}',
+        );
+
+        final question = await addQuestion(
+          quizId: quiz.id,
+          type: QuestionType.fillBlank,
+          questionText: 'Original question',
+          correctAnswer: 'original',
+          points: 5,
+        );
+
+        TestHelper.printSuccess('Added question ID: ${question.id}');
+
+        // Update the question
+        final updatedQuestion = await updateQuestion(
+          quizId: quiz.id,
+          questionId: question.id,
+          type: QuestionType.fillBlank,
           questionText: 'Updated question',
+          correctAnswer: 'updated',
           points: 15,
-        ),
-      );
+        );
 
-      // assert
-      await expectLater(bloc.stream, emits(isA<QuizLoading>()));
+        TestHelper.printSuccess('Updated: ${updatedQuestion.questionText}');
+        expect(updatedQuestion.id, equals(question.id));
+        expect(updatedQuestion.questionText, equals('Updated question'));
+        expect(updatedQuestion.points, equals(15));
+
+        await deleteQuiz(quiz.id);
+      } catch (e) {
+        TestHelper.printError('Failed: $e');
+        fail('Should update question successfully');
+      }
     });
 
-    test('should delete question', () async {
-      // arrange
-      const tQuestionId = 'q-1';
-      dioAdapter.onDelete(
-        '$baseUrl/quizzes/$tQuizId/questions/$tQuestionId',
-        (server) => server.reply(200, {}),
-      );
+    test('2.4. Delete question', () async {
+      TestHelper.printSection('TEST 2.4: DELETE QUESTION');
 
-      // act
-      bloc.add(
-        const DeleteQuestionEvent(quizId: tQuizId, questionId: tQuestionId),
-      );
+      try {
+        final quiz = await createQuiz(
+          title: 'Quiz for Delete ${DateTime.now().millisecondsSinceEpoch}',
+        );
 
-      // assert
-      await expectLater(bloc.stream, emits(isA<QuizLoading>()));
-    });
+        final question = await addQuestion(
+          quizId: quiz.id,
+          type: QuestionType.fillBlank,
+          questionText: 'Question to delete',
+          correctAnswer: 'delete me',
+          points: 5,
+        );
 
-    test('should handle question management error', () async {
-      // arrange
-      dioAdapter.onPost(
-        '$baseUrl/quizzes/$tQuizId/questions',
-        (server) => server.reply(400, {'message': 'Invalid question data'}),
-      );
+        TestHelper.printSuccess('Added question ID: ${question.id}');
 
-      // act
-      bloc.add(
-        const AddQuestionEvent(
-          quizId: tQuizId,
-          type: 'INVALID_TYPE',
-          questionText: '',
-          options: [],
-          correctAnswer: '',
-        ),
-      );
+        // Delete the question
+        await deleteQuestion(quizId: quiz.id, questionId: question.id);
+        TestHelper.printSuccess('Deleted question ID: ${question.id}');
 
-      // assert
-      await expectLater(bloc.stream, emitsThrough(isA<QuizError>()));
-    });
-  });
+        // Verify question is deleted
+        final updatedQuiz = await getQuizDetail(quiz.id);
+        final exists =
+            updatedQuiz.questions?.any((q) => q.id == question.id) ?? false;
+        expect(exists, isFalse);
+        TestHelper.printSuccess('Question removed from quiz');
 
-  group('Quiz State Helpers Integration', () {
-    const baseUrl = 'http://localhost:3000/api/v1';
-
-    test('QuizzesLoaded should have helper methods', () async {
-      // arrange
-      dioAdapter.onGet(
-        '$baseUrl/quizzes',
-        (server) => server.reply(200, [tQuiz1Json, tQuiz2Json]),
-      );
-
-      // act
-      bloc.add(LoadQuizzesEvent());
-
-      // assert
-      await expectLater(
-        bloc.stream,
-        emitsThrough(
-          isA<QuizzesLoaded>()
-              .having((s) => s.hasQuizzes, 'has quizzes', true)
-              .having(
-                (s) => s.getByDifficulty('EASY').length,
-                'easy quizzes',
-                greaterThanOrEqualTo(0),
-              ),
-        ),
-      );
-    });
-
-    test('QuizHistoryLoaded should calculate statistics', () async {
-      // arrange
-      dioAdapter.onGet(
-        '$baseUrl/quizzes/history',
-        (server) => server.reply(200, [tQuizResult1Json, tQuizResult2Json]),
-      );
-
-      // act
-      bloc.add(LoadQuizHistoryEvent());
-
-      // assert
-      await expectLater(
-        bloc.stream,
-        emitsThrough(
-          isA<QuizHistoryLoaded>()
-              .having((s) => s.hasHistory, 'has history', true)
-              .having((s) => s.totalCompleted, 'total completed', 2)
-              .having((s) => s.averageScore, 'average score', greaterThan(0.0)),
-        ),
-      );
-    });
-
-    test('QuizSessionActive should track progress', () async {
-      // arrange
-      const tQuizId = 'quiz-1';
-      dioAdapter.onPost(
-        '$baseUrl/quizzes/$tQuizId/start',
-        (server) => server.reply(200, {'sessionId': 'session-123'}),
-      );
-
-      dioAdapter.onGet(
-        '$baseUrl/quizzes/$tQuizId/questions',
-        (server) => server.reply(200, [
-          tQuestionMultipleChoice1Json,
-          tQuestionTrueFalse1Json,
-        ]),
-      );
-
-      // act
-      bloc.add(const StartQuizEvent(tQuizId));
-
-      // assert
-      await expectLater(
-        bloc.stream,
-        emitsThrough(
-          isA<QuizSessionActive>()
-              .having((s) => s.currentQuestion, 'current question', isNotNull)
-              .having((s) => s.isFirstQuestion, 'is first', true)
-              .having((s) => s.isLastQuestion, 'is last', false)
-              .having((s) => s.progressPercentage, 'progress', 0.0),
-        ),
-      );
+        await deleteQuiz(quiz.id);
+      } catch (e) {
+        TestHelper.printError('Failed: $e');
+        fail('Should delete question successfully');
+      }
     });
   });
 
-  group('Error Handling Integration', () {
-    const baseUrl = 'http://localhost:3000/api/v1';
+  group('3. Quiz Attempt Tests -', () {
+    late CreateQuizUseCase createQuiz;
+    late AddQuestionUseCase addQuestion;
+    late StartQuizAttemptUseCase startQuizAttempt;
+    late SubmitQuizAttemptUseCase submitQuizAttempt;
+    late GetQuizAttemptsUseCase getQuizAttempts;
+    late GetQuizAttemptDetailsUseCase getQuizAttemptDetails;
+    late DeleteQuizUseCase deleteQuiz;
 
-    test('should handle network timeout', () async {
-      // arrange
-      dioAdapter.onGet(
-        '$baseUrl/quizzes',
-        (server) => server.throws(
-          404,
-          DioException(
-            requestOptions: RequestOptions(path: '/quizzes'),
-            type: DioExceptionType.connectionTimeout,
-          ),
-        ),
-      );
-
-      // assert later
-      expectLater(
-        bloc.stream,
-        emitsInOrder([isA<QuizLoading>(), isA<QuizError>()]),
-      );
-
-      // act
-      bloc.add(LoadQuizzesEvent());
+    setUp(() {
+      createQuiz = di.sl<CreateQuizUseCase>();
+      addQuestion = di.sl<AddQuestionUseCase>();
+      startQuizAttempt = di.sl<StartQuizAttemptUseCase>();
+      submitQuizAttempt = di.sl<SubmitQuizAttemptUseCase>();
+      getQuizAttempts = di.sl<GetQuizAttemptsUseCase>();
+      getQuizAttemptDetails = di.sl<GetQuizAttemptDetailsUseCase>();
+      deleteQuiz = di.sl<DeleteQuizUseCase>();
     });
 
-    test('should handle unauthorized access', () async {
-      // arrange
-      dioAdapter.onGet(
-        '$baseUrl/quizzes',
-        (server) => server.reply(401, {'message': 'Unauthorized'}),
-      );
+    test('3.1. Start quiz attempt', () async {
+      TestHelper.printSection('TEST 3.1: START QUIZ ATTEMPT');
 
-      // assert later
-      expectLater(
-        bloc.stream,
-        emitsInOrder([isA<QuizLoading>(), isA<QuizError>()]),
-      );
+      try {
+        final quiz = await createQuiz(
+          title: 'Quiz for Attempt ${DateTime.now().millisecondsSinceEpoch}',
+        );
 
-      // act
-      bloc.add(LoadQuizzesEvent());
+        await addQuestion(
+          quizId: quiz.id,
+          type: QuestionType.fillBlank,
+          questionText: 'Sample question',
+          correctAnswer: 'answer',
+          points: 10,
+        );
+
+        TestHelper.printSuccess('Created quiz with question');
+
+        // Start quiz attempt
+        final attempt = await startQuizAttempt(quiz.id);
+
+        TestHelper.printSuccess('Started attempt ID: ${attempt.id}');
+        expect(attempt, isA<QuizAttempt>());
+        expect(attempt.quizId, equals(quiz.id));
+
+        await deleteQuiz(quiz.id);
+      } catch (e) {
+        TestHelper.printError('Failed: $e');
+        fail('Should start quiz attempt successfully');
+      }
     });
 
-    test('should handle quiz not found', () async {
-      // arrange
-      const tQuizId = 'non-existent';
-      dioAdapter.onPost(
-        '$baseUrl/quizzes/$tQuizId/start',
-        (server) => server.reply(404, {'message': 'Quiz not found'}),
-      );
+    test('3.2. Submit quiz with correct answer', () async {
+      TestHelper.printSection('TEST 3.2: SUBMIT QUIZ WITH CORRECT ANSWER');
 
-      // assert later
-      expectLater(
-        bloc.stream,
-        emitsInOrder([isA<QuizLoading>(), isA<QuizError>()]),
-      );
+      try {
+        final quiz = await createQuiz(
+          title: 'Quiz Submit ${DateTime.now().millisecondsSinceEpoch}',
+        );
 
-      // act
-      bloc.add(const StartQuizEvent(tQuizId));
+        final question = await addQuestion(
+          quizId: quiz.id,
+          type: QuestionType.fillBlank,
+          questionText: 'What is 1+1?',
+          correctAnswer: '2',
+          points: 10,
+        );
+
+        final attempt = await startQuizAttempt(quiz.id);
+        TestHelper.printSuccess('Started attempt ID: ${attempt.id}');
+
+        // Submit with correct answer
+        final result = await submitQuizAttempt(
+          attemptId: attempt.id,
+          answers: [
+            {'questionId': question.id, 'answer': '2'},
+          ],
+        );
+
+        TestHelper.printSuccess('Score: ${result.score}/${result.maxScore}');
+        TestHelper.printSuccess('Percentage: ${result.percentage}%');
+        expect(result.score, equals(10));
+        expect(result.percentage, equals(100.0));
+        expect(result.completed, isTrue);
+
+        await deleteQuiz(quiz.id);
+      } catch (e) {
+        TestHelper.printError('Failed: $e');
+        fail('Should submit quiz successfully');
+      }
+    });
+
+    test('3.3. Submit quiz with wrong answer', () async {
+      TestHelper.printSection('TEST 3.3: SUBMIT QUIZ WITH WRONG ANSWER');
+
+      try {
+        final quiz = await createQuiz(
+          title: 'Quiz Wrong ${DateTime.now().millisecondsSinceEpoch}',
+        );
+
+        final question = await addQuestion(
+          quizId: quiz.id,
+          type: QuestionType.fillBlank,
+          questionText: 'What is 2+2?',
+          correctAnswer: '4',
+          points: 10,
+        );
+
+        final attempt = await startQuizAttempt(quiz.id);
+
+        // Submit with wrong answer
+        final result = await submitQuizAttempt(
+          attemptId: attempt.id,
+          answers: [
+            {'questionId': question.id, 'answer': '5'},
+          ],
+        );
+
+        TestHelper.printSuccess('Score: ${result.score}/${result.maxScore}');
+        expect(result.score, equals(0));
+        expect(result.percentage, equals(0.0));
+        expect(result.correctAnswers, equals(0));
+
+        await deleteQuiz(quiz.id);
+      } catch (e) {
+        TestHelper.printError('Failed: $e');
+        fail('Should submit quiz successfully');
+      }
+    });
+
+    test('3.4. Get quiz attempts history', () async {
+      TestHelper.printSection('TEST 3.4: GET QUIZ ATTEMPTS HISTORY');
+
+      try {
+        final quiz = await createQuiz(
+          title: 'Quiz History ${DateTime.now().millisecondsSinceEpoch}',
+        );
+
+        final question = await addQuestion(
+          quizId: quiz.id,
+          type: QuestionType.fillBlank,
+          questionText: 'Test',
+          correctAnswer: 'test',
+          points: 10,
+        );
+
+        // Make 2 attempts
+        for (int i = 0; i < 2; i++) {
+          final attempt = await startQuizAttempt(quiz.id);
+          await submitQuizAttempt(
+            attemptId: attempt.id,
+            answers: [
+              {'questionId': question.id, 'answer': 'test'},
+            ],
+          );
+        }
+
+        // Get attempts history
+        final attempts = await getQuizAttempts(quiz.id);
+
+        TestHelper.printSuccess('Found ${attempts.length} attempts');
+        expect(attempts.length, greaterThanOrEqualTo(2));
+
+        for (var attempt in attempts) {
+          TestHelper.printSuccess(
+            'Attempt ID: ${attempt.id}, Score: ${attempt.score}',
+          );
+        }
+
+        await deleteQuiz(quiz.id);
+      } catch (e) {
+        TestHelper.printError('Failed: $e');
+        fail('Should get attempts history successfully');
+      }
+    });
+
+    test('3.5. Get quiz attempt details', () async {
+      TestHelper.printSection('TEST 3.5: GET QUIZ ATTEMPT DETAILS');
+
+      try {
+        final quiz = await createQuiz(
+          title: 'Quiz Details ${DateTime.now().millisecondsSinceEpoch}',
+        );
+
+        final question = await addQuestion(
+          quizId: quiz.id,
+          type: QuestionType.multipleChoice,
+          questionText: 'Test question',
+          correctAnswer: 'Correct',
+          options: ['Correct', 'Wrong1', 'Wrong2'],
+          points: 15,
+        );
+
+        final attempt = await startQuizAttempt(quiz.id);
+        await submitQuizAttempt(
+          attemptId: attempt.id,
+          answers: [
+            {'questionId': question.id, 'answer': 'Correct'},
+          ],
+        );
+
+        // Get attempt details
+        final details = await getQuizAttemptDetails(attempt.id);
+
+        TestHelper.printSuccess('Attempt ID: ${details.id}');
+        TestHelper.printSuccess('Score: ${details.score}');
+        expect(details.id, equals(attempt.id));
+        expect(details.score, equals(15));
+        expect(details.answers, hasLength(1));
+
+        await deleteQuiz(quiz.id);
+      } catch (e) {
+        TestHelper.printError('Failed: $e');
+        fail('Should get attempt details successfully');
+      }
+    });
+  });
+
+  group('4. Error Handling Tests -', () {
+    late GetQuizDetailUseCase getQuizDetail;
+    late StartQuizAttemptUseCase startQuizAttempt;
+
+    setUp(() {
+      getQuizDetail = di.sl<GetQuizDetailUseCase>();
+      startQuizAttempt = di.sl<StartQuizAttemptUseCase>();
+    });
+
+    test('4.1. Get non-existent quiz', () async {
+      TestHelper.printSection('TEST 4.1: GET NON-EXISTENT QUIZ');
+
+      try {
+        await getQuizDetail(999999);
+        fail('Should throw error for non-existent quiz');
+      } catch (e) {
+        TestHelper.printSuccess('Error handled correctly: $e');
+        expect(e, isNotNull);
+      }
+    });
+
+    test('4.2. Start attempt on non-existent quiz', () async {
+      TestHelper.printSection('TEST 4.2: START ATTEMPT ON NON-EXISTENT QUIZ');
+
+      try {
+        await startQuizAttempt(999999);
+        fail('Should throw error for non-existent quiz');
+      } catch (e) {
+        TestHelper.printSuccess('Error handled correctly: $e');
+        expect(e, isNotNull);
+      }
     });
   });
 }

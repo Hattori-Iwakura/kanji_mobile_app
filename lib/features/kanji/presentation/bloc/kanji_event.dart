@@ -1,6 +1,5 @@
 import 'package:equatable/equatable.dart';
 
-/// Base event for Kanji BLoC
 abstract class KanjiEvent extends Equatable {
   const KanjiEvent();
 
@@ -8,15 +7,14 @@ abstract class KanjiEvent extends Equatable {
   List<Object?> get props => [];
 }
 
-/// Event to load all kanji with optional filters
-class LoadAllKanjiEvent extends KanjiEvent {
+class LoadKanjiListEvent extends KanjiEvent {
   final int? jlpt;
   final int? grade;
   final String? search;
   final int? limit;
   final int? offset;
 
-  const LoadAllKanjiEvent({
+  const LoadKanjiListEvent({
     this.jlpt,
     this.grade,
     this.search,
@@ -28,17 +26,25 @@ class LoadAllKanjiEvent extends KanjiEvent {
   List<Object?> get props => [jlpt, grade, search, limit, offset];
 }
 
-/// Event to load kanji by ID
-class LoadKanjiByIdEvent extends KanjiEvent {
-  final int id;
+class LoadMoreKanjiEvent extends KanjiEvent {
+  final int? jlpt;
+  final int? grade;
+  final String? search;
+  final int? limit;
+  final int? offset;
 
-  const LoadKanjiByIdEvent(this.id);
+  const LoadMoreKanjiEvent({
+    this.jlpt,
+    this.grade,
+    this.search,
+    this.limit,
+    this.offset,
+  });
 
   @override
-  List<Object> get props => [id];
+  List<Object?> get props => [jlpt, grade, search, limit, offset];
 }
 
-/// Event to search kanji with advanced filters
 class SearchKanjiEvent extends KanjiEvent {
   final String? query;
   final List<int>? jlptLevels;
@@ -73,12 +79,60 @@ class SearchKanjiEvent extends KanjiEvent {
   ];
 }
 
-/// Event to recognize kanji from canvas drawing (base64 image)
-class RecognizeKanjiEvent extends KanjiEvent {
-  final String base64Image;
+class LoadKanjiDetailEvent extends KanjiEvent {
+  final String character;
 
-  const RecognizeKanjiEvent(this.base64Image);
+  const LoadKanjiDetailEvent(this.character);
 
   @override
-  List<Object> get props => [base64Image];
+  List<Object?> get props => [character];
+}
+
+class SearchByCanvasEvent extends KanjiEvent {
+  final String imageBase64;
+
+  const SearchByCanvasEvent(this.imageBase64);
+
+  @override
+  List<Object?> get props => [imageBase64];
+}
+
+class UpdateKanjiEvent extends KanjiEvent {
+  final int id;
+  final String? character;
+  final String? meanings;
+  final String? onReadings;
+  final String? kunReadings;
+  final int? jlptLevel;
+  final int? grade;
+  final int? strokeCount;
+  final int? frequency;
+  final List<String>? tags;
+
+  const UpdateKanjiEvent({
+    required this.id,
+    this.character,
+    this.meanings,
+    this.onReadings,
+    this.kunReadings,
+    this.jlptLevel,
+    this.grade,
+    this.strokeCount,
+    this.frequency,
+    this.tags,
+  });
+
+  @override
+  List<Object?> get props => [
+    id,
+    character,
+    meanings,
+    onReadings,
+    kunReadings,
+    jlptLevel,
+    grade,
+    strokeCount,
+    frequency,
+    tags,
+  ];
 }

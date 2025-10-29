@@ -1,136 +1,151 @@
 import 'package:equatable/equatable.dart';
-import '../../domain/entities/flashcard.dart';
 import '../../domain/entities/flashcard_deck.dart';
-import '../../domain/entities/study_progress.dart';
+import '../../domain/entities/study_session.dart';
+import '../../domain/entities/next_card.dart';
+import '../../domain/entities/deck_statistics.dart';
 
-/// Base state for Flashcard BLoC
 abstract class FlashcardState extends Equatable {
-  const FlashcardState();
-
   @override
   List<Object?> get props => [];
 }
 
-/// Initial state
 class FlashcardInitial extends FlashcardState {}
 
-/// Loading state
 class FlashcardLoading extends FlashcardState {}
 
-// ========== DECK STATES ==========
-/// State when decks are loaded
+// ==================== DECK STATES ====================
+
 class DecksLoaded extends FlashcardState {
   final List<FlashcardDeck> decks;
 
-  const DecksLoaded(this.decks);
+  DecksLoaded(this.decks);
 
   @override
-  List<Object> get props => [decks];
-
-  /// Check if user has any decks
-  bool get hasDecks => decks.isNotEmpty;
-
-  /// Get decks with cards to review
-  List<FlashcardDeck> get decksWithReview =>
-      decks.where((deck) => deck.hasCardsToReview).toList();
+  List<Object?> get props => [decks];
 }
 
-/// State when deck is created
+class DeckDetailLoaded extends FlashcardState {
+  final FlashcardDeck deck;
+
+  DeckDetailLoaded(this.deck);
+
+  @override
+  List<Object?> get props => [deck];
+}
+
 class DeckCreated extends FlashcardState {
   final FlashcardDeck deck;
 
-  const DeckCreated(this.deck);
+  DeckCreated(this.deck);
 
   @override
-  List<Object> get props => [deck];
+  List<Object?> get props => [deck];
 }
 
-/// State when deck is deleted
+class DeckUpdated extends FlashcardState {
+  final FlashcardDeck deck;
+
+  DeckUpdated(this.deck);
+
+  @override
+  List<Object?> get props => [deck];
+}
+
 class DeckDeleted extends FlashcardState {}
 
-// ========== STUDY SESSION STATES ==========
-/// State during study session
-class StudySessionActive extends FlashcardState {
-  final List<Flashcard> cards;
-  final int currentIndex;
-  final int cardsCorrect;
-  final int cardsIncorrect;
-  final bool showAnswer;
+class CardAddedToDeck extends FlashcardState {
+  final FlashcardDeck deck;
 
-  const StudySessionActive({
-    required this.cards,
-    required this.currentIndex,
-    this.cardsCorrect = 0,
-    this.cardsIncorrect = 0,
-    this.showAnswer = false,
-  });
+  CardAddedToDeck(this.deck);
 
   @override
-  List<Object> get props => [
-    cards,
-    currentIndex,
-    cardsCorrect,
-    cardsIncorrect,
-    showAnswer,
-  ];
-
-  /// Get current card
-  Flashcard? get currentCard =>
-      currentIndex < cards.length ? cards[currentIndex] : null;
-
-  /// Check if session is complete
-  bool get isComplete => currentIndex >= cards.length;
-
-  /// Get progress percentage
-  double get progressPercentage {
-    if (cards.isEmpty) return 0.0;
-    return (currentIndex / cards.length) * 100;
-  }
-
-  /// Get total cards studied
-  int get cardsStudied => currentIndex;
-
-  /// Get accuracy percentage
-  double get accuracy {
-    final total = cardsCorrect + cardsIncorrect;
-    if (total == 0) return 0.0;
-    return (cardsCorrect / total) * 100;
-  }
-
-  /// Copy with new values
-  StudySessionActive copyWith({
-    List<Flashcard>? cards,
-    int? currentIndex,
-    int? cardsCorrect,
-    int? cardsIncorrect,
-    bool? showAnswer,
-  }) {
-    return StudySessionActive(
-      cards: cards ?? this.cards,
-      currentIndex: currentIndex ?? this.currentIndex,
-      cardsCorrect: cardsCorrect ?? this.cardsCorrect,
-      cardsIncorrect: cardsIncorrect ?? this.cardsIncorrect,
-      showAnswer: showAnswer ?? this.showAnswer,
-    );
-  }
+  List<Object?> get props => [deck];
 }
 
-/// State when study session ends
-class StudySessionCompleted extends FlashcardState {
-  final StudyProgress progress;
+class CardRemovedFromDeck extends FlashcardState {
+  final FlashcardDeck deck;
 
-  const StudySessionCompleted(this.progress);
+  CardRemovedFromDeck(this.deck);
 
   @override
-  List<Object> get props => [progress];
+  List<Object?> get props => [deck];
 }
 
-/// Error state
+// ==================== STUDY SESSION STATES ====================
+
+class SessionStarted extends FlashcardState {
+  final StudySession session;
+
+  SessionStarted(this.session);
+
+  @override
+  List<Object?> get props => [session];
+}
+
+class SessionProgressLoaded extends FlashcardState {
+  final StudySession session;
+
+  SessionProgressLoaded(this.session);
+
+  @override
+  List<Object?> get props => [session];
+}
+
+class NextCardLoaded extends FlashcardState {
+  final NextCard card;
+  final int sessionId;
+
+  NextCardLoaded({required this.card, required this.sessionId});
+
+  @override
+  List<Object?> get props => [card, sessionId];
+}
+
+class CardReviewed extends FlashcardState {
+  final int sessionId;
+
+  CardReviewed(this.sessionId);
+
+  @override
+  List<Object?> get props => [sessionId];
+}
+
+class SessionCompleted extends FlashcardState {
+  final StudySession session;
+
+  SessionCompleted(this.session);
+
+  @override
+  List<Object?> get props => [session];
+}
+
+// ==================== STATISTICS STATES ====================
+
+class DueCardsLoaded extends FlashcardState {
+  final Map<String, dynamic> dueCards;
+
+  DueCardsLoaded(this.dueCards);
+
+  @override
+  List<Object?> get props => [dueCards];
+}
+
+class DeckStatisticsLoaded extends FlashcardState {
+  final DeckStatistics statistics;
+
+  DeckStatisticsLoaded(this.statistics);
+
+  @override
+  List<Object?> get props => [statistics];
+}
+
+// ==================== ERROR STATE ====================
+
 class FlashcardError extends FlashcardState {
   final String message;
 
-  const FlashcardError(this.message);
+  FlashcardError(this.message);
 
   @override
-  List<Object> get props => [message];
+  List<Object?> get props => [message];
 }

@@ -1,8 +1,7 @@
 import 'package:equatable/equatable.dart';
 import '../../domain/entities/kanji.dart';
-import '../../domain/entities/kanji_recognition_result.dart';
+import '../../domain/entities/kanji_detail.dart';
 
-/// Base state for Kanji BLoC
 abstract class KanjiState extends Equatable {
   const KanjiState();
 
@@ -10,85 +9,79 @@ abstract class KanjiState extends Equatable {
   List<Object?> get props => [];
 }
 
-/// Initial state
 class KanjiInitial extends KanjiState {}
 
-/// Loading state
 class KanjiLoading extends KanjiState {}
 
-/// State when kanji list is loaded successfully
 class KanjiListLoaded extends KanjiState {
   final List<Kanji> kanjiList;
-
-  const KanjiListLoaded(this.kanjiList);
-
-  @override
-  List<Object> get props => [kanjiList];
-}
-
-/// State when a single kanji is loaded successfully
-class KanjiDetailLoaded extends KanjiState {
-  final Kanji kanji;
-
-  const KanjiDetailLoaded(this.kanji);
-
-  @override
-  List<Object> get props => [kanji];
-}
-
-/// State when search results are loaded
-class KanjiSearchLoaded extends KanjiState {
-  final List<Kanji> results;
-  final int page;
   final bool hasMore;
+  final bool isLoadingMore;
 
-  const KanjiSearchLoaded({
-    required this.results,
-    required this.page,
+  const KanjiListLoaded(
+    this.kanjiList, {
     this.hasMore = true,
+    this.isLoadingMore = false,
+  });
+
+  KanjiListLoaded copyWith({
+    List<Kanji>? kanjiList,
+    bool? hasMore,
+    bool? isLoadingMore,
+  }) {
+    return KanjiListLoaded(
+      kanjiList ?? this.kanjiList,
+      hasMore: hasMore ?? this.hasMore,
+      isLoadingMore: isLoadingMore ?? this.isLoadingMore,
+    );
+  }
+
+  @override
+  List<Object?> get props => [kanjiList, hasMore, isLoadingMore];
+}
+
+class KanjiSearchResult extends KanjiState {
+  final List<Kanji> kanjiList;
+  final int total;
+  final int currentPage;
+  final int totalPages;
+
+  const KanjiSearchResult({
+    required this.kanjiList,
+    required this.total,
+    required this.currentPage,
+    required this.totalPages,
   });
 
   @override
-  List<Object> get props => [results, page, hasMore];
-
-  KanjiSearchLoaded copyWith({List<Kanji>? results, int? page, bool? hasMore}) {
-    return KanjiSearchLoaded(
-      results: results ?? this.results,
-      page: page ?? this.page,
-      hasMore: hasMore ?? this.hasMore,
-    );
-  }
+  List<Object?> get props => [kanjiList, total, currentPage, totalPages];
 }
 
-/// State when kanji recognition is in progress
-class KanjiRecognitionInProgress extends KanjiState {}
+class KanjiDetailLoaded extends KanjiState {
+  final KanjiDetail kanjiDetail;
 
-/// State when kanji recognition succeeds
-class KanjiRecognitionSuccess extends KanjiState {
-  final KanjiRecognitionResultEntity result;
-
-  const KanjiRecognitionSuccess(this.result);
+  const KanjiDetailLoaded(this.kanjiDetail);
 
   @override
-  List<Object> get props => [result];
+  List<Object?> get props => [kanjiDetail];
 }
 
-/// State when kanji recognition fails
-class KanjiRecognitionFailure extends KanjiState {
-  final String message;
+class KanjiCanvasSearchLoaded extends KanjiState {
+  final List<Kanji> results;
 
-  const KanjiRecognitionFailure(this.message);
+  const KanjiCanvasSearchLoaded(this.results);
 
   @override
-  List<Object> get props => [message];
+  List<Object?> get props => [results];
 }
 
-/// Error state
+class KanjiUpdateSuccess extends KanjiState {}
+
 class KanjiError extends KanjiState {
   final String message;
 
   const KanjiError(this.message);
 
   @override
-  List<Object> get props => [message];
+  List<Object?> get props => [message];
 }

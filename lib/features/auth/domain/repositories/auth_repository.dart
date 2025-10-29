@@ -1,61 +1,32 @@
 import 'package:dartz/dartz.dart';
-import '../../../../core/errors/failures.dart';
-import '../entities/auth_result.dart';
+import '../../../../core/error/failures.dart';
 import '../entities/user.dart';
+import '../entities/two_factor_setup.dart';
 
 abstract class AuthRepository {
-  /// Login with email and password
-  Future<Either<Failure, AuthResult>> login({
-    required String account,
-    required String password,
+  Future<Either<Failure, User>> login(
+    String email,
+    String password, {
+    String? twoFactorCode,
   });
-
-  /// Register new user
-  Future<Either<Failure, AuthResult>> register({
-    required String account,
-    required String email,
-    required String password,
-  });
-
-  /// Logout current user
-  Future<Either<Failure, void>> logout();
-
-  /// Get current user profile
+  Future<Either<Failure, User>> register(
+    String email,
+    String password,
+    String name,
+  );
   Future<Either<Failure, User>> getProfile();
-
-  /// Update user profile
   Future<Either<Failure, User>> updateProfile({
     String? name,
     String? profileImage,
   });
+  Future<Either<Failure, void>> logout();
+  Future<Either<Failure, bool>> isAuthenticated();
+  Future<Either<Failure, void>> forgotPassword(String email);
+  Future<Either<Failure, void>> resetPassword(String token, String newPassword);
 
-  /// Change password
-  Future<Either<Failure, void>> changePassword({
-    required String oldPassword,
-    required String newPassword,
-  });
-
-  /// Forgot password - send reset email
-  Future<Either<Failure, void>> forgotPassword({required String email});
-
-  /// Reset password with token
-  Future<Either<Failure, void>> resetPassword({
-    required String token,
-    required String newPassword,
-  });
-
-  /// Refresh access token
-  Future<Either<Failure, AuthResult>> refreshToken({
-    required String refreshToken,
-    String? sessionId,
-  });
-
-  /// Check if user is authenticated
-  Future<bool> isAuthenticated();
-
-  /// Get cached user
-  Future<User?> getCachedUser();
-
-  /// Clear cached auth data
-  Future<void> clearAuthData();
+  // 2FA methods
+  Future<Either<Failure, TwoFactorSetup>> setup2FA();
+  Future<Either<Failure, User>> enable2FA(String code);
+  Future<Either<Failure, User>> disable2FA(String password, String code);
+  Future<Either<Failure, void>> sendEmailOTP();
 }

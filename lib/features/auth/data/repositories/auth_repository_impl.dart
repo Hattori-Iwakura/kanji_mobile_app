@@ -1,103 +1,154 @@
 import 'package:dartz/dartz.dart';
-import 'package:dio/dio.dart';
-import '../../../../core/errors/failures.dart';
-import '../../domain/entities/auth_result.dart';
+import '../../../../core/error/exceptions.dart';
+import '../../../../core/error/failures.dart';
+import '../../../../core/network/api_client.dart';
 import '../../domain/entities/user.dart';
+import '../../domain/entities/two_factor_setup.dart';
 import '../../domain/repositories/auth_repository.dart';
-import '../datasources/auth_local_datasource.dart';
-import '../datasources/auth_remote_datasource.dart';
+import '../datasources/auth_local_data_source.dart';
+import '../datasources/auth_remote_data_source.dart';
+import '../models/user_model.dart';
 
 class AuthRepositoryImpl implements AuthRepository {
   final AuthRemoteDataSource remoteDataSource;
   final AuthLocalDataSource localDataSource;
+  final ApiClient apiClient;
 
   AuthRepositoryImpl({
     required this.remoteDataSource,
     required this.localDataSource,
+    required this.apiClient,
   });
 
   @override
-  Future<Either<Failure, AuthResult>> login({
-    required String account,
-    required String password,
+  Future<Either<Failure, User>> login(
+    String email,
+    String password, {
+    String? twoFactorCode,
   }) async {
     try {
-      final result = await remoteDataSource.login(
-        account: account,
-        password: password,
+      final response = await remoteDataSource.login(
+        email,
+        password,
+        twoFactorCode: twoFactorCode,
       );
 
-      // Cache tokens and user
-      await localDataSource.cacheAuthTokens(
-        accessToken: result.accessToken,
-        refreshToken: result.refreshToken,
-        sessionId: result.sessionId,
-      );
-      await localDataSource.cacheUser(result.user as dynamic);
+      // Backend returns: {statusCode, data: {user, accessToken}, timestamp}
+      final data = response['data'] as Map<String, dynamic>;
 
-      return Right(result.toEntity());
-    } on DioException catch (e) {
-      return Left(_handleDioException(e));
+      print('=== REPOSITORY CHECK ===');
+      print('Response data: $data');
+      print('requires2FA: ${data['requires2FA']}');
+      print('========================');
+
+      // Check if 2FA is required
+      if (data['requires2FA'] == true) {
+        final message = data['message'] as String? ?? '2FA code required';
+        print('=== 2FA REQUIRED - Throwing UnauthorizedException ===');
+        throw UnauthorizedException(message);
+      }
+
+      final token = data['accessToken'] as String;
+      final userData = data['user'] as Map<String, dynamic>;
+      final user = UserModel.fromJson(userData);
+
+      // Save token and user ID
+      await localDataSource.saveToken(token);
+      await localDataSource.saveUserId(user.id.toString());
+
+      // Set token in API client for future requests
+      apiClient.setAuthToken(token);
+
+      return Right(user);
+    } on UnauthorizedException catch (e) {
+      return Left(UnauthorizedFailure(e.message));
+    } on NetworkException catch (e) {
+      return Left(NetworkFailure(e.message));
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.message));
     } catch (e) {
-      return Left(UnknownFailure(e.toString()));
+      return Left(ServerFailure('Unexpected error: $e'));
     }
   }
 
   @override
-  Future<Either<Failure, AuthResult>> register({
-    required String account,
-    required String email,
-    required String password,
-  }) async {
+  Future<Either<Failure, User>> register(
+    String email,
+    String password,
+    String name,
+  ) async {
     try {
-      final result = await remoteDataSource.register(
-        account: account,
-        email: email,
-        password: password,
-      );
+      final response = await remoteDataSource.register(email, password, name);
 
-      // Cache tokens and user
-      await localDataSource.cacheAuthTokens(
-        accessToken: result.accessToken,
-        refreshToken: result.refreshToken,
-        sessionId: result.sessionId,
-      );
-      await localDataSource.cacheUser(result.user as dynamic);
+      // Backend returns: {statusCode, data: {user, accessToken}, timestamp}
+      final data = response['data'] as Map<String, dynamic>;
+      final token = data['accessToken'] as String;
+      final userData = data['user'] as Map<String, dynamic>;
+      final user = UserModel.fromJson(userData);
 
-      return Right(result.toEntity());
-    } on DioException catch (e) {
-      return Left(_handleDioException(e));
+      // Save token and user ID
+      await localDataSource.saveToken(token);
+      await localDataSource.saveUserId(user.id.toString());
+
+      // Set token in API client
+      apiClient.setAuthToken(token);
+
+      return Right(user);
+    } on NetworkException catch (e) {
+      return Left(NetworkFailure(e.message));
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.message));
     } catch (e) {
-      return Left(UnknownFailure(e.toString()));
-    }
-  }
-
-  @override
-  Future<Either<Failure, void>> logout() async {
-    try {
-      await remoteDataSource.logout();
-      await localDataSource.clearAuthData();
-      return const Right(null);
-    } on DioException catch (e) {
-      // Even if remote logout fails, clear local data
-      await localDataSource.clearAuthData();
-      return Left(_handleDioException(e));
-    } catch (e) {
-      await localDataSource.clearAuthData();
-      return Left(UnknownFailure(e.toString()));
+      return Left(ServerFailure('Unexpected error: $e'));
     }
   }
 
   @override
   Future<Either<Failure, User>> getProfile() async {
     try {
+      // Get token and set it in API client
+      final token = await localDataSource.getToken();
+      if (token != null) {
+        apiClient.setAuthToken(token);
+      }
+
       final user = await remoteDataSource.getProfile();
-      await localDataSource.cacheUser(user);
-      return Right(user.toEntity());
-    } on DioException catch (e) {
-      return Left(_handleDioException(e));
+      return Right(user);
+    } on UnauthorizedException catch (e) {
+      return Left(UnauthorizedFailure(e.message));
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.message));
     } catch (e) {
-      return Left(UnknownFailure(e.toString()));
+      return Left(ServerFailure('Unexpected error: $e'));
+    }
+  }
+
+  @override
+  Future<Either<Failure, void>> logout() async {
+    try {
+      await localDataSource.clearAuth();
+      apiClient.clearAuthToken();
+      return const Right(null);
+    } on CacheException catch (e) {
+      return Left(CacheFailure(e.message));
+    } catch (e) {
+      return Left(CacheFailure('Failed to logout'));
+    }
+  }
+
+  @override
+  Future<Either<Failure, bool>> isAuthenticated() async {
+    try {
+      final hasToken = await localDataSource.hasToken();
+      if (hasToken) {
+        final token = await localDataSource.getToken();
+        if (token != null) {
+          apiClient.setAuthToken(token);
+        }
+      }
+      return Right(hasToken);
+    } catch (e) {
+      return const Right(false);
     }
   }
 
@@ -107,137 +158,125 @@ class AuthRepositoryImpl implements AuthRepository {
     String? profileImage,
   }) async {
     try {
+      final token = await localDataSource.getToken();
+      if (token != null) {
+        apiClient.setAuthToken(token);
+      }
+
       final user = await remoteDataSource.updateProfile(
         name: name,
         profileImage: profileImage,
       );
-      await localDataSource.cacheUser(user);
-      return Right(user.toEntity());
-    } on DioException catch (e) {
-      return Left(_handleDioException(e));
+      return Right(user);
+    } on UnauthorizedException catch (e) {
+      return Left(UnauthorizedFailure(e.message));
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.message));
     } catch (e) {
-      return Left(UnknownFailure(e.toString()));
+      return Left(ServerFailure('Unexpected error: $e'));
     }
   }
 
   @override
-  Future<Either<Failure, void>> changePassword({
-    required String oldPassword,
-    required String newPassword,
-  }) async {
+  Future<Either<Failure, void>> forgotPassword(String email) async {
     try {
-      await remoteDataSource.changePassword(
-        oldPassword: oldPassword,
-        newPassword: newPassword,
-      );
+      await remoteDataSource.forgotPassword(email);
       return const Right(null);
-    } on DioException catch (e) {
-      return Left(_handleDioException(e));
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.message));
     } catch (e) {
-      return Left(UnknownFailure(e.toString()));
+      return Left(ServerFailure('Unexpected error: $e'));
     }
   }
 
   @override
-  Future<Either<Failure, void>> forgotPassword({required String email}) async {
+  Future<Either<Failure, void>> resetPassword(
+    String token,
+    String newPassword,
+  ) async {
     try {
-      await remoteDataSource.forgotPassword(email: email);
+      await remoteDataSource.resetPassword(token, newPassword);
       return const Right(null);
-    } on DioException catch (e) {
-      return Left(_handleDioException(e));
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.message));
     } catch (e) {
-      return Left(UnknownFailure(e.toString()));
+      return Left(ServerFailure('Unexpected error: $e'));
     }
   }
 
   @override
-  Future<Either<Failure, void>> resetPassword({
-    required String token,
-    required String newPassword,
-  }) async {
+  Future<Either<Failure, TwoFactorSetup>> setup2FA() async {
     try {
-      await remoteDataSource.resetPassword(
-        token: token,
-        newPassword: newPassword,
-      );
+      final token = await localDataSource.getToken();
+      if (token != null) {
+        apiClient.setAuthToken(token);
+      }
+
+      final setup = await remoteDataSource.setup2FA();
+      return Right(setup);
+    } on UnauthorizedException catch (e) {
+      return Left(UnauthorizedFailure(e.message));
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.message));
+    } catch (e) {
+      return Left(ServerFailure('Unexpected error: $e'));
+    }
+  }
+
+  @override
+  Future<Either<Failure, User>> enable2FA(String code) async {
+    try {
+      final token = await localDataSource.getToken();
+      if (token != null) {
+        apiClient.setAuthToken(token);
+      }
+
+      final user = await remoteDataSource.enable2FA(code);
+      return Right(user);
+    } on UnauthorizedException catch (e) {
+      return Left(UnauthorizedFailure(e.message));
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.message));
+    } catch (e) {
+      return Left(ServerFailure('Unexpected error: $e'));
+    }
+  }
+
+  @override
+  Future<Either<Failure, User>> disable2FA(String password, String code) async {
+    try {
+      final token = await localDataSource.getToken();
+      if (token != null) {
+        apiClient.setAuthToken(token);
+      }
+
+      final user = await remoteDataSource.disable2FA(password, code);
+      return Right(user);
+    } on UnauthorizedException catch (e) {
+      return Left(UnauthorizedFailure(e.message));
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.message));
+    } catch (e) {
+      return Left(ServerFailure('Unexpected error: $e'));
+    }
+  }
+
+  @override
+  Future<Either<Failure, void>> sendEmailOTP() async {
+    try {
+      final token = await localDataSource.getToken();
+      if (token != null) {
+        apiClient.setAuthToken(token);
+      }
+
+      await remoteDataSource.sendEmailOTP();
       return const Right(null);
-    } on DioException catch (e) {
-      return Left(_handleDioException(e));
+    } on UnauthorizedException catch (e) {
+      return Left(UnauthorizedFailure(e.message));
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.message));
     } catch (e) {
-      return Left(UnknownFailure(e.toString()));
-    }
-  }
-
-  @override
-  Future<Either<Failure, AuthResult>> refreshToken({
-    required String refreshToken,
-    String? sessionId,
-  }) async {
-    try {
-      final result = await remoteDataSource.refreshToken(
-        refreshToken: refreshToken,
-        sessionId: sessionId,
-      );
-
-      // Cache new tokens
-      await localDataSource.cacheAuthTokens(
-        accessToken: result.accessToken,
-        refreshToken: result.refreshToken,
-        sessionId: result.sessionId,
-      );
-
-      return Right(result.toEntity());
-    } on DioException catch (e) {
-      return Left(_handleDioException(e));
-    } catch (e) {
-      return Left(UnknownFailure(e.toString()));
-    }
-  }
-
-  @override
-  Future<bool> isAuthenticated() async {
-    final accessToken = await localDataSource.getAccessToken();
-    return accessToken != null && accessToken.isNotEmpty;
-  }
-
-  @override
-  Future<User?> getCachedUser() async {
-    final userModel = await localDataSource.getCachedUser();
-    return userModel?.toEntity();
-  }
-
-  @override
-  Future<void> clearAuthData() async {
-    await localDataSource.clearAuthData();
-  }
-
-  // Helper method to handle Dio exceptions
-  Failure _handleDioException(DioException e) {
-    switch (e.type) {
-      case DioExceptionType.connectionTimeout:
-      case DioExceptionType.sendTimeout:
-      case DioExceptionType.receiveTimeout:
-        return TimeoutFailure(e.message ?? 'Request timeout');
-
-      case DioExceptionType.connectionError:
-        return const NetworkFailure('No internet connection');
-
-      case DioExceptionType.badResponse:
-        final statusCode = e.response?.statusCode;
-        if (statusCode == 401) {
-          return const UnauthorizedFailure('Unauthorized access');
-        } else if (statusCode == 404) {
-          return const NotFoundFailure('Resource not found');
-        } else if (statusCode == 500) {
-          return const ServerFailure('Internal server error');
-        }
-        return ServerFailure(e.error?.toString() ?? 'Server error occurred');
-
-      case DioExceptionType.cancel:
-        return const UnknownFailure('Request cancelled');
-
-      default:
-        return UnknownFailure(e.message ?? 'An unknown error occurred');
+      return Left(ServerFailure('Unexpected error: $e'));
     }
   }
 }

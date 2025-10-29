@@ -1,172 +1,130 @@
-import 'package:equatable/equatable.dart';
+import '../../domain/entities/question.dart';
 
-/// Base event for Quiz BLoC
-abstract class QuizEvent extends Equatable {
-  const QuizEvent();
+abstract class QuizEvent {}
 
-  @override
-  List<Object?> get props => [];
+// Quiz CRUD Events
+class LoadQuizzesEvent extends QuizEvent {
+  final String? search;
+  final int? limit;
+  final int? offset;
+
+  LoadQuizzesEvent({this.search, this.limit, this.offset});
 }
 
-// ========== QUIZ LIST EVENTS ==========
-/// Event to load all quizzes
-class LoadQuizzesEvent extends QuizEvent {}
+class LoadQuizDetailEvent extends QuizEvent {
+  final int quizId;
 
-/// Event to load quiz history
-class LoadQuizHistoryEvent extends QuizEvent {}
-
-// ========== QUIZ SESSION EVENTS ==========
-/// Event to start quiz
-class StartQuizEvent extends QuizEvent {
-  final String quizId;
-
-  const StartQuizEvent(this.quizId);
-
-  @override
-  List<Object> get props => [quizId];
+  LoadQuizDetailEvent(this.quizId);
 }
 
-/// Event to load quiz questions
-class LoadQuestionsEvent extends QuizEvent {
-  final String quizId;
+class CreateQuizEvent extends QuizEvent {
+  final String title;
+  final String? description;
 
-  const LoadQuestionsEvent(this.quizId);
-
-  @override
-  List<Object> get props => [quizId];
+  CreateQuizEvent({required this.title, this.description});
 }
 
-/// Event to answer question
-class AnswerQuestionEvent extends QuizEvent {
-  final String questionId;
-  final String answer;
+class UpdateQuizEvent extends QuizEvent {
+  final int quizId;
+  final String? title;
+  final String? description;
+  final bool? isPublic;
 
-  const AnswerQuestionEvent({required this.questionId, required this.answer});
-
-  @override
-  List<Object> get props => [questionId, answer];
-}
-
-/// Event to move to next question
-class NextQuestionEvent extends QuizEvent {}
-
-/// Event to move to previous question
-class PreviousQuestionEvent extends QuizEvent {}
-
-/// Event to skip question
-class SkipQuestionEvent extends QuizEvent {}
-
-/// Event to complete quiz
-class CompleteQuizEvent extends QuizEvent {
-  final int timeSpent;
-
-  const CompleteQuizEvent(this.timeSpent);
-
-  @override
-  List<Object> get props => [timeSpent];
-}
-
-/// Event to retry quiz
-class RetryQuizEvent extends QuizEvent {
-  final String quizId;
-
-  const RetryQuizEvent(this.quizId);
-
-  @override
-  List<Object> get props => [quizId];
-}
-
-/// Event to view quiz result
-class ViewQuizResultEvent extends QuizEvent {
-  final String resultId;
-
-  const ViewQuizResultEvent(this.resultId);
-
-  @override
-  List<Object> get props => [resultId];
-}
-
-// ========== QUESTION MANAGEMENT EVENTS ==========
-/// Event to add question to quiz
-class AddQuestionEvent extends QuizEvent {
-  final String quizId;
-  final String type;
-  final String questionText;
-  final List<String> options;
-  final String correctAnswer;
-  final String? explanation;
-  final int points;
-  final List<String> meanings;
-
-  const AddQuestionEvent({
+  UpdateQuizEvent({
     required this.quizId,
-    required this.type,
-    required this.questionText,
-    required this.options,
-    required this.correctAnswer,
-    this.explanation,
-    this.points = 10,
-    this.meanings = const [],
+    this.title,
+    this.description,
+    this.isPublic,
   });
-
-  @override
-  List<Object?> get props => [
-    quizId,
-    type,
-    questionText,
-    options,
-    correctAnswer,
-    explanation,
-    points,
-    meanings,
-  ];
 }
 
-/// Event to update question
-class UpdateQuestionEvent extends QuizEvent {
-  final String quizId;
-  final String questionId;
-  final String? type;
-  final String? questionText;
+class DeleteQuizEvent extends QuizEvent {
+  final int quizId;
+
+  DeleteQuizEvent(this.quizId);
+}
+
+// Question Management Events
+class AddQuestionEvent extends QuizEvent {
+  final int quizId;
+  final QuestionType type;
+  final String questionText;
+  final String correctAnswer;
   final List<String>? options;
-  final String? correctAnswer;
   final String? explanation;
   final int? points;
   final List<String>? meanings;
 
-  const UpdateQuestionEvent({
+  AddQuestionEvent({
     required this.quizId,
-    required this.questionId,
-    this.type,
-    this.questionText,
+    required this.type,
+    required this.questionText,
+    required this.correctAnswer,
     this.options,
-    this.correctAnswer,
     this.explanation,
     this.points,
     this.meanings,
   });
-
-  @override
-  List<Object?> get props => [
-    quizId,
-    questionId,
-    type,
-    questionText,
-    options,
-    correctAnswer,
-    explanation,
-    points,
-    meanings,
-  ];
 }
 
-/// Event to delete question
+class UpdateQuestionEvent extends QuizEvent {
+  final int quizId;
+  final int questionId;
+  final QuestionType? type;
+  final String? questionText;
+  final String? correctAnswer;
+  final List<String>? options;
+  final String? explanation;
+  final int? points;
+  final List<String>? meanings;
+
+  UpdateQuestionEvent({
+    required this.quizId,
+    required this.questionId,
+    this.type,
+    this.questionText,
+    this.correctAnswer,
+    this.options,
+    this.explanation,
+    this.points,
+    this.meanings,
+  });
+}
+
 class DeleteQuestionEvent extends QuizEvent {
-  final String quizId;
-  final String questionId;
+  final int quizId;
+  final int questionId;
 
-  const DeleteQuestionEvent({required this.quizId, required this.questionId});
+  DeleteQuestionEvent({required this.quizId, required this.questionId});
+}
 
-  @override
-  List<Object> get props => [quizId, questionId];
+// Quiz Attempt Events
+class StartQuizAttemptEvent extends QuizEvent {
+  final int quizId;
+
+  StartQuizAttemptEvent(this.quizId);
+}
+
+class SubmitQuizAttemptEvent extends QuizEvent {
+  final int attemptId;
+  final List<Map<String, dynamic>> answers;
+  final int? timeSpent;
+
+  SubmitQuizAttemptEvent({
+    required this.attemptId,
+    required this.answers,
+    this.timeSpent,
+  });
+}
+
+class LoadQuizAttemptsEvent extends QuizEvent {
+  final int quizId;
+
+  LoadQuizAttemptsEvent(this.quizId);
+}
+
+class LoadQuizAttemptDetailsEvent extends QuizEvent {
+  final int attemptId;
+
+  LoadQuizAttemptDetailsEvent(this.attemptId);
 }

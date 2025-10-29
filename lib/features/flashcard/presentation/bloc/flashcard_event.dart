@@ -1,85 +1,164 @@
 import 'package:equatable/equatable.dart';
 
-/// Base event for Flashcard BLoC
 abstract class FlashcardEvent extends Equatable {
-  const FlashcardEvent();
-
   @override
   List<Object?> get props => [];
 }
 
-// ========== DECK EVENTS ==========
-/// Event to load all decks
-class LoadDecksEvent extends FlashcardEvent {}
+// ==================== DECK MANAGEMENT EVENTS ====================
 
-/// Event to create new deck
+class LoadDecksEvent extends FlashcardEvent {
+  final String? search;
+
+  LoadDecksEvent({this.search});
+
+  @override
+  List<Object?> get props => [search];
+}
+
+class LoadDeckDetailEvent extends FlashcardEvent {
+  final int deckId;
+
+  LoadDeckDetailEvent(this.deckId);
+
+  @override
+  List<Object?> get props => [deckId];
+}
+
 class CreateDeckEvent extends FlashcardEvent {
   final String name;
   final String? description;
+  final List<int>? kanjiIds;
 
-  const CreateDeckEvent({required this.name, this.description});
-
-  @override
-  List<Object?> get props => [name, description];
-}
-
-/// Event to delete deck
-class DeleteDeckEvent extends FlashcardEvent {
-  final String deckId;
-
-  const DeleteDeckEvent(this.deckId);
+  CreateDeckEvent({required this.name, this.description, this.kanjiIds});
 
   @override
-  List<Object> get props => [deckId];
+  List<Object?> get props => [name, description, kanjiIds];
 }
 
-// ========== STUDY SESSION EVENTS ==========
-/// Event to start study session
-class StartStudySessionEvent extends FlashcardEvent {
-  final String deckId;
+class UpdateDeckEvent extends FlashcardEvent {
+  final int deckId;
+  final String? name;
+  final String? description;
+  final bool? isPublic;
 
-  const StartStudySessionEvent(this.deckId);
-
-  @override
-  List<Object> get props => [deckId];
-}
-
-/// Event to flip card (toggle answer visibility)
-class FlipCardEvent extends FlashcardEvent {}
-
-/// Event to answer a flashcard (quality 0-5)
-class AnswerCardEvent extends FlashcardEvent {
-  final String cardId;
-  final int quality;
-
-  const AnswerCardEvent({required this.cardId, required this.quality});
-
-  @override
-  List<Object> get props => [cardId, quality];
-}
-
-/// Event to end study session
-class EndStudySessionEvent extends FlashcardEvent {
-  final String deckId;
-  final int cardsStudied;
-  final int cardsCorrect;
-  final int cardsIncorrect;
-  final int studyDuration;
-
-  const EndStudySessionEvent({
+  UpdateDeckEvent({
     required this.deckId,
-    required this.cardsStudied,
-    required this.cardsCorrect,
-    required this.cardsIncorrect,
-    required this.studyDuration,
+    this.name,
+    this.description,
+    this.isPublic,
   });
 
   @override
-  List<Object> get props => [
-    deckId,
-    cardsStudied,
-    cardsCorrect,
-    cardsIncorrect,
-    studyDuration,
-  ];
+  List<Object?> get props => [deckId, name, description, isPublic];
+}
+
+class DeleteDeckEvent extends FlashcardEvent {
+  final int deckId;
+
+  DeleteDeckEvent(this.deckId);
+
+  @override
+  List<Object?> get props => [deckId];
+}
+
+class AddCardToDeckEvent extends FlashcardEvent {
+  final int deckId;
+  final int kanjiId;
+
+  AddCardToDeckEvent({required this.deckId, required this.kanjiId});
+
+  @override
+  List<Object?> get props => [deckId, kanjiId];
+}
+
+class RemoveCardFromDeckEvent extends FlashcardEvent {
+  final int deckId;
+  final int kanjiId;
+
+  RemoveCardFromDeckEvent({required this.deckId, required this.kanjiId});
+
+  @override
+  List<Object?> get props => [deckId, kanjiId];
+}
+
+// ==================== STUDY SESSION EVENTS ====================
+
+class StartSessionEvent extends FlashcardEvent {
+  final int deckId;
+  final int? maxNewCards;
+  final int? maxReviewCards;
+
+  StartSessionEvent({
+    required this.deckId,
+    this.maxNewCards,
+    this.maxReviewCards,
+  });
+
+  @override
+  List<Object?> get props => [deckId, maxNewCards, maxReviewCards];
+}
+
+class LoadSessionProgressEvent extends FlashcardEvent {
+  final int sessionId;
+
+  LoadSessionProgressEvent(this.sessionId);
+
+  @override
+  List<Object?> get props => [sessionId];
+}
+
+class LoadNextCardEvent extends FlashcardEvent {
+  final int sessionId;
+
+  LoadNextCardEvent(this.sessionId);
+
+  @override
+  List<Object?> get props => [sessionId];
+}
+
+class ReviewCardEvent extends FlashcardEvent {
+  final int sessionId;
+  final int cardId;
+  final int quality;
+  final double? timeSpent;
+
+  ReviewCardEvent({
+    required this.sessionId,
+    required this.cardId,
+    required this.quality,
+    this.timeSpent,
+  });
+
+  @override
+  List<Object?> get props => [sessionId, cardId, quality, timeSpent];
+}
+
+class CompleteSessionEvent extends FlashcardEvent {
+  final int sessionId;
+
+  CompleteSessionEvent(this.sessionId);
+
+  @override
+  List<Object?> get props => [sessionId];
+}
+
+// ==================== STATISTICS EVENTS ====================
+
+class LoadDueCardsEvent extends FlashcardEvent {
+  final int deckId;
+
+  LoadDueCardsEvent(this.deckId);
+
+  @override
+  List<Object?> get props => [deckId];
+}
+
+class LoadDeckStatisticsEvent extends FlashcardEvent {
+  final int deckId;
+
+  LoadDeckStatisticsEvent(this.deckId);
+
+  @override
+  List<Object?> get props => [deckId];
 }

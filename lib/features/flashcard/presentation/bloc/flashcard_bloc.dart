@@ -1,34 +1,54 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../domain/usecases/get_all_decks.dart';
-import '../../domain/usecases/get_due_cards.dart';
-import '../../domain/usecases/update_card_review.dart';
-import '../../domain/usecases/save_study_progress.dart';
-import '../../domain/repositories/flashcard_repository.dart';
+import '../../domain/usecases/flashcard_usecases.dart';
 import 'flashcard_event.dart';
 import 'flashcard_state.dart';
 
-/// BLoC for managing flashcard state
 class FlashcardBloc extends Bloc<FlashcardEvent, FlashcardState> {
-  final GetAllDecks getAllDecks;
-  final GetDueCards getDueCards;
-  final UpdateCardReview updateCardReview;
-  final SaveStudyProgress saveStudyProgress;
-  final FlashcardRepository repository;
+  final GetDecksUseCase getDecks;
+  final GetDeckByIdUseCase getDeckById;
+  final CreateDeckUseCase createDeck;
+  final UpdateDeckUseCase updateDeck;
+  final DeleteDeckUseCase deleteDeck;
+  final AddCardToDeckUseCase addCardToDeck;
+  final RemoveCardFromDeckUseCase removeCardFromDeck;
+  final StartSessionUseCase startSession;
+  final GetSessionProgressUseCase getSessionProgress;
+  final GetNextCardUseCase getNextCard;
+  final ReviewCardUseCase reviewCard;
+  final CompleteSessionUseCase completeSession;
+  final GetDueCardsUseCase getDueCards;
+  final GetDeckStatisticsUseCase getDeckStatistics;
 
   FlashcardBloc({
-    required this.getAllDecks,
+    required this.getDecks,
+    required this.getDeckById,
+    required this.createDeck,
+    required this.updateDeck,
+    required this.deleteDeck,
+    required this.addCardToDeck,
+    required this.removeCardFromDeck,
+    required this.startSession,
+    required this.getSessionProgress,
+    required this.getNextCard,
+    required this.reviewCard,
+    required this.completeSession,
     required this.getDueCards,
-    required this.updateCardReview,
-    required this.saveStudyProgress,
-    required this.repository,
+    required this.getDeckStatistics,
   }) : super(FlashcardInitial()) {
     on<LoadDecksEvent>(_onLoadDecks);
+    on<LoadDeckDetailEvent>(_onLoadDeckDetail);
     on<CreateDeckEvent>(_onCreateDeck);
+    on<UpdateDeckEvent>(_onUpdateDeck);
     on<DeleteDeckEvent>(_onDeleteDeck);
-    on<StartStudySessionEvent>(_onStartStudySession);
-    on<FlipCardEvent>(_onFlipCard);
-    on<AnswerCardEvent>(_onAnswerCard);
-    on<EndStudySessionEvent>(_onEndStudySession);
+    on<AddCardToDeckEvent>(_onAddCardToDeck);
+    on<RemoveCardFromDeckEvent>(_onRemoveCardFromDeck);
+    on<StartSessionEvent>(_onStartSession);
+    on<LoadSessionProgressEvent>(_onLoadSessionProgress);
+    on<LoadNextCardEvent>(_onLoadNextCard);
+    on<ReviewCardEvent>(_onReviewCard);
+    on<CompleteSessionEvent>(_onCompleteSession);
+    on<LoadDueCardsEvent>(_onLoadDueCards);
+    on<LoadDeckStatisticsEvent>(_onLoadDeckStatistics);
   }
 
   Future<void> _onLoadDecks(
@@ -36,12 +56,22 @@ class FlashcardBloc extends Bloc<FlashcardEvent, FlashcardState> {
     Emitter<FlashcardState> emit,
   ) async {
     emit(FlashcardLoading());
-
-    final result = await getAllDecks();
-
+    final result = await getDecks(search: event.search);
     result.fold(
       (failure) => emit(FlashcardError(failure.message)),
       (decks) => emit(DecksLoaded(decks)),
+    );
+  }
+
+  Future<void> _onLoadDeckDetail(
+    LoadDeckDetailEvent event,
+    Emitter<FlashcardState> emit,
+  ) async {
+    emit(FlashcardLoading());
+    final result = await getDeckById(event.deckId);
+    result.fold(
+      (failure) => emit(FlashcardError(failure.message)),
+      (deck) => emit(DeckDetailLoaded(deck)),
     );
   }
 
@@ -50,17 +80,32 @@ class FlashcardBloc extends Bloc<FlashcardEvent, FlashcardState> {
     Emitter<FlashcardState> emit,
   ) async {
     emit(FlashcardLoading());
-
-    final result = await repository.createDeck(
+    final result = await createDeck(
       name: event.name,
       description: event.description,
+      kanjiIds: event.kanjiIds,
     );
+    result.fold(
+      (failure) => emit(FlashcardError(failure.message)),
+      (deck) => emit(DeckCreated(deck)),
+    );
+  }
 
-    result.fold((failure) => emit(FlashcardError(failure.message)), (deck) {
-      emit(DeckCreated(deck));
-      // Reload decks after creation
-      add(LoadDecksEvent());
-    });
+  Future<void> _onUpdateDeck(
+    UpdateDeckEvent event,
+    Emitter<FlashcardState> emit,
+  ) async {
+    emit(FlashcardLoading());
+    final result = await updateDeck(
+      deckId: event.deckId,
+      name: event.name,
+      description: event.description,
+      isPublic: event.isPublic,
+    );
+    result.fold(
+      (failure) => emit(FlashcardError(failure.message)),
+      (deck) => emit(DeckUpdated(deck)),
+    );
   }
 
   Future<void> _onDeleteDeck(
@@ -68,120 +113,137 @@ class FlashcardBloc extends Bloc<FlashcardEvent, FlashcardState> {
     Emitter<FlashcardState> emit,
   ) async {
     emit(FlashcardLoading());
-
-    final result = await repository.deleteDeck(event.deckId);
-
-    result.fold((failure) => emit(FlashcardError(failure.message)), (_) {
-      emit(DeckDeleted());
-      // Reload decks after deletion
-      add(LoadDecksEvent());
-    });
-  }
-
-  Future<void> _onStartStudySession(
-    StartStudySessionEvent event,
-    Emitter<FlashcardState> emit,
-  ) async {
-    emit(FlashcardLoading());
-
-    // Get due cards and new cards
-    final dueResult = await getDueCards(event.deckId);
-
-    // Handle due cards result
-    final dueCards = dueResult.fold((failure) {
-      emit(FlashcardError(failure.message));
-      return null;
-    }, (cards) => cards);
-
-    if (dueCards == null) return;
-
-    // Get new cards if needed
-    final newCardsResult = await repository.getNewCards(
-      event.deckId,
-      limit: 10,
-    );
-
-    // Handle new cards result
-    final newCards = newCardsResult.fold((failure) {
-      emit(FlashcardError(failure.message));
-      return null;
-    }, (cards) => cards);
-
-    if (newCards == null) return;
-
-    final allCards = [...dueCards, ...newCards];
-
-    if (allCards.isEmpty) {
-      emit(
-        const FlashcardError(
-          'No cards to review. Add some cards to this deck first.',
-        ),
-      );
-    } else {
-      emit(StudySessionActive(cards: allCards, currentIndex: 0));
-    }
-  }
-
-  void _onFlipCard(FlipCardEvent event, Emitter<FlashcardState> emit) {
-    if (state is! StudySessionActive) return;
-
-    final currentState = state as StudySessionActive;
-    emit(currentState.copyWith(showAnswer: !currentState.showAnswer));
-  }
-
-  Future<void> _onAnswerCard(
-    AnswerCardEvent event,
-    Emitter<FlashcardState> emit,
-  ) async {
-    if (state is! StudySessionActive) return;
-
-    final currentState = state as StudySessionActive;
-
-    // Update card review with SM-2 algorithm
-    final result = await updateCardReview(
-      cardId: event.cardId,
-      quality: event.quality,
-    );
-
-    result.fold((failure) => emit(FlashcardError(failure.message)), (
-      updatedCard,
-    ) {
-      // Determine if answer was correct (quality >= 3)
-      final isCorrect = event.quality >= 3;
-
-      // Move to next card
-      emit(
-        currentState.copyWith(
-          currentIndex: currentState.currentIndex + 1,
-          cardsCorrect: isCorrect
-              ? currentState.cardsCorrect + 1
-              : currentState.cardsCorrect,
-          cardsIncorrect: !isCorrect
-              ? currentState.cardsIncorrect + 1
-              : currentState.cardsIncorrect,
-          showAnswer: false,
-        ),
-      );
-    });
-  }
-
-  Future<void> _onEndStudySession(
-    EndStudySessionEvent event,
-    Emitter<FlashcardState> emit,
-  ) async {
-    emit(FlashcardLoading());
-
-    final result = await saveStudyProgress(
-      deckId: event.deckId,
-      cardsStudied: event.cardsStudied,
-      cardsCorrect: event.cardsCorrect,
-      cardsIncorrect: event.cardsIncorrect,
-      studyDuration: event.studyDuration,
-    );
-
+    final result = await deleteDeck(event.deckId);
     result.fold(
       (failure) => emit(FlashcardError(failure.message)),
-      (progress) => emit(StudySessionCompleted(progress)),
+      (_) => emit(DeckDeleted()),
+    );
+  }
+
+  Future<void> _onAddCardToDeck(
+    AddCardToDeckEvent event,
+    Emitter<FlashcardState> emit,
+  ) async {
+    emit(FlashcardLoading());
+    final result = await addCardToDeck(
+      deckId: event.deckId,
+      kanjiId: event.kanjiId,
+    );
+    result.fold(
+      (failure) => emit(FlashcardError(failure.message)),
+      (deck) => emit(CardAddedToDeck(deck)),
+    );
+  }
+
+  Future<void> _onRemoveCardFromDeck(
+    RemoveCardFromDeckEvent event,
+    Emitter<FlashcardState> emit,
+  ) async {
+    emit(FlashcardLoading());
+    final result = await removeCardFromDeck(
+      deckId: event.deckId,
+      kanjiId: event.kanjiId,
+    );
+    result.fold(
+      (failure) => emit(FlashcardError(failure.message)),
+      (deck) => emit(CardRemovedFromDeck(deck)),
+    );
+  }
+
+  Future<void> _onStartSession(
+    StartSessionEvent event,
+    Emitter<FlashcardState> emit,
+  ) async {
+    emit(FlashcardLoading());
+    final result = await startSession(
+      deckId: event.deckId,
+      maxNewCards: event.maxNewCards,
+      maxReviewCards: event.maxReviewCards,
+    );
+    result.fold(
+      (failure) => emit(FlashcardError(failure.message)),
+      (session) => emit(SessionStarted(session)),
+    );
+  }
+
+  Future<void> _onLoadSessionProgress(
+    LoadSessionProgressEvent event,
+    Emitter<FlashcardState> emit,
+  ) async {
+    emit(FlashcardLoading());
+    final result = await getSessionProgress(event.sessionId);
+    result.fold(
+      (failure) => emit(FlashcardError(failure.message)),
+      (session) => emit(SessionProgressLoaded(session)),
+    );
+  }
+
+  Future<void> _onLoadNextCard(
+    LoadNextCardEvent event,
+    Emitter<FlashcardState> emit,
+  ) async {
+    emit(FlashcardLoading());
+    final result = await getNextCard(event.sessionId);
+    result.fold((failure) => emit(FlashcardError(failure.message)), (card) {
+      if (card == null) {
+        // No more cards, automatically complete session
+        add(CompleteSessionEvent(event.sessionId));
+      } else {
+        emit(NextCardLoaded(card: card, sessionId: event.sessionId));
+      }
+    });
+  }
+
+  Future<void> _onReviewCard(
+    ReviewCardEvent event,
+    Emitter<FlashcardState> emit,
+  ) async {
+    emit(FlashcardLoading());
+    final result = await reviewCard(
+      sessionId: event.sessionId,
+      cardId: event.cardId,
+      quality: event.quality,
+      timeSpent: event.timeSpent,
+    );
+    result.fold(
+      (failure) => emit(FlashcardError(failure.message)),
+      (_) => emit(CardReviewed(event.sessionId)),
+    );
+  }
+
+  Future<void> _onCompleteSession(
+    CompleteSessionEvent event,
+    Emitter<FlashcardState> emit,
+  ) async {
+    emit(FlashcardLoading());
+    final result = await completeSession(event.sessionId);
+    result.fold(
+      (failure) => emit(FlashcardError(failure.message)),
+      (session) => emit(SessionCompleted(session)),
+    );
+  }
+
+  Future<void> _onLoadDueCards(
+    LoadDueCardsEvent event,
+    Emitter<FlashcardState> emit,
+  ) async {
+    emit(FlashcardLoading());
+    final result = await getDueCards(event.deckId);
+    result.fold(
+      (failure) => emit(FlashcardError(failure.message)),
+      (dueCards) => emit(DueCardsLoaded(dueCards)),
+    );
+  }
+
+  Future<void> _onLoadDeckStatistics(
+    LoadDeckStatisticsEvent event,
+    Emitter<FlashcardState> emit,
+  ) async {
+    emit(FlashcardLoading());
+    final result = await getDeckStatistics(event.deckId);
+    result.fold(
+      (failure) => emit(FlashcardError(failure.message)),
+      (statistics) => emit(DeckStatisticsLoaded(statistics)),
     );
   }
 }

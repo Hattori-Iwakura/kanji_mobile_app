@@ -1,17 +1,11 @@
-import 'package:dartz/dartz.dart';
-import '../../../../core/error/failures.dart';
 import '../repositories/quiz_repository.dart';
 
-/// UseCase for deleting a question from a quiz
-class DeleteQuestion {
+class DeleteQuestionUseCase {
   final QuizRepository repository;
 
-  DeleteQuestion(this.repository);
+  DeleteQuestionUseCase(this.repository);
 
-  Future<Either<Failure, void>> call({
-    required String quizId,
-    required String questionId,
-  }) async {
+  Future<void> call({required int quizId, required int questionId}) async {
     return await repository.deleteQuestion(
       quizId: quizId,
       questionId: questionId,

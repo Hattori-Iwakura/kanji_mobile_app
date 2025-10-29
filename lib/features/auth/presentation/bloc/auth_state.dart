@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 import '../../domain/entities/user.dart';
+import '../../domain/entities/two_factor_setup.dart';
 
 abstract class AuthState extends Equatable {
   const AuthState();
@@ -8,80 +9,66 @@ abstract class AuthState extends Equatable {
   List<Object?> get props => [];
 }
 
-class AuthInitial extends AuthState {
-  const AuthInitial();
-}
+class AuthInitial extends AuthState {}
 
-class AuthLoading extends AuthState {
-  const AuthLoading();
-}
+class AuthLoading extends AuthState {}
 
 class Authenticated extends AuthState {
   final User user;
 
-  const Authenticated({required this.user});
+  const Authenticated(this.user);
 
   @override
   List<Object?> get props => [user];
 }
 
-class Unauthenticated extends AuthState {
-  const Unauthenticated();
-}
+class Unauthenticated extends AuthState {}
 
 class AuthError extends AuthState {
   final String message;
 
-  const AuthError({required this.message});
+  const AuthError(this.message);
 
   @override
   List<Object?> get props => [message];
 }
 
-class LoginSuccess extends AuthState {
+// 2FA States
+class TwoFactorRequired extends AuthState {
+  final String email;
+  final String password;
+
+  const TwoFactorRequired(this.email, this.password);
+
+  @override
+  List<Object?> get props => [email, password];
+}
+
+class TwoFactorSetupSuccess extends AuthState {
+  final TwoFactorSetup setup;
+
+  const TwoFactorSetupSuccess(this.setup);
+
+  @override
+  List<Object?> get props => [setup];
+}
+
+class TwoFactorEnabled extends AuthState {
   final User user;
 
-  const LoginSuccess({required this.user});
+  const TwoFactorEnabled(this.user);
 
   @override
   List<Object?> get props => [user];
 }
 
-class RegisterSuccess extends AuthState {
+class TwoFactorDisabled extends AuthState {
   final User user;
 
-  const RegisterSuccess({required this.user});
+  const TwoFactorDisabled(this.user);
 
   @override
   List<Object?> get props => [user];
 }
 
-class LogoutSuccess extends AuthState {
-  const LogoutSuccess();
-}
-
-class ProfileLoaded extends AuthState {
-  final User user;
-
-  const ProfileLoaded({required this.user});
-
-  @override
-  List<Object?> get props => [user];
-}
-
-class ProfileUpdated extends AuthState {
-  final User user;
-
-  const ProfileUpdated({required this.user});
-
-  @override
-  List<Object?> get props => [user];
-}
-
-class ForgotPasswordSuccess extends AuthState {
-  const ForgotPasswordSuccess();
-}
-
-class ResetPasswordSuccess extends AuthState {
-  const ResetPasswordSuccess();
-}
+class EmailOTPSent extends AuthState {}

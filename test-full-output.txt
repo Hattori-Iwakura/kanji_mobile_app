@@ -1,0 +1,1858 @@
+﻿Resolving dependencies...
+Downloading packages...
+  audioplayers 5.2.1 (6.5.1 available)
+  audioplayers_android 4.0.3 (5.2.1 available)
+  audioplayers_darwin 5.0.2 (6.3.0 available)
+  audioplayers_linux 3.1.0 (4.2.1 available)
+  audioplayers_platform_interface 6.1.0 (7.1.1 available)
+  audioplayers_web 4.1.0 (5.1.1 available)
+  audioplayers_windows 3.1.0 (4.2.1 available)
+  bloc 8.1.4 (9.1.0 available)
+  characters 1.4.0 (1.4.1 available)
+  flutter_bloc 8.1.6 (9.1.1 available)
+  flutter_dotenv 5.2.1 (6.0.0 available)
+  flutter_lints 5.0.0 (6.0.0 available)
+  flutter_secure_storage_linux 1.2.3 (2.0.1 available)
+  flutter_secure_storage_macos 3.1.3 (4.0.0 available)
+  flutter_secure_storage_platform_interface 1.1.2 (2.0.1 available)
+  flutter_secure_storage_web 1.2.1 (2.0.0 available)
+  flutter_secure_storage_windows 3.1.2 (4.0.0 available)
+  js 0.6.7 (0.7.2 available)
+  lints 5.1.1 (6.0.0 available)
+  material_color_utilities 0.11.1 (0.13.0 available)
+  meta 1.16.0 (1.17.0 available)
+  test_api 0.7.6 (0.7.7 available)
+Got dependencies!
+22 packages have newer versions incompatible with dependency constraints.
+Try `flutter pub outdated` for more information.
+00:00 +0: loading D:/workspace/kanji_mobile_app/test/integration/kanji_integration_test.dart
+00:00 +0: (setUpAll)
+
+============================================================
+  INITIALIZING KANJI INTEGRATION TESTS
+============================================================
+Γ£ô Dependencies initialized
+00:00 +0: 1. Kanji List Tests - 1.1. Get all kanji without filters
+
+============================================================
+  TEST 1.1: GET ALL KANJI WITHOUT FILTERS
+============================================================
+*** Request ***
+uri: http://localhost:3000/api/kanji?limit=20&offset=0
+method: GET
+responseType: ResponseType.json
+followRedirects: true
+persistentConnection: true
+connectTimeout: 0:00:30.000000
+sendTimeout: null
+receiveTimeout: 0:00:30.000000
+receiveDataWhenStatusError: true
+extra: {}
+headers:
+ Content-Type: application/json
+ Accept: application/json
+data:
+null
+
+*** Response ***
+uri: http://localhost:3000/api/kanji?limit=20&offset=0
+statusCode: 200
+headers:
+ connection: keep-alive
+ x-dns-prefetch-control: off
+ date: Mon, 27 Oct 2025 18:08:07 GMT
+ x-ratelimit-reset: 43
+ x-ratelimit-limit: 100
+ origin-agent-cluster: ?1
+ vary: Origin
+ strict-transport-security: max-age=31536000; includeSubDomains
+ x-ratelimit-remaining: 98
+ referrer-policy: no-referrer
+ x-permitted-cross-domain-policies: none
+ content-type: application/json; charset=utf-8
+ cross-origin-opener-policy: same-origin
+ x-xss-protection: 0
+ x-request-id: d763f8ba-449b-44b6-ad5d-1591987eadc9
+ cross-origin-resource-policy: same-origin
+ access-control-allow-credentials: true
+ keep-alive: timeout=5
+ content-length: 5439
+ x-download-options: noopen
+ etag: W/"153f-Y/Fk7ikRH9gNvVD+kINhI2zvhOg"
+ x-frame-options: SAMEORIGIN
+ x-content-type-options: nosniff
+ content-security-policy: default-src 'self';base-uri 'self';font-src 'self' https: data:;form-action 'self';frame-ancestors 'self';img-src 'self' data:;object-src 'none';script-src 'self';script-src-attr 'none';style-src 'self' https: 'unsafe-inline';upgrade-insecure-requests
+Response Text:
+{"statusCode":200,"data":{"data":[{"id":10,"character":"µùÑ","onyomi":"πü½πüíπÇüπüÿπüñ","kunyomi":"πü▓πÇü-πü│πÇü-πüï","meanings":"Day, Sun, Japan, Counter For Days","strokeCount":4,"jlpt":5,"grade":1,"frequency":1,"createdAt":"2025-10-27T18:06:05.309Z","updatedAt":"2025-10-27T18:06:05.309Z"},{"id":1,"character":"Σ╕Ç","onyomi":"πüäπüíπÇüπüäπüñ","kunyomi":"πü▓πü¿-πÇüπü▓πü¿.πüñ","meanings":"One, One Radical (no.1)","strokeCount":1,"jlpt":5,"grade":1,"frequency":2,"createdAt":"2025-10-27T18:06:05.309Z","updatedAt":"2025-10-27T18:06:05.309Z"},{"id":6,"character":"σìü","onyomi":"πüÿπéàπüåπÇüπüÿπüúπÇüπüÿπéàπüú","kunyomi":"πü¿πüèπÇüπü¿","meanings":"Ten","strokeCount":2,"jlpt":5,"grade":1,"frequency":8,"createdAt":"2025-10-27T18:06:05.309Z","updatedAt":"2025-10-27T18:06:05.309Z"},{"id":2,"character":"Σ║î","onyomi":"πü½πÇüπüÿ","kunyomi":"πü╡πüƒπÇüπü╡πüƒ.πüñπÇüπü╡πüƒπüƒπü│","meanings":"Two, Two Radical (no. 7)","strokeCount":2,"jlpt":5,"grade":1,"frequency":9,"createdAt":"2025-10-27T18:06:05.309Z","updatedAt":"2025-10-27T18:06:05.309Z"},{"id":29,"character":"Θò╖","onyomi":"πüíπéçπüå","kunyomi":"πü¬πüî.πüäπÇüπüèπüò","meanings":"Long, Leader, Superior, Senior","strokeCount":8,"jlpt":5,"grade":2,"frequency":12,"createdAt":"2025-10-27T18:06:05.428Z","updatedAt":"2025-10-27T18:06:05.428Z"},{"id":7,"character":"Σ╕ë","onyomi":"πüòπéôπÇüπü₧πüå","kunyomi":"πü┐πÇüπü┐.πüñπÇüπü┐πüú.πüñ","meanings":"Three","strokeCount":3,"jlpt":5,"grade":1,"frequency":14,"createdAt":"2025-10-27T18:06:05.309Z","updatedAt":"2025-10-27T18:06:05.309Z"},{"id":35,"character":"Φç¬","onyomi":"πüÿπÇüπüù","kunyomi":"πü┐πüÜπüï.πéëπÇüπüèπü«.πüÜπüïπéëπÇüπüèπü«.πüÜπü¿","meanings":"Oneself","strokeCount":6,"jlpt":4,"grade":2,"frequency":19,"createdAt":"2025-10-27T18:06:05.428Z","updatedAt":"2025-10-27T18:06:05.428Z"},{"id":16,"character":"Φíî","onyomi":"πüôπüåπÇüπüÄπéçπüåπÇüπüéπéô","kunyomi":"πüä.πüÅπÇüπéå.πüÅπÇü-πéå.πüìπÇü-πéåπüìπÇü-πüä.πüìπÇü-πüäπüìπÇüπüèπüôπü¬.πüåπÇüπüèπüô.πü¬πüå","meanings":"Going, Journey, Carry Out, Conduct, Act, Line, Row, Bank","strokeCount":6,"jlpt":5,"grade":2,"frequency":20,"createdAt":"2025-10-27T18:06:05.309Z","updatedAt":"2025-10-27T18:06:05.309Z"},{"id":38,"character":"τñ╛","onyomi":"πüùπéâ","kunyomi":"πéäπüùπéì","meanings":"Company, Firm, Office, Association, Shrine","strokeCount":7,"jlpt":4,"grade":2,"frequency":21,"createdAt":"2025-10-27T18:06:05.428Z","updatedAt":"2025-10-27T18:06:05.428Z"},{"id":11,"character":"µ£ê","onyomi":"πüÆπüñπÇüπüîπüñ","kunyomi":"πüñπüì","meanings":"Month, Moon","strokeCount":4,"jlpt":5,"grade":1,"frequency":23,"createdAt":"2025-10-27T18:06:05.309Z","updatedAt":"2025-10-27T18:06:05.309Z"},{"id":19,"character":"σ╛î","onyomi":"πüöπÇüπüôπüå","kunyomi":"πü«πüíπÇüπüåπüù.πéìπÇüπüåπüùπéìπÇüπüéπü¿πÇüπüèπüÅ.πéîπéï","meanings":"Behind, Back, Later","strokeCount":9,"jlpt":5,"grade":2,"frequency":26,"createdAt":"2025-10-27T18:06:05.309Z","updatedAt":"2025-10-27T18:06:05.309Z"},{"id":8,"character":"Σ║ö","onyomi":"πüö","kunyomi":"πüäπüñπÇüπüäπüñ.πüñ","meanings":"Five","strokeCount":4,"jlpt":5,"grade":1,"frequency":31,"createdAt":"2025-10-27T18:06:05.309Z","updatedAt":"2025-10-27T18:06:05.309Z"},{"id":15,"character":"σ¢¢","onyomi":"πüù","kunyomi":"πéêπÇüπéê.πüñπÇüπéêπüú.πüñπÇüπéêπéô","meanings":"Four","strokeCount":5,"jlpt":5,"grade":1,"frequency":47,"createdAt":"2025-10-27T18:06:05.309Z","updatedAt":"2025-10-27T18:06:05.309Z"},{"id":3,"character":"Σ╣¥","onyomi":"πüìπéàπüåπÇüπüÅ","kunyomi":"πüôπüôπü«πÇüπüôπüôπü«.πüñ","meanings":"Nine","strokeCount":2,"jlpt":5,"grade":1,"frequency":55,"createdAt":"2025-10-27T18:06:05.309Z","updatedAt":"2025-10-27T18:06:05.309Z"},{"id":21,"character":"Θ½ÿ","onyomi":"πüôπüå","kunyomi":"πüƒπüï.πüäπÇüπüƒπüïπÇü-πüáπüïπÇüπüƒπüï.πü╛πéïπÇüπüƒπüï.πéüπéï","meanings":"Tall, High, Expensive","strokeCount":10,"jlpt":5,"grade":2,"frequency":65,"createdAt":"2025-10-27T18:06:05.428Z","updatedAt":"2025-10-27T18:06:05.428Z"},{"id":39,"character":"Σ╗ú","onyomi":"πüáπüäπÇüπüƒπüä","kunyomi":"πüï.πéÅπéïπÇüπüïπéÅ.πéïπÇüπüïπéÅ.πéèπÇüπüï.πéÅπéèπÇü-πüîπéÅ.πéèπÇü-πüî.πéÅπéèπÇüπüï.πüêπéïπÇüπéêπÇüπüùπéì","meanings":"Substitute, Change, Convert, Replace, Period, Age, Counter For Decades Of Ages, Eras, Etc., Generation, Charge, Rate, Fee","strokeCount":5,"jlpt":4,"grade":3,"frequency":66,"createdAt":"2025-10-27T18:06:05.428Z","updatedAt":"2025-10-27T18:06:05.428Z"},{"id":57,"character":"σ«ƒ","onyomi":"πüÿπüñπÇüπüùπüñ","kunyomi":"πü┐πÇüπü┐πü«.πéïπÇüπü╛πüôπü¿πÇüπü┐πü«πÇüπü┐πüí.πéï","meanings":"Reality, Truth","strokeCount":8,"jlpt":3,"grade":3,"frequency":68,"createdAt":"2025-10-27T18:06:05.549Z","updatedAt":"2025-10-27T18:06:05.549Z"},{"id":90,"character":"µ░Å","onyomi":"πüù","kunyomi":"πüåπüÿπÇü-πüåπüÿ","meanings":"Family Name, Surname, Clan","strokeCount":4,"jlpt":1,"grade":4,"frequency":84,"createdAt":"2025-10-27T18:06:05.772Z","updatedAt":"2025-10-27T18:06:05.772Z"},{"id":5,"character":"σà½","onyomi":"πü»πüí","kunyomi":"πéäπÇüπéä.πüñπÇüπéäπüú.πüñπÇüπéêπüå","meanings":"Eight, Eight Radical (no. 12)","strokeCount":2,"jlpt":5,"grade":1,"frequency":92,"createdAt":"2025-10-27T18:06:05.309Z","updatedAt":"2025-10-27T18:06:05.309Z"},{"id":9,"character":"σà¡","onyomi":"πéìπüÅπÇüπéèπüÅ","kunyomi":"πéÇπÇüπéÇ.πüñπÇüπéÇπüú.πüñπÇüπéÇπüä","meanings":"Six","strokeCount":4,"jlpt":5,"grade":1,"frequency":93,"createdAt":"2025-10-27T18:06:05.309Z","updatedAt":"2025-10-27T18:06:05.309Z"}],"total":100,"limit":20,"offset":0},"timestamp":"2025-10-27T18:08:07.738Z"}
+
+Γ£ù Failed to get kanji list: Failed to get kanji list: type '_Map<String, dynamic>' is not a subtype of type 'List<dynamic>' in type cast
+00:00 +0 -1: 1. Kanji List Tests - 1.1. Get all kanji without filters [E]
+  Should get kanji list successfully
+  package:matcher                                     fail
+  test\integration\kanji_integration_test.dart 39:11  main.<fn>.<fn>.<fn>
+  package:dartz/src/either.dart 191:63                Left.fold
+  test\integration\kanji_integration_test.dart 36:14  main.<fn>.<fn>
+  
+00:00 +0 -1: 1. Kanji List Tests - 1.2. Get kanji filtered by JLPT N5
+
+============================================================
+  TEST 1.2: GET KANJI FILTERED BY JLPT N5
+============================================================
+*** Request ***
+uri: http://localhost:3000/api/kanji?jlpt=5&limit=10&offset=0
+method: GET
+responseType: ResponseType.json
+followRedirects: true
+persistentConnection: true
+connectTimeout: 0:00:30.000000
+sendTimeout: null
+receiveTimeout: 0:00:30.000000
+receiveDataWhenStatusError: true
+extra: {}
+headers:
+ Content-Type: application/json
+ Accept: application/json
+data:
+null
+
+*** Response ***
+uri: http://localhost:3000/api/kanji?jlpt=5&limit=10&offset=0
+statusCode: 200
+headers:
+ connection: keep-alive
+ x-dns-prefetch-control: off
+ date: Mon, 27 Oct 2025 18:08:07 GMT
+ x-ratelimit-reset: 43
+ x-ratelimit-limit: 100
+ origin-agent-cluster: ?1
+ vary: Origin
+ strict-transport-security: max-age=31536000; includeSubDomains
+ x-ratelimit-remaining: 97
+ referrer-policy: no-referrer
+ x-permitted-cross-domain-policies: none
+ content-type: application/json; charset=utf-8
+ cross-origin-opener-policy: same-origin
+ x-xss-protection: 0
+ x-request-id: 8c763c1c-c04a-4cc6-98fb-c3cecb549d5c
+ cross-origin-resource-policy: same-origin
+ access-control-allow-credentials: true
+ keep-alive: timeout=5
+ content-length: 2707
+ x-download-options: noopen
+ etag: W/"a93-PszWyuIB0PqLgghPPYe5O9+0TZw"
+ x-frame-options: SAMEORIGIN
+ x-content-type-options: nosniff
+ content-security-policy: default-src 'self';base-uri 'self';font-src 'self' https: data:;form-action 'self';frame-ancestors 'self';img-src 'self' data:;object-src 'none';script-src 'self';script-src-attr 'none';style-src 'self' https: 'unsafe-inline';upgrade-insecure-requests
+Response Text:
+{"statusCode":200,"data":{"data":[{"id":10,"character":"µùÑ","onyomi":"πü½πüíπÇüπüÿπüñ","kunyomi":"πü▓πÇü-πü│πÇü-πüï","meanings":"Day, Sun, Japan, Counter For Days","strokeCount":4,"jlpt":5,"grade":1,"frequency":1,"createdAt":"2025-10-27T18:06:05.309Z","updatedAt":"2025-10-27T18:06:05.309Z"},{"id":1,"character":"Σ╕Ç","onyomi":"πüäπüíπÇüπüäπüñ","kunyomi":"πü▓πü¿-πÇüπü▓πü¿.πüñ","meanings":"One, One Radical (no.1)","strokeCount":1,"jlpt":5,"grade":1,"frequency":2,"createdAt":"2025-10-27T18:06:05.309Z","updatedAt":"2025-10-27T18:06:05.309Z"},{"id":6,"character":"σìü","onyomi":"πüÿπéàπüåπÇüπüÿπüúπÇüπüÿπéàπüú","kunyomi":"πü¿πüèπÇüπü¿","meanings":"Ten","strokeCount":2,"jlpt":5,"grade":1,"frequency":8,"createdAt":"2025-10-27T18:06:05.309Z","updatedAt":"2025-10-27T18:06:05.309Z"},{"id":2,"character":"Σ║î","onyomi":"πü½πÇüπüÿ","kunyomi":"πü╡πüƒπÇüπü╡πüƒ.πüñπÇüπü╡πüƒπüƒπü│","meanings":"Two, Two Radical (no. 7)","strokeCount":2,"jlpt":5,"grade":1,"frequency":9,"createdAt":"2025-10-27T18:06:05.309Z","updatedAt":"2025-10-27T18:06:05.309Z"},{"id":29,"character":"Θò╖","onyomi":"πüíπéçπüå","kunyomi":"πü¬πüî.πüäπÇüπüèπüò","meanings":"Long, Leader, Superior, Senior","strokeCount":8,"jlpt":5,"grade":2,"frequency":12,"createdAt":"2025-10-27T18:06:05.428Z","updatedAt":"2025-10-27T18:06:05.428Z"},{"id":7,"character":"Σ╕ë","onyomi":"πüòπéôπÇüπü₧πüå","kunyomi":"πü┐πÇüπü┐.πüñπÇüπü┐πüú.πüñ","meanings":"Three","strokeCount":3,"jlpt":5,"grade":1,"frequency":14,"createdAt":"2025-10-27T18:06:05.309Z","updatedAt":"2025-10-27T18:06:05.309Z"},{"id":16,"character":"Φíî","onyomi":"πüôπüåπÇüπüÄπéçπüåπÇüπüéπéô","kunyomi":"πüä.πüÅπÇüπéå.πüÅπÇü-πéå.πüìπÇü-πéåπüìπÇü-πüä.πüìπÇü-πüäπüìπÇüπüèπüôπü¬.πüåπÇüπüèπüô.πü¬πüå","meanings":"Going, Journey, Carry Out, Conduct, Act, Line, Row, Bank","strokeCount":6,"jlpt":5,"grade":2,"frequency":20,"createdAt":"2025-10-27T18:06:05.309Z","updatedAt":"2025-10-27T18:06:05.309Z"},{"id":11,"character":"µ£ê","onyomi":"πüÆπüñπÇüπüîπüñ","kunyomi":"πüñπüì","meanings":"Month, Moon","strokeCount":4,"jlpt":5,"grade":1,"frequency":23,"createdAt":"2025-10-27T18:06:05.309Z","updatedAt":"2025-10-27T18:06:05.309Z"},{"id":19,"character":"σ╛î","onyomi":"πüöπÇüπüôπüå","kunyomi":"πü«πüíπÇüπüåπüù.πéìπÇüπüåπüùπéìπÇüπüéπü¿πÇüπüèπüÅ.πéîπéï","meanings":"Behind, Back, Later","strokeCount":9,"jlpt":5,"grade":2,"frequency":26,"createdAt":"2025-10-27T18:06:05.309Z","updatedAt":"2025-10-27T18:06:05.309Z"},{"id":8,"character":"Σ║ö","onyomi":"πüö","kunyomi":"πüäπüñπÇüπüäπüñ.πüñ","meanings":"Five","strokeCount":4,"jlpt":5,"grade":1,"frequency":31,"createdAt":"2025-10-27T18:06:05.309Z","updatedAt":"2025-10-27T18:06:05.309Z"}],"total":32,"limit":10,"offset":0},"timestamp":"2025-10-27T18:08:07.858Z"}
+
+Γ£ù Failed to filter by JLPT: Failed to get kanji list: type '_Map<String, dynamic>' is not a subtype of type 'List<dynamic>' in type cast
+00:00 +0 -2: 1. Kanji List Tests - 1.2. Get kanji filtered by JLPT N5 [E]
+  Should filter kanji by JLPT successfully
+  package:matcher                                     fail
+  test\integration\kanji_integration_test.dart 70:11  main.<fn>.<fn>.<fn>
+  package:dartz/src/either.dart 191:63                Left.fold
+  test\integration\kanji_integration_test.dart 67:14  main.<fn>.<fn>
+  
+00:00 +0 -2: 1. Kanji List Tests - 1.3. Get kanji filtered by Grade 1
+
+============================================================
+  TEST 1.3: GET KANJI FILTERED BY GRADE 1
+============================================================
+*** Request ***
+uri: http://localhost:3000/api/kanji?grade=1&limit=10&offset=0
+method: GET
+responseType: ResponseType.json
+followRedirects: true
+persistentConnection: true
+connectTimeout: 0:00:30.000000
+sendTimeout: null
+receiveTimeout: 0:00:30.000000
+receiveDataWhenStatusError: true
+extra: {}
+headers:
+ Content-Type: application/json
+ Accept: application/json
+data:
+null
+
+*** Response ***
+uri: http://localhost:3000/api/kanji?grade=1&limit=10&offset=0
+statusCode: 200
+headers:
+ connection: keep-alive
+ x-dns-prefetch-control: off
+ date: Mon, 27 Oct 2025 18:08:07 GMT
+ x-ratelimit-reset: 42
+ x-ratelimit-limit: 100
+ origin-agent-cluster: ?1
+ vary: Origin
+ strict-transport-security: max-age=31536000; includeSubDomains
+ x-ratelimit-remaining: 96
+ referrer-policy: no-referrer
+ x-permitted-cross-domain-policies: none
+ content-type: application/json; charset=utf-8
+ cross-origin-opener-policy: same-origin
+ x-xss-protection: 0
+ x-request-id: e8541c5b-ecf6-4d41-b8af-e9c34379bfa9
+ cross-origin-resource-policy: same-origin
+ access-control-allow-credentials: true
+ keep-alive: timeout=5
+ content-length: 2542
+ x-download-options: noopen
+ etag: W/"9ee-u7q107T8E26mxkBP60+M7vk+xtI"
+ x-frame-options: SAMEORIGIN
+ x-content-type-options: nosniff
+ content-security-policy: default-src 'self';base-uri 'self';font-src 'self' https: data:;form-action 'self';frame-ancestors 'self';img-src 'self' data:;object-src 'none';script-src 'self';script-src-attr 'none';style-src 'self' https: 'unsafe-inline';upgrade-insecure-requests
+Response Text:
+{"statusCode":200,"data":{"data":[{"id":10,"character":"µùÑ","onyomi":"πü½πüíπÇüπüÿπüñ","kunyomi":"πü▓πÇü-πü│πÇü-πüï","meanings":"Day, Sun, Japan, Counter For Days","strokeCount":4,"jlpt":5,"grade":1,"frequency":1,"createdAt":"2025-10-27T18:06:05.309Z","updatedAt":"2025-10-27T18:06:05.309Z"},{"id":1,"character":"Σ╕Ç","onyomi":"πüäπüíπÇüπüäπüñ","kunyomi":"πü▓πü¿-πÇüπü▓πü¿.πüñ","meanings":"One, One Radical (no.1)","strokeCount":1,"jlpt":5,"grade":1,"frequency":2,"createdAt":"2025-10-27T18:06:05.309Z","updatedAt":"2025-10-27T18:06:05.309Z"},{"id":6,"character":"σìü","onyomi":"πüÿπéàπüåπÇüπüÿπüúπÇüπüÿπéàπüú","kunyomi":"πü¿πüèπÇüπü¿","meanings":"Ten","strokeCount":2,"jlpt":5,"grade":1,"frequency":8,"createdAt":"2025-10-27T18:06:05.309Z","updatedAt":"2025-10-27T18:06:05.309Z"},{"id":2,"character":"Σ║î","onyomi":"πü½πÇüπüÿ","kunyomi":"πü╡πüƒπÇüπü╡πüƒ.πüñπÇüπü╡πüƒπüƒπü│","meanings":"Two, Two Radical (no. 7)","strokeCount":2,"jlpt":5,"grade":1,"frequency":9,"createdAt":"2025-10-27T18:06:05.309Z","updatedAt":"2025-10-27T18:06:05.309Z"},{"id":7,"character":"Σ╕ë","onyomi":"πüòπéôπÇüπü₧πüå","kunyomi":"πü┐πÇüπü┐.πüñπÇüπü┐πüú.πüñ","meanings":"Three","strokeCount":3,"jlpt":5,"grade":1,"frequency":14,"createdAt":"2025-10-27T18:06:05.309Z","updatedAt":"2025-10-27T18:06:05.309Z"},{"id":11,"character":"µ£ê","onyomi":"πüÆπüñπÇüπüîπüñ","kunyomi":"πüñπüì","meanings":"Month, Moon","strokeCount":4,"jlpt":5,"grade":1,"frequency":23,"createdAt":"2025-10-27T18:06:05.309Z","updatedAt":"2025-10-27T18:06:05.309Z"},{"id":8,"character":"Σ║ö","onyomi":"πüö","kunyomi":"πüäπüñπÇüπüäπüñ.πüñ","meanings":"Five","strokeCount":4,"jlpt":5,"grade":1,"frequency":31,"createdAt":"2025-10-27T18:06:05.309Z","updatedAt":"2025-10-27T18:06:05.309Z"},{"id":15,"character":"σ¢¢","onyomi":"πüù","kunyomi":"πéêπÇüπéê.πüñπÇüπéêπüú.πüñπÇüπéêπéô","meanings":"Four","strokeCount":5,"jlpt":5,"grade":1,"frequency":47,"createdAt":"2025-10-27T18:06:05.309Z","updatedAt":"2025-10-27T18:06:05.309Z"},{"id":3,"character":"Σ╣¥","onyomi":"πüìπéàπüåπÇüπüÅ","kunyomi":"πüôπüôπü«πÇüπüôπüôπü«.πüñ","meanings":"Nine","strokeCount":2,"jlpt":5,"grade":1,"frequency":55,"createdAt":"2025-10-27T18:06:05.309Z","updatedAt":"2025-10-27T18:06:05.309Z"},{"id":5,"character":"σà½","onyomi":"πü»πüí","kunyomi":"πéäπÇüπéä.πüñπÇüπéäπüú.πüñπÇüπéêπüå","meanings":"Eight, Eight Radical (no. 12)","strokeCount":2,"jlpt":5,"grade":1,"frequency":92,"createdAt":"2025-10-27T18:06:05.309Z","updatedAt":"2025-10-27T18:06:05.309Z"}],"total":23,"limit":10,"offset":0},"timestamp":"2025-10-27T18:08:07.897Z"}
+
+Γ£ù Failed to filter by grade: Failed to get kanji list: type '_Map<String, dynamic>' is not a subtype of type 'List<dynamic>' in type cast
+00:00 +0 -3: 1. Kanji List Tests - 1.3. Get kanji filtered by Grade 1 [E]
+  Should filter kanji by grade successfully
+  package:matcher                                      fail
+  test\integration\kanji_integration_test.dart 101:11  main.<fn>.<fn>.<fn>
+  package:dartz/src/either.dart 191:63                 Left.fold
+  test\integration\kanji_integration_test.dart 96:14   main.<fn>.<fn>
+  
+00:00 +0 -3: 1. Kanji List Tests - 1.4. Search kanji by character
+
+============================================================
+  TEST 1.4: SEARCH KANJI BY CHARACTER
+============================================================
+*** Request ***
+uri: http://localhost:3000/api/kanji?search=%E6%97%A5&limit=10&offset=0
+method: GET
+responseType: ResponseType.json
+followRedirects: true
+persistentConnection: true
+connectTimeout: 0:00:30.000000
+sendTimeout: null
+receiveTimeout: 0:00:30.000000
+receiveDataWhenStatusError: true
+extra: {}
+headers:
+ Content-Type: application/json
+ Accept: application/json
+data:
+null
+
+*** Response ***
+uri: http://localhost:3000/api/kanji?search=%E6%97%A5&limit=10&offset=0
+statusCode: 200
+headers:
+ connection: keep-alive
+ x-dns-prefetch-control: off
+ date: Mon, 27 Oct 2025 18:08:07 GMT
+ x-ratelimit-reset: 42
+ x-ratelimit-limit: 100
+ origin-agent-cluster: ?1
+ vary: Origin
+ strict-transport-security: max-age=31536000; includeSubDomains
+ x-ratelimit-remaining: 95
+ referrer-policy: no-referrer
+ x-permitted-cross-domain-policies: none
+ content-type: application/json; charset=utf-8
+ cross-origin-opener-policy: same-origin
+ x-xss-protection: 0
+ x-request-id: 1170f3df-f48c-40d8-a364-e2a8607ea6e5
+ cross-origin-resource-policy: same-origin
+ access-control-allow-credentials: true
+ keep-alive: timeout=5
+ content-length: 366
+ x-download-options: noopen
+ etag: W/"16e-Q9XEQ+O0dctwc6cHrypd6/f2PW0"
+ x-frame-options: SAMEORIGIN
+ x-content-type-options: nosniff
+ content-security-policy: default-src 'self';base-uri 'self';font-src 'self' https: data:;form-action 'self';frame-ancestors 'self';img-src 'self' data:;object-src 'none';script-src 'self';script-src-attr 'none';style-src 'self' https: 'unsafe-inline';upgrade-insecure-requests
+Response Text:
+{"statusCode":200,"data":{"data":[{"id":10,"character":"µùÑ","onyomi":"πü½πüíπÇüπüÿπüñ","kunyomi":"πü▓πÇü-πü│πÇü-πüï","meanings":"Day, Sun, Japan, Counter For Days","strokeCount":4,"jlpt":5,"grade":1,"frequency":1,"createdAt":"2025-10-27T18:06:05.309Z","updatedAt":"2025-10-27T18:06:05.309Z"}],"total":1,"limit":10,"offset":0},"timestamp":"2025-10-27T18:08:07.927Z"}
+
+Γ£ù Failed to search kanji: Failed to get kanji list: type '_Map<String, dynamic>' is not a subtype of type 'List<dynamic>' in type cast
+00:00 +0 -4: 1. Kanji List Tests - 1.4. Search kanji by character [E]
+  Should search kanji successfully
+  package:matcher                                      fail
+  test\integration\kanji_integration_test.dart 130:11  main.<fn>.<fn>.<fn>
+  package:dartz/src/either.dart 191:63                 Left.fold
+  test\integration\kanji_integration_test.dart 127:14  main.<fn>.<fn>
+  
+00:00 +0 -4: 1. Kanji List Tests - 1.5. Test pagination with offset
+
+============================================================
+  TEST 1.5: TEST PAGINATION
+============================================================
+*** Request ***
+uri: http://localhost:3000/api/kanji?limit=5&offset=0
+method: GET
+responseType: ResponseType.json
+followRedirects: true
+persistentConnection: true
+connectTimeout: 0:00:30.000000
+sendTimeout: null
+receiveTimeout: 0:00:30.000000
+receiveDataWhenStatusError: true
+extra: {}
+headers:
+ Content-Type: application/json
+ Accept: application/json
+data:
+null
+
+*** Response ***
+uri: http://localhost:3000/api/kanji?limit=5&offset=0
+statusCode: 200
+headers:
+ connection: keep-alive
+ x-dns-prefetch-control: off
+ date: Mon, 27 Oct 2025 18:08:07 GMT
+ x-ratelimit-reset: 42
+ x-ratelimit-limit: 100
+ origin-agent-cluster: ?1
+ vary: Origin
+ strict-transport-security: max-age=31536000; includeSubDomains
+ x-ratelimit-remaining: 94
+ referrer-policy: no-referrer
+ x-permitted-cross-domain-policies: none
+ content-type: application/json; charset=utf-8
+ cross-origin-opener-policy: same-origin
+ x-xss-protection: 0
+ x-request-id: b8232c1f-3c6c-4d5b-9e2b-ac0bf63e9134
+ cross-origin-resource-policy: same-origin
+ access-control-allow-credentials: true
+ keep-alive: timeout=5
+ content-length: 1369
+ x-download-options: noopen
+ etag: W/"559-me2CbpJGBNHtQKMbi/Tz8zlTbmE"
+ x-frame-options: SAMEORIGIN
+ x-content-type-options: nosniff
+ content-security-policy: default-src 'self';base-uri 'self';font-src 'self' https: data:;form-action 'self';frame-ancestors 'self';img-src 'self' data:;object-src 'none';script-src 'self';script-src-attr 'none';style-src 'self' https: 'unsafe-inline';upgrade-insecure-requests
+Response Text:
+{"statusCode":200,"data":{"data":[{"id":10,"character":"µùÑ","onyomi":"πü½πüíπÇüπüÿπüñ","kunyomi":"πü▓πÇü-πü│πÇü-πüï","meanings":"Day, Sun, Japan, Counter For Days","strokeCount":4,"jlpt":5,"grade":1,"frequency":1,"createdAt":"2025-10-27T18:06:05.309Z","updatedAt":"2025-10-27T18:06:05.309Z"},{"id":1,"character":"Σ╕Ç","onyomi":"πüäπüíπÇüπüäπüñ","kunyomi":"πü▓πü¿-πÇüπü▓πü¿.πüñ","meanings":"One, One Radical (no.1)","strokeCount":1,"jlpt":5,"grade":1,"frequency":2,"createdAt":"2025-10-27T18:06:05.309Z","updatedAt":"2025-10-27T18:06:05.309Z"},{"id":6,"character":"σìü","onyomi":"πüÿπéàπüåπÇüπüÿπüúπÇüπüÿπéàπüú","kunyomi":"πü¿πüèπÇüπü¿","meanings":"Ten","strokeCount":2,"jlpt":5,"grade":1,"frequency":8,"createdAt":"2025-10-27T18:06:05.309Z","updatedAt":"2025-10-27T18:06:05.309Z"},{"id":2,"character":"Σ║î","onyomi":"πü½πÇüπüÿ","kunyomi":"πü╡πüƒπÇüπü╡πüƒ.πüñπÇüπü╡πüƒπüƒπü│","meanings":"Two, Two Radical (no. 7)","strokeCount":2,"jlpt":5,"grade":1,"frequency":9,"createdAt":"2025-10-27T18:06:05.309Z","updatedAt":"2025-10-27T18:06:05.309Z"},{"id":29,"character":"Θò╖","onyomi":"πüíπéçπüå","kunyomi":"πü¬πüî.πüäπÇüπüèπüò","meanings":"Long, Leader, Superior, Senior","strokeCount":8,"jlpt":5,"grade":2,"frequency":12,"createdAt":"2025-10-27T18:06:05.428Z","updatedAt":"2025-10-27T18:06:05.428Z"}],"total":100,"limit":5,"offset":0},"timestamp":"2025-10-27T18:08:07.951Z"}
+
+*** Request ***
+uri: http://localhost:3000/api/kanji?limit=5&offset=5
+method: GET
+responseType: ResponseType.json
+followRedirects: true
+persistentConnection: true
+connectTimeout: 0:00:30.000000
+sendTimeout: null
+receiveTimeout: 0:00:30.000000
+receiveDataWhenStatusError: true
+extra: {}
+headers:
+ Content-Type: application/json
+ Accept: application/json
+data:
+null
+
+*** Response ***
+uri: http://localhost:3000/api/kanji?limit=5&offset=5
+statusCode: 200
+headers:
+ connection: keep-alive
+ x-dns-prefetch-control: off
+ date: Mon, 27 Oct 2025 18:08:07 GMT
+ x-ratelimit-reset: 42
+ x-ratelimit-limit: 100
+ origin-agent-cluster: ?1
+ vary: Origin
+ strict-transport-security: max-age=31536000; includeSubDomains
+ x-ratelimit-remaining: 93
+ referrer-policy: no-referrer
+ x-permitted-cross-domain-policies: none
+ content-type: application/json; charset=utf-8
+ cross-origin-opener-policy: same-origin
+ x-xss-protection: 0
+ x-request-id: 369cc777-a2f4-4c6b-98f3-3b8443cb8578
+ cross-origin-resource-policy: same-origin
+ access-control-allow-credentials: true
+ keep-alive: timeout=5
+ content-length: 1455
+ x-download-options: noopen
+ etag: W/"5af-XAKUQ5YaCEG4Ryo83BCnB9EslF8"
+ x-frame-options: SAMEORIGIN
+ x-content-type-options: nosniff
+ content-security-policy: default-src 'self';base-uri 'self';font-src 'self' https: data:;form-action 'self';frame-ancestors 'self';img-src 'self' data:;object-src 'none';script-src 'self';script-src-attr 'none';style-src 'self' https: 'unsafe-inline';upgrade-insecure-requests
+Response Text:
+{"statusCode":200,"data":{"data":[{"id":7,"character":"Σ╕ë","onyomi":"πüòπéôπÇüπü₧πüå","kunyomi":"πü┐πÇüπü┐.πüñπÇüπü┐πüú.πüñ","meanings":"Three","strokeCount":3,"jlpt":5,"grade":1,"frequency":14,"createdAt":"2025-10-27T18:06:05.309Z","updatedAt":"2025-10-27T18:06:05.309Z"},{"id":35,"character":"Φç¬","onyomi":"πüÿπÇüπüù","kunyomi":"πü┐πüÜπüï.πéëπÇüπüèπü«.πüÜπüïπéëπÇüπüèπü«.πüÜπü¿","meanings":"Oneself","strokeCount":6,"jlpt":4,"grade":2,"frequency":19,"createdAt":"2025-10-27T18:06:05.428Z","updatedAt":"2025-10-27T18:06:05.428Z"},{"id":16,"character":"Φíî","onyomi":"πüôπüåπÇüπüÄπéçπüåπÇüπüéπéô","kunyomi":"πüä.πüÅπÇüπéå.πüÅπÇü-πéå.πüìπÇü-πéåπüìπÇü-πüä.πüìπÇü-πüäπüìπÇüπüèπüôπü¬.πüåπÇüπüèπüô.πü¬πüå","meanings":"Going, Journey, Carry Out, Conduct, Act, Line, Row, Bank","strokeCount":6,"jlpt":5,"grade":2,"frequency":20,"createdAt":"2025-10-27T18:06:05.309Z","updatedAt":"2025-10-27T18:06:05.309Z"},{"id":38,"character":"τñ╛","onyomi":"πüùπéâ","kunyomi":"πéäπüùπéì","meanings":"Company, Firm, Office, Association, Shrine","strokeCount":7,"jlpt":4,"grade":2,"frequency":21,"createdAt":"2025-10-27T18:06:05.428Z","updatedAt":"2025-10-27T18:06:05.428Z"},{"id":11,"character":"µ£ê","onyomi":"πüÆπüñπÇüπüîπüñ","kunyomi":"πüñπüì","meanings":"Month, Moon","strokeCount":4,"jlpt":5,"grade":1,"frequency":23,"createdAt":"2025-10-27T18:06:05.309Z","updatedAt":"2025-10-27T18:06:05.309Z"}],"total":100,"limit":5,"offset":5},"timestamp":"2025-10-27T18:08:07.962Z"}
+
+00:00 +0 -5: 1. Kanji List Tests - 1.5. Test pagination with offset [E]
+  First page should load
+  package:matcher                                      fail
+  test\integration\kanji_integration_test.dart 169:35  main.<fn>.<fn>.<fn>
+  package:dartz/src/either.dart 191:63                 Left.fold
+  test\integration\kanji_integration_test.dart 169:17  main.<fn>.<fn>
+  
+00:00 +0 -5: 2. Kanji Search Tests - 2.1. Search kanji with query
+
+============================================================
+  TEST 2.1: SEARCH KANJI WITH QUERY
+============================================================
+*** Request ***
+uri: http://localhost:3000/api/kanji/search?page=1&limit=10&query=%E6%B0%B4
+method: GET
+responseType: ResponseType.json
+followRedirects: true
+persistentConnection: true
+connectTimeout: 0:00:30.000000
+sendTimeout: null
+receiveTimeout: 0:00:30.000000
+receiveDataWhenStatusError: true
+extra: {}
+headers:
+ Content-Type: application/json
+ Accept: application/json
+data:
+null
+
+*** Response ***
+uri: http://localhost:3000/api/kanji/search?page=1&limit=10&query=%E6%B0%B4
+statusCode: 200
+headers:
+ connection: keep-alive
+ x-dns-prefetch-control: off
+ date: Mon, 27 Oct 2025 18:08:08 GMT
+ x-ratelimit-reset: 60
+ x-ratelimit-limit: 100
+ origin-agent-cluster: ?1
+ vary: Origin
+ strict-transport-security: max-age=31536000; includeSubDomains
+ x-ratelimit-remaining: 99
+ referrer-policy: no-referrer
+ x-permitted-cross-domain-policies: none
+ content-type: application/json; charset=utf-8
+ cross-origin-opener-policy: same-origin
+ x-xss-protection: 0
+ x-request-id: 65b6509b-0675-45f0-962a-ec181e50f7db
+ cross-origin-resource-policy: same-origin
+ access-control-allow-credentials: true
+ keep-alive: timeout=5
+ content-length: 343
+ x-download-options: noopen
+ etag: W/"157-JjpGaoGyZS6l1Vxxomk86sE6u6s"
+ x-frame-options: SAMEORIGIN
+ x-content-type-options: nosniff
+ content-security-policy: default-src 'self';base-uri 'self';font-src 'self' https: data:;form-action 'self';frame-ancestors 'self';img-src 'self' data:;object-src 'none';script-src 'self';script-src-attr 'none';style-src 'self' https: 'unsafe-inline';upgrade-insecure-requests
+Response Text:
+{"statusCode":200,"data":{"data":[{"id":13,"character":"µ░┤","onyomi":"πüÖπüä","kunyomi":"πü┐πüÜπÇüπü┐πüÜ-","meanings":"Water","strokeCount":4,"jlpt":5,"grade":1,"frequency":223,"createdAt":"2025-10-27T18:06:05.309Z","updatedAt":"2025-10-27T18:06:05.309Z"}],"total":1,"page":1,"limit":10,"totalPages":1},"timestamp":"2025-10-27T18:08:08.001Z"}
+
+Γ£ô Search returned results
+Γ£ô Found 1 kanji matching "µ░┤"
+00:00 +1 -5: 2. Kanji Search Tests - 2.2. Search with JLPT levels filter
+
+============================================================
+  TEST 2.2: SEARCH WITH JLPT FILTER
+============================================================
+*** Request ***
+uri: http://localhost:3000/api/kanji/search?page=1&limit=10&jlptLevels=5%2C4
+method: GET
+responseType: ResponseType.json
+followRedirects: true
+persistentConnection: true
+connectTimeout: 0:00:30.000000
+sendTimeout: null
+receiveTimeout: 0:00:30.000000
+receiveDataWhenStatusError: true
+extra: {}
+headers:
+ Content-Type: application/json
+ Accept: application/json
+data:
+null
+
+*** Response ***
+uri: http://localhost:3000/api/kanji/search?page=1&limit=10&jlptLevels=5%2C4
+statusCode: 200
+headers:
+ connection: keep-alive
+ x-dns-prefetch-control: off
+ date: Mon, 27 Oct 2025 18:08:08 GMT
+ x-ratelimit-reset: 60
+ x-ratelimit-limit: 100
+ origin-agent-cluster: ?1
+ vary: Origin
+ strict-transport-security: max-age=31536000; includeSubDomains
+ x-ratelimit-remaining: 98
+ referrer-policy: no-referrer
+ x-permitted-cross-domain-policies: none
+ content-type: application/json; charset=utf-8
+ cross-origin-opener-policy: same-origin
+ x-xss-protection: 0
+ x-request-id: 54a773f3-4ffd-4a82-b1ff-8067eddf3039
+ cross-origin-resource-policy: same-origin
+ access-control-allow-credentials: true
+ keep-alive: timeout=5
+ content-length: 2729
+ x-download-options: noopen
+ etag: W/"aa9-vjP7IoYtnXfB1wQ6dUER2Bq5lac"
+ x-frame-options: SAMEORIGIN
+ x-content-type-options: nosniff
+ content-security-policy: default-src 'self';base-uri 'self';font-src 'self' https: data:;form-action 'self';frame-ancestors 'self';img-src 'self' data:;object-src 'none';script-src 'self';script-src-attr 'none';style-src 'self' https: 'unsafe-inline';upgrade-insecure-requests
+Response Text:
+{"statusCode":200,"data":{"data":[{"id":10,"character":"µùÑ","onyomi":"πü½πüíπÇüπüÿπüñ","kunyomi":"πü▓πÇü-πü│πÇü-πüï","meanings":"Day, Sun, Japan, Counter For Days","strokeCount":4,"jlpt":5,"grade":1,"frequency":1,"createdAt":"2025-10-27T18:06:05.309Z","updatedAt":"2025-10-27T18:06:05.309Z"},{"id":1,"character":"Σ╕Ç","onyomi":"πüäπüíπÇüπüäπüñ","kunyomi":"πü▓πü¿-πÇüπü▓πü¿.πüñ","meanings":"One, One Radical (no.1)","strokeCount":1,"jlpt":5,"grade":1,"frequency":2,"createdAt":"2025-10-27T18:06:05.309Z","updatedAt":"2025-10-27T18:06:05.309Z"},{"id":6,"character":"σìü","onyomi":"πüÿπéàπüåπÇüπüÿπüúπÇüπüÿπéàπüú","kunyomi":"πü¿πüèπÇüπü¿","meanings":"Ten","strokeCount":2,"jlpt":5,"grade":1,"frequency":8,"createdAt":"2025-10-27T18:06:05.309Z","updatedAt":"2025-10-27T18:06:05.309Z"},{"id":2,"character":"Σ║î","onyomi":"πü½πÇüπüÿ","kunyomi":"πü╡πüƒπÇüπü╡πüƒ.πüñπÇüπü╡πüƒπüƒπü│","meanings":"Two, Two Radical (no. 7)","strokeCount":2,"jlpt":5,"grade":1,"frequency":9,"createdAt":"2025-10-27T18:06:05.309Z","updatedAt":"2025-10-27T18:06:05.309Z"},{"id":29,"character":"Θò╖","onyomi":"πüíπéçπüå","kunyomi":"πü¬πüî.πüäπÇüπüèπüò","meanings":"Long, Leader, Superior, Senior","strokeCount":8,"jlpt":5,"grade":2,"frequency":12,"createdAt":"2025-10-27T18:06:05.428Z","updatedAt":"2025-10-27T18:06:05.428Z"},{"id":7,"character":"Σ╕ë","onyomi":"πüòπéôπÇüπü₧πüå","kunyomi":"πü┐πÇüπü┐.πüñπÇüπü┐πüú.πüñ","meanings":"Three","strokeCount":3,"jlpt":5,"grade":1,"frequency":14,"createdAt":"2025-10-27T18:06:05.309Z","updatedAt":"2025-10-27T18:06:05.309Z"},{"id":35,"character":"Φç¬","onyomi":"πüÿπÇüπüù","kunyomi":"πü┐πüÜπüï.πéëπÇüπüèπü«.πüÜπüïπéëπÇüπüèπü«.πüÜπü¿","meanings":"Oneself","strokeCount":6,"jlpt":4,"grade":2,"frequency":19,"createdAt":"2025-10-27T18:06:05.428Z","updatedAt":"2025-10-27T18:06:05.428Z"},{"id":16,"character":"Φíî","onyomi":"πüôπüåπÇüπüÄπéçπüåπÇüπüéπéô","kunyomi":"πüä.πüÅπÇüπéå.πüÅπÇü-πéå.πüìπÇü-πéåπüìπÇü-πüä.πüìπÇü-πüäπüìπÇüπüèπüôπü¬.πüåπÇüπüèπüô.πü¬πüå","meanings":"Going, Journey, Carry Out, Conduct, Act, Line, Row, Bank","strokeCount":6,"jlpt":5,"grade":2,"frequency":20,"createdAt":"2025-10-27T18:06:05.309Z","updatedAt":"2025-10-27T18:06:05.309Z"},{"id":38,"character":"τñ╛","onyomi":"πüùπéâ","kunyomi":"πéäπüùπéì","meanings":"Company, Firm, Office, Association, Shrine","strokeCount":7,"jlpt":4,"grade":2,"frequency":21,"createdAt":"2025-10-27T18:06:05.428Z","updatedAt":"2025-10-27T18:06:05.428Z"},{"id":11,"character":"µ£ê","onyomi":"πüÆπüñπÇüπüîπüñ","kunyomi":"πüñπüì","meanings":"Month, Moon","strokeCount":4,"jlpt":5,"grade":1,"frequency":23,"createdAt":"2025-10-27T18:06:05.309Z","updatedAt":"2025-10-27T18:06:05.309Z"}],"total":49,"page":1,"limit":10,"totalPages":5},"timestamp":"2025-10-27T18:08:08.033Z"}
+
+Γ£ô Found 10 kanji with JLPT N5/N4
+00:00 +2 -5: 2. Kanji Search Tests - 2.3. Search with stroke count filter
+
+============================================================
+  TEST 2.3: SEARCH WITH STROKE COUNT FILTER
+============================================================
+*** Request ***
+uri: http://localhost:3000/api/kanji/search?page=1&limit=10&minStrokes=1&maxStrokes=5
+method: GET
+responseType: ResponseType.json
+followRedirects: true
+persistentConnection: true
+connectTimeout: 0:00:30.000000
+sendTimeout: null
+receiveTimeout: 0:00:30.000000
+receiveDataWhenStatusError: true
+extra: {}
+headers:
+ Content-Type: application/json
+ Accept: application/json
+data:
+null
+
+*** Response ***
+uri: http://localhost:3000/api/kanji/search?page=1&limit=10&minStrokes=1&maxStrokes=5
+statusCode: 200
+headers:
+ connection: keep-alive
+ x-dns-prefetch-control: off
+ date: Mon, 27 Oct 2025 18:08:08 GMT
+ x-ratelimit-reset: 60
+ x-ratelimit-limit: 100
+ origin-agent-cluster: ?1
+ vary: Origin
+ strict-transport-security: max-age=31536000; includeSubDomains
+ x-ratelimit-remaining: 97
+ referrer-policy: no-referrer
+ x-permitted-cross-domain-policies: none
+ content-type: application/json; charset=utf-8
+ cross-origin-opener-policy: same-origin
+ x-xss-protection: 0
+ x-request-id: b4a38126-1c67-441a-b156-d31d3fc45175
+ cross-origin-resource-policy: same-origin
+ access-control-allow-credentials: true
+ keep-alive: timeout=5
+ content-length: 2727
+ x-download-options: noopen
+ etag: W/"aa7-fXw9XoROOwwiY7RwFPqoGqRX9ew"
+ x-frame-options: SAMEORIGIN
+ x-content-type-options: nosniff
+ content-security-policy: default-src 'self';base-uri 'self';font-src 'self' https: data:;form-action 'self';frame-ancestors 'self';img-src 'self' data:;object-src 'none';script-src 'self';script-src-attr 'none';style-src 'self' https: 'unsafe-inline';upgrade-insecure-requests
+Response Text:
+{"statusCode":200,"data":{"data":[{"id":10,"character":"µùÑ","onyomi":"πü½πüíπÇüπüÿπüñ","kunyomi":"πü▓πÇü-πü│πÇü-πüï","meanings":"Day, Sun, Japan, Counter For Days","strokeCount":4,"jlpt":5,"grade":1,"frequency":1,"createdAt":"2025-10-27T18:06:05.309Z","updatedAt":"2025-10-27T18:06:05.309Z"},{"id":1,"character":"Σ╕Ç","onyomi":"πüäπüíπÇüπüäπüñ","kunyomi":"πü▓πü¿-πÇüπü▓πü¿.πüñ","meanings":"One, One Radical (no.1)","strokeCount":1,"jlpt":5,"grade":1,"frequency":2,"createdAt":"2025-10-27T18:06:05.309Z","updatedAt":"2025-10-27T18:06:05.309Z"},{"id":6,"character":"σìü","onyomi":"πüÿπéàπüåπÇüπüÿπüúπÇüπüÿπéàπüú","kunyomi":"πü¿πüèπÇüπü¿","meanings":"Ten","strokeCount":2,"jlpt":5,"grade":1,"frequency":8,"createdAt":"2025-10-27T18:06:05.309Z","updatedAt":"2025-10-27T18:06:05.309Z"},{"id":2,"character":"Σ║î","onyomi":"πü½πÇüπüÿ","kunyomi":"πü╡πüƒπÇüπü╡πüƒ.πüñπÇüπü╡πüƒπüƒπü│","meanings":"Two, Two Radical (no. 7)","strokeCount":2,"jlpt":5,"grade":1,"frequency":9,"createdAt":"2025-10-27T18:06:05.309Z","updatedAt":"2025-10-27T18:06:05.309Z"},{"id":7,"character":"Σ╕ë","onyomi":"πüòπéôπÇüπü₧πüå","kunyomi":"πü┐πÇüπü┐.πüñπÇüπü┐πüú.πüñ","meanings":"Three","strokeCount":3,"jlpt":5,"grade":1,"frequency":14,"createdAt":"2025-10-27T18:06:05.309Z","updatedAt":"2025-10-27T18:06:05.309Z"},{"id":11,"character":"µ£ê","onyomi":"πüÆπüñπÇüπüîπüñ","kunyomi":"πüñπüì","meanings":"Month, Moon","strokeCount":4,"jlpt":5,"grade":1,"frequency":23,"createdAt":"2025-10-27T18:06:05.309Z","updatedAt":"2025-10-27T18:06:05.309Z"},{"id":8,"character":"Σ║ö","onyomi":"πüö","kunyomi":"πüäπüñπÇüπüäπüñ.πüñ","meanings":"Five","strokeCount":4,"jlpt":5,"grade":1,"frequency":31,"createdAt":"2025-10-27T18:06:05.309Z","updatedAt":"2025-10-27T18:06:05.309Z"},{"id":15,"character":"σ¢¢","onyomi":"πüù","kunyomi":"πéêπÇüπéê.πüñπÇüπéêπüú.πüñπÇüπéêπéô","meanings":"Four","strokeCount":5,"jlpt":5,"grade":1,"frequency":47,"createdAt":"2025-10-27T18:06:05.309Z","updatedAt":"2025-10-27T18:06:05.309Z"},{"id":3,"character":"Σ╣¥","onyomi":"πüìπéàπüåπÇüπüÅ","kunyomi":"πüôπüôπü«πÇüπüôπüôπü«.πüñ","meanings":"Nine","strokeCount":2,"jlpt":5,"grade":1,"frequency":55,"createdAt":"2025-10-27T18:06:05.309Z","updatedAt":"2025-10-27T18:06:05.309Z"},{"id":39,"character":"Σ╗ú","onyomi":"πüáπüäπÇüπüƒπüä","kunyomi":"πüï.πéÅπéïπÇüπüïπéÅ.πéïπÇüπüïπéÅ.πéèπÇüπüï.πéÅπéèπÇü-πüîπéÅ.πéèπÇü-πüî.πéÅπéèπÇüπüï.πüêπéïπÇüπéêπÇüπüùπéì","meanings":"Substitute, Change, Convert, Replace, Period, Age, Counter For Decades Of Ages, Eras, Etc., Generation, Charge, Rate, Fee","strokeCount":5,"jlpt":4,"grade":3,"frequency":66,"createdAt":"2025-10-27T18:06:05.428Z","updatedAt":"2025-10-27T18:06:05.428Z"}],"total":32,"page":1,"limit":10,"totalPages":4},"timestamp":"2025-10-27T18:08:08.065Z"}
+
+Γ£ô Found 10 kanji with 1-5 strokes
+Γ£ô Stroke count filter working
+00:00 +3 -5: 2. Kanji Search Tests - 2.4. Search with grade filter
+
+============================================================
+  TEST 2.4: SEARCH WITH GRADE FILTER
+============================================================
+*** Request ***
+uri: http://localhost:3000/api/kanji/search?page=1&limit=10&grades=1%2C2
+method: GET
+responseType: ResponseType.json
+followRedirects: true
+persistentConnection: true
+connectTimeout: 0:00:30.000000
+sendTimeout: null
+receiveTimeout: 0:00:30.000000
+receiveDataWhenStatusError: true
+extra: {}
+headers:
+ Content-Type: application/json
+ Accept: application/json
+data:
+null
+
+*** Response ***
+uri: http://localhost:3000/api/kanji/search?page=1&limit=10&grades=1%2C2
+statusCode: 200
+headers:
+ connection: keep-alive
+ x-dns-prefetch-control: off
+ date: Mon, 27 Oct 2025 18:08:08 GMT
+ x-ratelimit-reset: 60
+ x-ratelimit-limit: 100
+ origin-agent-cluster: ?1
+ vary: Origin
+ strict-transport-security: max-age=31536000; includeSubDomains
+ x-ratelimit-remaining: 96
+ referrer-policy: no-referrer
+ x-permitted-cross-domain-policies: none
+ content-type: application/json; charset=utf-8
+ cross-origin-opener-policy: same-origin
+ x-xss-protection: 0
+ x-request-id: 6a2c80a4-6f9a-4d6b-a81f-01816d5aa1a4
+ cross-origin-resource-policy: same-origin
+ access-control-allow-credentials: true
+ keep-alive: timeout=5
+ content-length: 2729
+ x-download-options: noopen
+ etag: W/"aa9-cO+NfqA2rziVDEK7m9AiiY5Kncs"
+ x-frame-options: SAMEORIGIN
+ x-content-type-options: nosniff
+ content-security-policy: default-src 'self';base-uri 'self';font-src 'self' https: data:;form-action 'self';frame-ancestors 'self';img-src 'self' data:;object-src 'none';script-src 'self';script-src-attr 'none';style-src 'self' https: 'unsafe-inline';upgrade-insecure-requests
+Response Text:
+{"statusCode":200,"data":{"data":[{"id":10,"character":"µùÑ","onyomi":"πü½πüíπÇüπüÿπüñ","kunyomi":"πü▓πÇü-πü│πÇü-πüï","meanings":"Day, Sun, Japan, Counter For Days","strokeCount":4,"jlpt":5,"grade":1,"frequency":1,"createdAt":"2025-10-27T18:06:05.309Z","updatedAt":"2025-10-27T18:06:05.309Z"},{"id":1,"character":"Σ╕Ç","onyomi":"πüäπüíπÇüπüäπüñ","kunyomi":"πü▓πü¿-πÇüπü▓πü¿.πüñ","meanings":"One, One Radical (no.1)","strokeCount":1,"jlpt":5,"grade":1,"frequency":2,"createdAt":"2025-10-27T18:06:05.309Z","updatedAt":"2025-10-27T18:06:05.309Z"},{"id":6,"character":"σìü","onyomi":"πüÿπéàπüåπÇüπüÿπüúπÇüπüÿπéàπüú","kunyomi":"πü¿πüèπÇüπü¿","meanings":"Ten","strokeCount":2,"jlpt":5,"grade":1,"frequency":8,"createdAt":"2025-10-27T18:06:05.309Z","updatedAt":"2025-10-27T18:06:05.309Z"},{"id":2,"character":"Σ║î","onyomi":"πü½πÇüπüÿ","kunyomi":"πü╡πüƒπÇüπü╡πüƒ.πüñπÇüπü╡πüƒπüƒπü│","meanings":"Two, Two Radical (no. 7)","strokeCount":2,"jlpt":5,"grade":1,"frequency":9,"createdAt":"2025-10-27T18:06:05.309Z","updatedAt":"2025-10-27T18:06:05.309Z"},{"id":29,"character":"Θò╖","onyomi":"πüíπéçπüå","kunyomi":"πü¬πüî.πüäπÇüπüèπüò","meanings":"Long, Leader, Superior, Senior","strokeCount":8,"jlpt":5,"grade":2,"frequency":12,"createdAt":"2025-10-27T18:06:05.428Z","updatedAt":"2025-10-27T18:06:05.428Z"},{"id":7,"character":"Σ╕ë","onyomi":"πüòπéôπÇüπü₧πüå","kunyomi":"πü┐πÇüπü┐.πüñπÇüπü┐πüú.πüñ","meanings":"Three","strokeCount":3,"jlpt":5,"grade":1,"frequency":14,"createdAt":"2025-10-27T18:06:05.309Z","updatedAt":"2025-10-27T18:06:05.309Z"},{"id":35,"character":"Φç¬","onyomi":"πüÿπÇüπüù","kunyomi":"πü┐πüÜπüï.πéëπÇüπüèπü«.πüÜπüïπéëπÇüπüèπü«.πüÜπü¿","meanings":"Oneself","strokeCount":6,"jlpt":4,"grade":2,"frequency":19,"createdAt":"2025-10-27T18:06:05.428Z","updatedAt":"2025-10-27T18:06:05.428Z"},{"id":16,"character":"Φíî","onyomi":"πüôπüåπÇüπüÄπéçπüåπÇüπüéπéô","kunyomi":"πüä.πüÅπÇüπéå.πüÅπÇü-πéå.πüìπÇü-πéåπüìπÇü-πüä.πüìπÇü-πüäπüìπÇüπüèπüôπü¬.πüåπÇüπüèπüô.πü¬πüå","meanings":"Going, Journey, Carry Out, Conduct, Act, Line, Row, Bank","strokeCount":6,"jlpt":5,"grade":2,"frequency":20,"createdAt":"2025-10-27T18:06:05.309Z","updatedAt":"2025-10-27T18:06:05.309Z"},{"id":38,"character":"τñ╛","onyomi":"πüùπéâ","kunyomi":"πéäπüùπéì","meanings":"Company, Firm, Office, Association, Shrine","strokeCount":7,"jlpt":4,"grade":2,"frequency":21,"createdAt":"2025-10-27T18:06:05.428Z","updatedAt":"2025-10-27T18:06:05.428Z"},{"id":11,"character":"µ£ê","onyomi":"πüÆπüñπÇüπüîπüñ","kunyomi":"πüñπüì","meanings":"Month, Moon","strokeCount":4,"jlpt":5,"grade":1,"frequency":23,"createdAt":"2025-10-27T18:06:05.309Z","updatedAt":"2025-10-27T18:06:05.309Z"}],"total":48,"page":1,"limit":10,"totalPages":5},"timestamp":"2025-10-27T18:08:08.102Z"}
+
+Γ£ô Found 10 kanji in Grade 1-2
+00:00 +4 -5: 2. Kanji Search Tests - 2.5. Search with sorting
+
+============================================================
+  TEST 2.5: SEARCH WITH SORTING
+============================================================
+*** Request ***
+uri: http://localhost:3000/api/kanji/search?page=1&limit=10&sortBy=strokes
+method: GET
+responseType: ResponseType.json
+followRedirects: true
+persistentConnection: true
+connectTimeout: 0:00:30.000000
+sendTimeout: null
+receiveTimeout: 0:00:30.000000
+receiveDataWhenStatusError: true
+extra: {}
+headers:
+ Content-Type: application/json
+ Accept: application/json
+data:
+null
+
+*** Response ***
+uri: http://localhost:3000/api/kanji/search?page=1&limit=10&sortBy=strokes
+statusCode: 200
+headers:
+ connection: keep-alive
+ x-dns-prefetch-control: off
+ date: Mon, 27 Oct 2025 18:08:08 GMT
+ x-ratelimit-reset: 60
+ x-ratelimit-limit: 100
+ origin-agent-cluster: ?1
+ vary: Origin
+ strict-transport-security: max-age=31536000; includeSubDomains
+ x-ratelimit-remaining: 95
+ referrer-policy: no-referrer
+ x-permitted-cross-domain-policies: none
+ content-type: application/json; charset=utf-8
+ cross-origin-opener-policy: same-origin
+ x-xss-protection: 0
+ x-request-id: dded5258-3c88-4361-83bf-a5d7744c5b53
+ cross-origin-resource-policy: same-origin
+ access-control-allow-credentials: true
+ keep-alive: timeout=5
+ content-length: 2703
+ x-download-options: noopen
+ etag: W/"a8f-x2FEvaT1NFmdDhERfF/0aTjqPok"
+ x-frame-options: SAMEORIGIN
+ x-content-type-options: nosniff
+ content-security-policy: default-src 'self';base-uri 'self';font-src 'self' https: data:;form-action 'self';frame-ancestors 'self';img-src 'self' data:;object-src 'none';script-src 'self';script-src-attr 'none';style-src 'self' https: 'unsafe-inline';upgrade-insecure-requests
+Response Text:
+{"statusCode":200,"data":{"data":[{"id":1,"character":"Σ╕Ç","onyomi":"πüäπüíπÇüπüäπüñ","kunyomi":"πü▓πü¿-πÇüπü▓πü¿.πüñ","meanings":"One, One Radical (no.1)","strokeCount":1,"jlpt":5,"grade":1,"frequency":2,"createdAt":"2025-10-27T18:06:05.309Z","updatedAt":"2025-10-27T18:06:05.309Z"},{"id":2,"character":"Σ║î","onyomi":"πü½πÇüπüÿ","kunyomi":"πü╡πüƒπÇüπü╡πüƒ.πüñπÇüπü╡πüƒπüƒπü│","meanings":"Two, Two Radical (no. 7)","strokeCount":2,"jlpt":5,"grade":1,"frequency":9,"createdAt":"2025-10-27T18:06:05.309Z","updatedAt":"2025-10-27T18:06:05.309Z"},{"id":5,"character":"σà½","onyomi":"πü»πüí","kunyomi":"πéäπÇüπéä.πüñπÇüπéäπüú.πüñπÇüπéêπüå","meanings":"Eight, Eight Radical (no. 12)","strokeCount":2,"jlpt":5,"grade":1,"frequency":92,"createdAt":"2025-10-27T18:06:05.309Z","updatedAt":"2025-10-27T18:06:05.309Z"},{"id":4,"character":"Σ╕â","onyomi":"πüùπüí","kunyomi":"πü¬πü¬πÇüπü¬πü¬.πüñπÇüπü¬πü«","meanings":"Seven","strokeCount":2,"jlpt":5,"grade":1,"frequency":115,"createdAt":"2025-10-27T18:06:05.309Z","updatedAt":"2025-10-27T18:06:05.309Z"},{"id":6,"character":"σìü","onyomi":"πüÿπéàπüåπÇüπüÿπüúπÇüπüÿπéàπüú","kunyomi":"πü¿πüèπÇüπü¿","meanings":"Ten","strokeCount":2,"jlpt":5,"grade":1,"frequency":8,"createdAt":"2025-10-27T18:06:05.309Z","updatedAt":"2025-10-27T18:06:05.309Z"},{"id":3,"character":"Σ╣¥","onyomi":"πüìπéàπüåπÇüπüÅ","kunyomi":"πüôπüôπü«πÇüπüôπüôπü«.πüñ","meanings":"Nine","strokeCount":2,"jlpt":5,"grade":1,"frequency":55,"createdAt":"2025-10-27T18:06:05.309Z","updatedAt":"2025-10-27T18:06:05.309Z"},{"id":17,"character":"σ▒▒","onyomi":"πüòπéôπÇüπü¢πéô","kunyomi":"πéäπü╛","meanings":"Mountain","strokeCount":3,"jlpt":5,"grade":1,"frequency":131,"createdAt":"2025-10-27T18:06:05.309Z","updatedAt":"2025-10-27T18:06:05.309Z"},{"id":7,"character":"Σ╕ë","onyomi":"πüòπéôπÇüπü₧πüå","kunyomi":"πü┐πÇüπü┐.πüñπÇüπü┐πüú.πüñ","meanings":"Three","strokeCount":3,"jlpt":5,"grade":1,"frequency":14,"createdAt":"2025-10-27T18:06:05.309Z","updatedAt":"2025-10-27T18:06:05.309Z"},{"id":26,"character":"Σ╕ï","onyomi":"πüïπÇüπüÆ","kunyomi":"πüùπüƒπÇüπüùπééπÇüπééπü¿πÇüπüò.πüÆπéïπÇüπüò.πüîπéïπÇüπüÅπüá.πéïπÇüπüÅπüá.πéèπÇüπüÅπüá.πüÖπÇü-πüÅπüá.πüÖπÇüπüÅπüá.πüòπéïπÇüπüè.πéìπüÖπÇüπüè.πéèπéï","meanings":"Below, Down, Descend, Give, Low, Inferior","strokeCount":3,"jlpt":5,"grade":1,"frequency":97,"createdAt":"2025-10-27T18:06:05.428Z","updatedAt":"2025-10-27T18:06:05.428Z"},{"id":27,"character":"Σ╕ç","onyomi":"πü╛πéôπÇüπü░πéô","kunyomi":"πéêπéìπüÜ","meanings":"Ten Thousand, 10,000","strokeCount":3,"jlpt":5,"grade":2,"frequency":375,"createdAt":"2025-10-27T18:06:05.428Z","updatedAt":"2025-10-27T18:06:05.428Z"}],"total":100,"page":1,"limit":10,"totalPages":10},"timestamp":"2025-10-27T18:08:08.133Z"}
+
+Γ£ô Got 10 kanji sorted by stroke count
+00:00 +5 -5: 3. Kanji Detail Tests - 3.1. Get kanji detail with external APIs
+
+============================================================
+  TEST 3.1: GET KANJI DETAIL WITH EXTERNAL APIS
+============================================================
+*** Request ***
+uri: http://localhost:3000/api/kanji?jlpt=5&limit=1&offset=0
+method: GET
+responseType: ResponseType.json
+followRedirects: true
+persistentConnection: true
+connectTimeout: 0:00:30.000000
+sendTimeout: null
+receiveTimeout: 0:00:30.000000
+receiveDataWhenStatusError: true
+extra: {}
+headers:
+ Content-Type: application/json
+ Accept: application/json
+data:
+null
+
+*** Response ***
+uri: http://localhost:3000/api/kanji?jlpt=5&limit=1&offset=0
+statusCode: 200
+headers:
+ connection: keep-alive
+ x-dns-prefetch-control: off
+ date: Mon, 27 Oct 2025 18:08:08 GMT
+ x-ratelimit-reset: 42
+ x-ratelimit-limit: 100
+ origin-agent-cluster: ?1
+ vary: Origin
+ strict-transport-security: max-age=31536000; includeSubDomains
+ x-ratelimit-remaining: 92
+ referrer-policy: no-referrer
+ x-permitted-cross-domain-policies: none
+ content-type: application/json; charset=utf-8
+ cross-origin-opener-policy: same-origin
+ x-xss-protection: 0
+ x-request-id: 8760187a-b18e-49c2-8f90-e48caf5ed05a
+ cross-origin-resource-policy: same-origin
+ access-control-allow-credentials: true
+ keep-alive: timeout=5
+ content-length: 366
+ x-download-options: noopen
+ etag: W/"16e-/8YhNZ9CsCCYrVJhU+SvS3Xmnxk"
+ x-frame-options: SAMEORIGIN
+ x-content-type-options: nosniff
+ content-security-policy: default-src 'self';base-uri 'self';font-src 'self' https: data:;form-action 'self';frame-ancestors 'self';img-src 'self' data:;object-src 'none';script-src 'self';script-src-attr 'none';style-src 'self' https: 'unsafe-inline';upgrade-insecure-requests
+Response Text:
+{"statusCode":200,"data":{"data":[{"id":10,"character":"µùÑ","onyomi":"πü½πüíπÇüπüÿπüñ","kunyomi":"πü▓πÇü-πü│πÇü-πüï","meanings":"Day, Sun, Japan, Counter For Days","strokeCount":4,"jlpt":5,"grade":1,"frequency":1,"createdAt":"2025-10-27T18:06:05.309Z","updatedAt":"2025-10-27T18:06:05.309Z"}],"total":32,"limit":1,"offset":0},"timestamp":"2025-10-27T18:08:08.166Z"}
+
+00:00 +5 -6: 3. Kanji Detail Tests - 3.1. Get kanji detail with external APIs [E]
+  Should get kanji list
+  package:matcher                                      fail
+  test\integration\kanji_integration_test.dart 372:42  main.<fn>.<fn>.<fn>
+  package:dartz/src/either.dart 191:63                 Left.fold
+  test\integration\kanji_integration_test.dart 372:24  main.<fn>.<fn>
+  
+00:00 +5 -6: 3. Kanji Detail Tests - 3.2. Get detail for common kanji
+
+============================================================
+  TEST 3.2: GET DETAIL FOR COMMON KANJI
+============================================================
+ΓåÆ Getting detail for: µùÑ
+*** Request ***
+uri: http://localhost:3000/api/kanji/character/%E6%97%A5
+method: GET
+responseType: ResponseType.json
+followRedirects: true
+persistentConnection: true
+connectTimeout: 0:00:30.000000
+sendTimeout: null
+receiveTimeout: 0:00:30.000000
+receiveDataWhenStatusError: true
+extra: {}
+headers:
+ Content-Type: application/json
+ Accept: application/json
+data:
+null
+
+*** Response ***
+uri: http://localhost:3000/api/kanji/character/%E6%97%A5
+statusCode: 200
+headers:
+ connection: keep-alive
+ x-dns-prefetch-control: off
+ date: Mon, 27 Oct 2025 18:08:08 GMT
+ x-ratelimit-reset: 60
+ x-ratelimit-limit: 100
+ origin-agent-cluster: ?1
+ vary: Origin
+ strict-transport-security: max-age=31536000; includeSubDomains
+ x-ratelimit-remaining: 99
+ referrer-policy: no-referrer
+ x-permitted-cross-domain-policies: none
+ content-type: application/json; charset=utf-8
+ cross-origin-opener-policy: same-origin
+ x-xss-protection: 0
+ x-request-id: 580b7ed0-18c6-47ba-a77f-d0ee4a772860
+ cross-origin-resource-policy: same-origin
+ access-control-allow-credentials: true
+ keep-alive: timeout=5
+ content-length: 323
+ x-download-options: noopen
+ etag: W/"143-OalI4CJYJ3Ov24SNbTsEb2IV3TQ"
+ x-frame-options: SAMEORIGIN
+ x-content-type-options: nosniff
+ content-security-policy: default-src 'self';base-uri 'self';font-src 'self' https: data:;form-action 'self';frame-ancestors 'self';img-src 'self' data:;object-src 'none';script-src 'self';script-src-attr 'none';style-src 'self' https: 'unsafe-inline';upgrade-insecure-requests
+Response Text:
+{"statusCode":200,"data":{"id":10,"character":"µùÑ","onyomi":"πü½πüíπÇüπüÿπüñ","kunyomi":"πü▓πÇü-πü│πÇü-πüï","meanings":"Day, Sun, Japan, Counter For Days","strokeCount":4,"jlpt":5,"grade":1,"frequency":1,"createdAt":"2025-10-27T18:06:05.309Z","updatedAt":"2025-10-27T18:06:05.309Z"},"timestamp":"2025-10-27T18:08:08.194Z"}
+
+Γ£ô Γ£ô µùÑ - Day, Sun, Japan, Counter For Days
+ΓåÆ Getting detail for: µ£ê
+*** Request ***
+uri: http://localhost:3000/api/kanji/character/%E6%9C%88
+method: GET
+responseType: ResponseType.json
+followRedirects: true
+persistentConnection: true
+connectTimeout: 0:00:30.000000
+sendTimeout: null
+receiveTimeout: 0:00:30.000000
+receiveDataWhenStatusError: true
+extra: {}
+headers:
+ Content-Type: application/json
+ Accept: application/json
+data:
+null
+
+*** Response ***
+uri: http://localhost:3000/api/kanji/character/%E6%9C%88
+statusCode: 200
+headers:
+ connection: keep-alive
+ x-dns-prefetch-control: off
+ date: Mon, 27 Oct 2025 18:08:09 GMT
+ x-ratelimit-reset: 59
+ x-ratelimit-limit: 100
+ origin-agent-cluster: ?1
+ vary: Origin
+ strict-transport-security: max-age=31536000; includeSubDomains
+ x-ratelimit-remaining: 98
+ referrer-policy: no-referrer
+ x-permitted-cross-domain-policies: none
+ content-type: application/json; charset=utf-8
+ cross-origin-opener-policy: same-origin
+ x-xss-protection: 0
+ x-request-id: f0dfcfd7-923f-421e-933a-91cf17bb8d43
+ cross-origin-resource-policy: same-origin
+ access-control-allow-credentials: true
+ keep-alive: timeout=5
+ content-length: 291
+ x-download-options: noopen
+ etag: W/"123-IGC3e1mzuj2oMMYFQkb/ANZrib4"
+ x-frame-options: SAMEORIGIN
+ x-content-type-options: nosniff
+ content-security-policy: default-src 'self';base-uri 'self';font-src 'self' https: data:;form-action 'self';frame-ancestors 'self';img-src 'self' data:;object-src 'none';script-src 'self';script-src-attr 'none';style-src 'self' https: 'unsafe-inline';upgrade-insecure-requests
+Response Text:
+{"statusCode":200,"data":{"id":11,"character":"µ£ê","onyomi":"πüÆπüñπÇüπüîπüñ","kunyomi":"πüñπüì","meanings":"Month, Moon","strokeCount":4,"jlpt":5,"grade":1,"frequency":23,"createdAt":"2025-10-27T18:06:05.309Z","updatedAt":"2025-10-27T18:06:05.309Z"},"timestamp":"2025-10-27T18:08:09.403Z"}
+
+Γ£ô Γ£ô µ£ê - Month, Moon
+ΓåÆ Getting detail for: µ░┤
+*** Request ***
+uri: http://localhost:3000/api/kanji/character/%E6%B0%B4
+method: GET
+responseType: ResponseType.json
+followRedirects: true
+persistentConnection: true
+connectTimeout: 0:00:30.000000
+sendTimeout: null
+receiveTimeout: 0:00:30.000000
+receiveDataWhenStatusError: true
+extra: {}
+headers:
+ Content-Type: application/json
+ Accept: application/json
+data:
+null
+
+*** Response ***
+uri: http://localhost:3000/api/kanji/character/%E6%B0%B4
+statusCode: 200
+headers:
+ connection: keep-alive
+ x-dns-prefetch-control: off
+ date: Mon, 27 Oct 2025 18:08:10 GMT
+ x-ratelimit-reset: 58
+ x-ratelimit-limit: 100
+ origin-agent-cluster: ?1
+ vary: Origin
+ strict-transport-security: max-age=31536000; includeSubDomains
+ x-ratelimit-remaining: 97
+ referrer-policy: no-referrer
+ x-permitted-cross-domain-policies: none
+ content-type: application/json; charset=utf-8
+ cross-origin-opener-policy: same-origin
+ x-xss-protection: 0
+ x-request-id: 4c186ca6-f942-401c-8406-c2e0ff22462e
+ cross-origin-resource-policy: same-origin
+ access-control-allow-credentials: true
+ keep-alive: timeout=5
+ content-length: 287
+ x-download-options: noopen
+ etag: W/"11f-WvwLHiUApMSlE3jAnXZbNb3F0c4"
+ x-frame-options: SAMEORIGIN
+ x-content-type-options: nosniff
+ content-security-policy: default-src 'self';base-uri 'self';font-src 'self' https: data:;form-action 'self';frame-ancestors 'self';img-src 'self' data:;object-src 'none';script-src 'self';script-src-attr 'none';style-src 'self' https: 'unsafe-inline';upgrade-insecure-requests
+Response Text:
+{"statusCode":200,"data":{"id":13,"character":"µ░┤","onyomi":"πüÖπüä","kunyomi":"πü┐πüÜπÇüπü┐πüÜ-","meanings":"Water","strokeCount":4,"jlpt":5,"grade":1,"frequency":223,"createdAt":"2025-10-27T18:06:05.309Z","updatedAt":"2025-10-27T18:06:05.309Z"},"timestamp":"2025-10-27T18:08:10.343Z"}
+
+Γ£ô Γ£ô µ░┤ - Water
+ΓåÆ Getting detail for: τü½
+*** Request ***
+uri: http://localhost:3000/api/kanji/character/%E7%81%AB
+method: GET
+responseType: ResponseType.json
+followRedirects: true
+persistentConnection: true
+connectTimeout: 0:00:30.000000
+sendTimeout: null
+receiveTimeout: 0:00:30.000000
+receiveDataWhenStatusError: true
+extra: {}
+headers:
+ Content-Type: application/json
+ Accept: application/json
+data:
+null
+
+*** Response ***
+uri: http://localhost:3000/api/kanji/character/%E7%81%AB
+statusCode: 200
+headers:
+ connection: keep-alive
+ x-dns-prefetch-control: off
+ date: Mon, 27 Oct 2025 18:08:11 GMT
+ x-ratelimit-reset: 57
+ x-ratelimit-limit: 100
+ origin-agent-cluster: ?1
+ vary: Origin
+ strict-transport-security: max-age=31536000; includeSubDomains
+ x-ratelimit-remaining: 96
+ referrer-policy: no-referrer
+ x-permitted-cross-domain-policies: none
+ content-type: application/json; charset=utf-8
+ cross-origin-opener-policy: same-origin
+ x-xss-protection: 0
+ x-request-id: d4d47a36-a0dd-4e9c-8ddb-8f868a9f20ff
+ cross-origin-resource-policy: same-origin
+ access-control-allow-credentials: true
+ keep-alive: timeout=5
+ content-length: 284
+ x-download-options: noopen
+ etag: W/"11c-hcKcCRlRD8ZnUJV7JY4R9WVfEHw"
+ x-frame-options: SAMEORIGIN
+ x-content-type-options: nosniff
+ content-security-policy: default-src 'self';base-uri 'self';font-src 'self' https: data:;form-action 'self';frame-ancestors 'self';img-src 'self' data:;object-src 'none';script-src 'self';script-src-attr 'none';style-src 'self' https: 'unsafe-inline';upgrade-insecure-requests
+Response Text:
+{"statusCode":200,"data":{"id":14,"character":"τü½","onyomi":"πüï","kunyomi":"πü▓πÇü-πü│πÇüπü╗-","meanings":"Fire","strokeCount":4,"jlpt":5,"grade":1,"frequency":574,"createdAt":"2025-10-27T18:06:05.309Z","updatedAt":"2025-10-27T18:06:05.309Z"},"timestamp":"2025-10-27T18:08:11.274Z"}
+
+Γ£ô Γ£ô τü½ - Fire
+ΓåÆ Getting detail for: µ£¿
+*** Request ***
+uri: http://localhost:3000/api/kanji/character/%E6%9C%A8
+method: GET
+responseType: ResponseType.json
+followRedirects: true
+persistentConnection: true
+connectTimeout: 0:00:30.000000
+sendTimeout: null
+receiveTimeout: 0:00:30.000000
+receiveDataWhenStatusError: true
+extra: {}
+headers:
+ Content-Type: application/json
+ Accept: application/json
+data:
+null
+
+*** Response ***
+uri: http://localhost:3000/api/kanji/character/%E6%9C%A8
+statusCode: 200
+headers:
+ connection: keep-alive
+ x-dns-prefetch-control: off
+ date: Mon, 27 Oct 2025 18:08:12 GMT
+ x-ratelimit-reset: 56
+ x-ratelimit-limit: 100
+ origin-agent-cluster: ?1
+ vary: Origin
+ strict-transport-security: max-age=31536000; includeSubDomains
+ x-ratelimit-remaining: 95
+ referrer-policy: no-referrer
+ x-permitted-cross-domain-policies: none
+ content-type: application/json; charset=utf-8
+ cross-origin-opener-policy: same-origin
+ x-xss-protection: 0
+ x-request-id: 7bee5c75-818a-423f-8016-9bf36c0ea76f
+ cross-origin-resource-policy: same-origin
+ access-control-allow-credentials: true
+ keep-alive: timeout=5
+ content-length: 295
+ x-download-options: noopen
+ etag: W/"127-1Km3DPWMt/amtjz+nldaSTW3fkk"
+ x-frame-options: SAMEORIGIN
+ x-content-type-options: nosniff
+ content-security-policy: default-src 'self';base-uri 'self';font-src 'self' https: data:;form-action 'self';frame-ancestors 'self';img-src 'self' data:;object-src 'none';script-src 'self';script-src-attr 'none';style-src 'self' https: 'unsafe-inline';upgrade-insecure-requests
+Response Text:
+{"statusCode":200,"data":{"id":12,"character":"µ£¿","onyomi":"πü╝πüÅπÇüπééπüÅ","kunyomi":"πüìπÇüπüô-","meanings":"Tree, Wood","strokeCount":4,"jlpt":5,"grade":1,"frequency":317,"createdAt":"2025-10-27T18:06:05.309Z","updatedAt":"2025-10-27T18:06:05.309Z"},"timestamp":"2025-10-27T18:08:12.203Z"}
+
+Γ£ô Γ£ô µ£¿ - Tree, Wood
+00:05 +6 -6: 3. Kanji Detail Tests - 3.3. Verify caching works for detail
+
+============================================================
+  TEST 3.3: VERIFY DETAIL CACHING
+============================================================
+ΓåÆ First call (from API)...
+*** Request ***
+uri: http://localhost:3000/api/kanji/character/%E6%97%A5
+method: GET
+responseType: ResponseType.json
+followRedirects: true
+persistentConnection: true
+connectTimeout: 0:00:30.000000
+sendTimeout: null
+receiveTimeout: 0:00:30.000000
+receiveDataWhenStatusError: true
+extra: {}
+headers:
+ Content-Type: application/json
+ Accept: application/json
+data:
+null
+
+*** Response ***
+uri: http://localhost:3000/api/kanji/character/%E6%97%A5
+statusCode: 200
+headers:
+ connection: keep-alive
+ x-dns-prefetch-control: off
+ date: Mon, 27 Oct 2025 18:08:13 GMT
+ x-ratelimit-reset: 56
+ x-ratelimit-limit: 100
+ origin-agent-cluster: ?1
+ vary: Origin
+ strict-transport-security: max-age=31536000; includeSubDomains
+ x-ratelimit-remaining: 94
+ referrer-policy: no-referrer
+ x-permitted-cross-domain-policies: none
+ content-type: application/json; charset=utf-8
+ cross-origin-opener-policy: same-origin
+ x-xss-protection: 0
+ x-request-id: 871e6ae9-a6b9-4ca2-8cca-34b993c7ac51
+ cross-origin-resource-policy: same-origin
+ access-control-allow-credentials: true
+ keep-alive: timeout=5
+ content-length: 323
+ x-download-options: noopen
+ etag: W/"143-YzzDtYOzyPSy0R7NqmDTGcsB0gY"
+ x-frame-options: SAMEORIGIN
+ x-content-type-options: nosniff
+ content-security-policy: default-src 'self';base-uri 'self';font-src 'self' https: data:;form-action 'self';frame-ancestors 'self';img-src 'self' data:;object-src 'none';script-src 'self';script-src-attr 'none';style-src 'self' https: 'unsafe-inline';upgrade-insecure-requests
+Response Text:
+{"statusCode":200,"data":{"id":10,"character":"µùÑ","onyomi":"πü½πüíπÇüπüÿπüñ","kunyomi":"πü▓πÇü-πü│πÇü-πüï","meanings":"Day, Sun, Japan, Counter For Days","strokeCount":4,"jlpt":5,"grade":1,"frequency":1,"createdAt":"2025-10-27T18:06:05.309Z","updatedAt":"2025-10-27T18:06:05.309Z"},"timestamp":"2025-10-27T18:08:13.159Z"}
+
+ΓåÆ Second call (from cache)...
+*** Request ***
+uri: http://localhost:3000/api/kanji/character/%E6%97%A5
+method: GET
+responseType: ResponseType.json
+followRedirects: true
+persistentConnection: true
+connectTimeout: 0:00:30.000000
+sendTimeout: null
+receiveTimeout: 0:00:30.000000
+receiveDataWhenStatusError: true
+extra: {}
+headers:
+ Content-Type: application/json
+ Accept: application/json
+data:
+null
+
+*** Response ***
+uri: http://localhost:3000/api/kanji/character/%E6%97%A5
+statusCode: 200
+headers:
+ connection: keep-alive
+ x-dns-prefetch-control: off
+ date: Mon, 27 Oct 2025 18:08:13 GMT
+ x-ratelimit-reset: 55
+ x-ratelimit-limit: 100
+ origin-agent-cluster: ?1
+ vary: Origin
+ strict-transport-security: max-age=31536000; includeSubDomains
+ x-ratelimit-remaining: 93
+ referrer-policy: no-referrer
+ x-permitted-cross-domain-policies: none
+ content-type: application/json; charset=utf-8
+ cross-origin-opener-policy: same-origin
+ x-xss-protection: 0
+ x-request-id: e42f2e1b-2a74-4015-93db-88e00eeffbae
+ cross-origin-resource-policy: same-origin
+ access-control-allow-credentials: true
+ keep-alive: timeout=5
+ content-length: 323
+ x-download-options: noopen
+ etag: W/"143-v37PIb/CNlXDlrgHBy899AeHc08"
+ x-frame-options: SAMEORIGIN
+ x-content-type-options: nosniff
+ content-security-policy: default-src 'self';base-uri 'self';font-src 'self' https: data:;form-action 'self';frame-ancestors 'self';img-src 'self' data:;object-src 'none';script-src 'self';script-src-attr 'none';style-src 'self' https: 'unsafe-inline';upgrade-insecure-requests
+Response Text:
+{"statusCode":200,"data":{"id":10,"character":"µùÑ","onyomi":"πü½πüíπÇüπüÿπüñ","kunyomi":"πü▓πÇü-πü│πÇü-πüï","meanings":"Day, Sun, Japan, Counter For Days","strokeCount":4,"jlpt":5,"grade":1,"frequency":1,"createdAt":"2025-10-27T18:06:05.309Z","updatedAt":"2025-10-27T18:06:05.309Z"},"timestamp":"2025-10-27T18:08:13.274Z"}
+
+Γ£ô First call: 13ms
+Γ£ô Second call: 12ms
+Γ£ô Cache is working! Second call was faster.
+00:05 +7 -6: 4. Admin Operations Tests - 4.1. Create new kanji (Admin only)
+
+============================================================
+  TEST 4.1: CREATE NEW KANJI (ADMIN)
+============================================================
+*** Request ***
+uri: http://localhost:3000/api/kanji
+method: POST
+responseType: ResponseType.json
+followRedirects: true
+persistentConnection: true
+connectTimeout: 0:00:30.000000
+sendTimeout: null
+receiveTimeout: 0:00:30.000000
+receiveDataWhenStatusError: true
+extra: {}
+headers:
+ Content-Type: application/json
+ Accept: application/json
+data:
+{character: µ╝ó, meanings: China, Han, onReadings: πé½πâ│, kunReadings: πüïπéë, jlptLevel: 4, grade: 3, strokeCount: 13, frequency: 150, tags: [country, culture]}
+
+*** DioException ***:
+uri: http://localhost:3000/api/kanji
+DioException [bad response]: This exception was thrown because the response has a status code of 401 and RequestOptions.validateStatus was configured to throw for this status code.
+The status code of 401 has the following meaning: "Client error - the request contains bad syntax or cannot be fulfilled"
+Read more about status codes at https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
+In order to resolve this exception you typically have either to verify and fix your request code or you have to fix the server code.
+
+uri: http://localhost:3000/api/kanji
+statusCode: 401
+headers:
+ connection: keep-alive
+ x-dns-prefetch-control: off
+ date: Mon, 27 Oct 2025 18:08:13 GMT
+ x-ratelimit-reset: 60
+ x-ratelimit-limit: 100
+ origin-agent-cluster: ?1
+ vary: Origin
+ strict-transport-security: max-age=31536000; includeSubDomains
+ x-ratelimit-remaining: 99
+ referrer-policy: no-referrer
+ x-permitted-cross-domain-policies: none
+ content-type: application/json; charset=utf-8
+ cross-origin-opener-policy: same-origin
+ x-xss-protection: 0
+ x-request-id: 66c70190-ac59-4632-b789-34a0471d0fe9
+ cross-origin-resource-policy: same-origin
+ access-control-allow-credentials: true
+ keep-alive: timeout=5
+ content-length: 80
+ x-download-options: noopen
+ etag: W/"50-v5xKd7FXHHP+XeDKJNcGakRTjwo"
+ x-frame-options: SAMEORIGIN
+ x-content-type-options: nosniff
+ content-security-policy: default-src 'self';base-uri 'self';font-src 'self' https: data:;form-action 'self';frame-ancestors 'self';img-src 'self' data:;object-src 'none';script-src 'self';script-src-attr 'none';style-src 'self' https: 'unsafe-inline';upgrade-insecure-requests
+Response Text:
+{"statusCode":401,"timestamp":"2025-10-27T18:08:13.307Z","error":"Unauthorized"}
+
+
+ΓåÆ Failed (expected if not admin): Failed to create kanji: Unauthorized
+00:05 +8 -6: 4. Admin Operations Tests - 4.2. Update kanji (Admin only)
+
+============================================================
+  TEST 4.2: UPDATE KANJI (ADMIN)
+============================================================
+*** Request ***
+uri: http://localhost:3000/api/kanji?limit=1&offset=0
+method: GET
+responseType: ResponseType.json
+followRedirects: true
+persistentConnection: true
+connectTimeout: 0:00:30.000000
+sendTimeout: null
+receiveTimeout: 0:00:30.000000
+receiveDataWhenStatusError: true
+extra: {}
+headers:
+ Content-Type: application/json
+ Accept: application/json
+data:
+null
+
+*** Response ***
+uri: http://localhost:3000/api/kanji?limit=1&offset=0
+statusCode: 200
+headers:
+ connection: keep-alive
+ x-dns-prefetch-control: off
+ date: Mon, 27 Oct 2025 18:08:13 GMT
+ x-ratelimit-reset: 37
+ x-ratelimit-limit: 100
+ origin-agent-cluster: ?1
+ vary: Origin
+ strict-transport-security: max-age=31536000; includeSubDomains
+ x-ratelimit-remaining: 91
+ referrer-policy: no-referrer
+ x-permitted-cross-domain-policies: none
+ content-type: application/json; charset=utf-8
+ cross-origin-opener-policy: same-origin
+ x-xss-protection: 0
+ x-request-id: 13df7c30-a9c8-467d-a24d-46007e2e9be0
+ cross-origin-resource-policy: same-origin
+ access-control-allow-credentials: true
+ keep-alive: timeout=5
+ content-length: 367
+ x-download-options: noopen
+ etag: W/"16f-mvUpPXG33ZzV3AX3A5UqbthBocs"
+ x-frame-options: SAMEORIGIN
+ x-content-type-options: nosniff
+ content-security-policy: default-src 'self';base-uri 'self';font-src 'self' https: data:;form-action 'self';frame-ancestors 'self';img-src 'self' data:;object-src 'none';script-src 'self';script-src-attr 'none';style-src 'self' https: 'unsafe-inline';upgrade-insecure-requests
+Response Text:
+{"statusCode":200,"data":{"data":[{"id":10,"character":"µùÑ","onyomi":"πü½πüíπÇüπüÿπüñ","kunyomi":"πü▓πÇü-πü│πÇü-πüï","meanings":"Day, Sun, Japan, Counter For Days","strokeCount":4,"jlpt":5,"grade":1,"frequency":1,"createdAt":"2025-10-27T18:06:05.309Z","updatedAt":"2025-10-27T18:06:05.309Z"}],"total":100,"limit":1,"offset":0},"timestamp":"2025-10-27T18:08:13.333Z"}
+
+00:05 +8 -7: 4. Admin Operations Tests - 4.2. Update kanji (Admin only) [E]
+  Should get kanji list
+  package:matcher                                      fail
+  test\integration\kanji_integration_test.dart 540:42  main.<fn>.<fn>.<fn>
+  package:dartz/src/either.dart 191:63                 Left.fold
+  test\integration\kanji_integration_test.dart 540:24  main.<fn>.<fn>
+  
+00:05 +8 -7: 4. Admin Operations Tests - 4.3. Delete kanji (Admin only)
+
+============================================================
+  TEST 4.3: DELETE KANJI (ADMIN)
+============================================================
+*** Request ***
+uri: http://localhost:3000/api/kanji/99999
+method: DELETE
+responseType: ResponseType.json
+followRedirects: true
+persistentConnection: true
+connectTimeout: 0:00:30.000000
+sendTimeout: null
+receiveTimeout: 0:00:30.000000
+receiveDataWhenStatusError: true
+extra: {}
+headers:
+ Content-Type: application/json
+ Accept: application/json
+data:
+null
+
+*** DioException ***:
+uri: http://localhost:3000/api/kanji/99999
+DioException [bad response]: This exception was thrown because the response has a status code of 401 and RequestOptions.validateStatus was configured to throw for this status code.
+The status code of 401 has the following meaning: "Client error - the request contains bad syntax or cannot be fulfilled"
+Read more about status codes at https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
+In order to resolve this exception you typically have either to verify and fix your request code or you have to fix the server code.
+
+uri: http://localhost:3000/api/kanji/99999
+statusCode: 401
+headers:
+ connection: keep-alive
+ x-dns-prefetch-control: off
+ date: Mon, 27 Oct 2025 18:08:13 GMT
+ x-ratelimit-reset: 60
+ x-ratelimit-limit: 100
+ origin-agent-cluster: ?1
+ vary: Origin
+ strict-transport-security: max-age=31536000; includeSubDomains
+ x-ratelimit-remaining: 99
+ referrer-policy: no-referrer
+ x-permitted-cross-domain-policies: none
+ content-type: application/json; charset=utf-8
+ cross-origin-opener-policy: same-origin
+ x-xss-protection: 0
+ x-request-id: ba08b428-307a-4b71-830e-e06ac473049c
+ cross-origin-resource-policy: same-origin
+ access-control-allow-credentials: true
+ keep-alive: timeout=5
+ content-length: 80
+ x-download-options: noopen
+ etag: W/"50-vNRMEQCbTFuHCP7C0xkOvUWeZ3I"
+ x-frame-options: SAMEORIGIN
+ x-content-type-options: nosniff
+ content-security-policy: default-src 'self';base-uri 'self';font-src 'self' https: data:;form-action 'self';frame-ancestors 'self';img-src 'self' data:;object-src 'none';script-src 'self';script-src-attr 'none';style-src 'self' https: 'unsafe-inline';upgrade-insecure-requests
+Response Text:
+{"statusCode":401,"timestamp":"2025-10-27T18:08:13.368Z","error":"Unauthorized"}
+
+
+ΓåÆ Failed (expected): Failed to delete kanji: Unauthorized
+00:05 +9 -7: 5. Error Handling Tests - 5.1. Handle invalid character
+
+============================================================
+  TEST 5.1: HANDLE INVALID CHARACTER
+============================================================
+*** Request ***
+uri: http://localhost:3000/api/kanji/character/ABC123
+method: GET
+responseType: ResponseType.json
+followRedirects: true
+persistentConnection: true
+connectTimeout: 0:00:30.000000
+sendTimeout: null
+receiveTimeout: 0:00:30.000000
+receiveDataWhenStatusError: true
+extra: {}
+headers:
+ Content-Type: application/json
+ Accept: application/json
+data:
+null
+
+*** DioException ***:
+uri: http://localhost:3000/api/kanji/character/ABC123
+DioException [bad response]: This exception was thrown because the response has a status code of 404 and RequestOptions.validateStatus was configured to throw for this status code.
+The status code of 404 has the following meaning: "Client error - the request contains bad syntax or cannot be fulfilled"
+Read more about status codes at https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
+In order to resolve this exception you typically have either to verify and fix your request code or you have to fix the server code.
+
+uri: http://localhost:3000/api/kanji/character/ABC123
+statusCode: 404
+headers:
+ connection: keep-alive
+ x-dns-prefetch-control: off
+ date: Mon, 27 Oct 2025 18:08:13 GMT
+ x-ratelimit-reset: 55
+ x-ratelimit-limit: 100
+ origin-agent-cluster: ?1
+ vary: Origin
+ strict-transport-security: max-age=31536000; includeSubDomains
+ x-ratelimit-remaining: 92
+ referrer-policy: no-referrer
+ x-permitted-cross-domain-policies: none
+ content-type: application/json; charset=utf-8
+ cross-origin-opener-policy: same-origin
+ x-xss-protection: 0
+ x-request-id: e3b95b54-ea3c-4969-b88a-cd2614179e83
+ cross-origin-resource-policy: same-origin
+ access-control-allow-credentials: true
+ keep-alive: timeout=5
+ content-length: 90
+ x-download-options: noopen
+ etag: W/"5a-ihCFu8GtTftP39/HDB1mguZlb+U"
+ x-frame-options: SAMEORIGIN
+ x-content-type-options: nosniff
+ content-security-policy: default-src 'self';base-uri 'self';font-src 'self' https: data:;form-action 'self';frame-ancestors 'self';img-src 'self' data:;object-src 'none';script-src 'self';script-src-attr 'none';style-src 'self' https: 'unsafe-inline';upgrade-insecure-requests
+Response Text:
+{"statusCode":404,"timestamp":"2025-10-27T18:08:13.396Z","error":"Kanji ABC123 not found"}
+
+
+Γ£ô Correctly failed with: Failed to get kanji by character: DioException [bad response]: This exception was thrown because the response has a status code of 404 and RequestOptions.validateStatus was configured to throw for this status code.
+The status code of 404 has the following meaning: "Client error - the request contains bad syntax or cannot be fulfilled"
+Read more about status codes at https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
+In order to resolve this exception you typically have either to verify and fix your request code or you have to fix the server code.
+
+00:05 +10 -7: 5. Error Handling Tests - 5.2. Handle empty search query
+
+============================================================
+  TEST 5.2: HANDLE EMPTY SEARCH
+============================================================
+*** Request ***
+uri: http://localhost:3000/api/kanji/search?page=1&limit=10&query=
+method: GET
+responseType: ResponseType.json
+followRedirects: true
+persistentConnection: true
+connectTimeout: 0:00:30.000000
+sendTimeout: null
+receiveTimeout: 0:00:30.000000
+receiveDataWhenStatusError: true
+extra: {}
+headers:
+ Content-Type: application/json
+ Accept: application/json
+data:
+null
+
+*** Response ***
+uri: http://localhost:3000/api/kanji/search?page=1&limit=10&query=
+statusCode: 200
+headers:
+ connection: keep-alive
+ x-dns-prefetch-control: off
+ date: Mon, 27 Oct 2025 18:08:13 GMT
+ x-ratelimit-reset: 55
+ x-ratelimit-limit: 100
+ origin-agent-cluster: ?1
+ vary: Origin
+ strict-transport-security: max-age=31536000; includeSubDomains
+ x-ratelimit-remaining: 94
+ referrer-policy: no-referrer
+ x-permitted-cross-domain-policies: none
+ content-type: application/json; charset=utf-8
+ cross-origin-opener-policy: same-origin
+ x-xss-protection: 0
+ x-request-id: 30b222b0-83de-49e6-a5fa-b3b76c1ffec9
+ cross-origin-resource-policy: same-origin
+ access-control-allow-credentials: true
+ keep-alive: timeout=5
+ content-length: 2731
+ x-download-options: noopen
+ etag: W/"aab-gXeEMu161ANIFcHLZX/6UlRNtqU"
+ x-frame-options: SAMEORIGIN
+ x-content-type-options: nosniff
+ content-security-policy: default-src 'self';base-uri 'self';font-src 'self' https: data:;form-action 'self';frame-ancestors 'self';img-src 'self' data:;object-src 'none';script-src 'self';script-src-attr 'none';style-src 'self' https: 'unsafe-inline';upgrade-insecure-requests
+Response Text:
+{"statusCode":200,"data":{"data":[{"id":10,"character":"µùÑ","onyomi":"πü½πüíπÇüπüÿπüñ","kunyomi":"πü▓πÇü-πü│πÇü-πüï","meanings":"Day, Sun, Japan, Counter For Days","strokeCount":4,"jlpt":5,"grade":1,"frequency":1,"createdAt":"2025-10-27T18:06:05.309Z","updatedAt":"2025-10-27T18:06:05.309Z"},{"id":1,"character":"Σ╕Ç","onyomi":"πüäπüíπÇüπüäπüñ","kunyomi":"πü▓πü¿-πÇüπü▓πü¿.πüñ","meanings":"One, One Radical (no.1)","strokeCount":1,"jlpt":5,"grade":1,"frequency":2,"createdAt":"2025-10-27T18:06:05.309Z","updatedAt":"2025-10-27T18:06:05.309Z"},{"id":6,"character":"σìü","onyomi":"πüÿπéàπüåπÇüπüÿπüúπÇüπüÿπéàπüú","kunyomi":"πü¿πüèπÇüπü¿","meanings":"Ten","strokeCount":2,"jlpt":5,"grade":1,"frequency":8,"createdAt":"2025-10-27T18:06:05.309Z","updatedAt":"2025-10-27T18:06:05.309Z"},{"id":2,"character":"Σ║î","onyomi":"πü½πÇüπüÿ","kunyomi":"πü╡πüƒπÇüπü╡πüƒ.πüñπÇüπü╡πüƒπüƒπü│","meanings":"Two, Two Radical (no. 7)","strokeCount":2,"jlpt":5,"grade":1,"frequency":9,"createdAt":"2025-10-27T18:06:05.309Z","updatedAt":"2025-10-27T18:06:05.309Z"},{"id":29,"character":"Θò╖","onyomi":"πüíπéçπüå","kunyomi":"πü¬πüî.πüäπÇüπüèπüò","meanings":"Long, Leader, Superior, Senior","strokeCount":8,"jlpt":5,"grade":2,"frequency":12,"createdAt":"2025-10-27T18:06:05.428Z","updatedAt":"2025-10-27T18:06:05.428Z"},{"id":7,"character":"Σ╕ë","onyomi":"πüòπéôπÇüπü₧πüå","kunyomi":"πü┐πÇüπü┐.πüñπÇüπü┐πüú.πüñ","meanings":"Three","strokeCount":3,"jlpt":5,"grade":1,"frequency":14,"createdAt":"2025-10-27T18:06:05.309Z","updatedAt":"2025-10-27T18:06:05.309Z"},{"id":35,"character":"Φç¬","onyomi":"πüÿπÇüπüù","kunyomi":"πü┐πüÜπüï.πéëπÇüπüèπü«.πüÜπüïπéëπÇüπüèπü«.πüÜπü¿","meanings":"Oneself","strokeCount":6,"jlpt":4,"grade":2,"frequency":19,"createdAt":"2025-10-27T18:06:05.428Z","updatedAt":"2025-10-27T18:06:05.428Z"},{"id":16,"character":"Φíî","onyomi":"πüôπüåπÇüπüÄπéçπüåπÇüπüéπéô","kunyomi":"πüä.πüÅπÇüπéå.πüÅπÇü-πéå.πüìπÇü-πéåπüìπÇü-πüä.πüìπÇü-πüäπüìπÇüπüèπüôπü¬.πüåπÇüπüèπüô.πü¬πüå","meanings":"Going, Journey, Carry Out, Conduct, Act, Line, Row, Bank","strokeCount":6,"jlpt":5,"grade":2,"frequency":20,"createdAt":"2025-10-27T18:06:05.309Z","updatedAt":"2025-10-27T18:06:05.309Z"},{"id":38,"character":"τñ╛","onyomi":"πüùπéâ","kunyomi":"πéäπüùπéì","meanings":"Company, Firm, Office, Association, Shrine","strokeCount":7,"jlpt":4,"grade":2,"frequency":21,"createdAt":"2025-10-27T18:06:05.428Z","updatedAt":"2025-10-27T18:06:05.428Z"},{"id":11,"character":"µ£ê","onyomi":"πüÆπüñπÇüπüîπüñ","kunyomi":"πüñπüì","meanings":"Month, Moon","strokeCount":4,"jlpt":5,"grade":1,"frequency":23,"createdAt":"2025-10-27T18:06:05.309Z","updatedAt":"2025-10-27T18:06:05.309Z"}],"total":100,"page":1,"limit":10,"totalPages":10},"timestamp":"2025-10-27T18:08:13.424Z"}
+
+Γ£ô Returned results for empty query
+00:05 +11 -7: 5. Error Handling Tests - 5.3. Handle large page number
+
+============================================================
+  TEST 5.3: HANDLE LARGE PAGE NUMBER
+============================================================
+*** Request ***
+uri: http://localhost:3000/api/kanji/search?page=9999&limit=10
+method: GET
+responseType: ResponseType.json
+followRedirects: true
+persistentConnection: true
+connectTimeout: 0:00:30.000000
+sendTimeout: null
+receiveTimeout: 0:00:30.000000
+receiveDataWhenStatusError: true
+extra: {}
+headers:
+ Content-Type: application/json
+ Accept: application/json
+data:
+null
+
+*** Response ***
+uri: http://localhost:3000/api/kanji/search?page=9999&limit=10
+statusCode: 200
+headers:
+ connection: keep-alive
+ x-dns-prefetch-control: off
+ date: Mon, 27 Oct 2025 18:08:13 GMT
+ x-ratelimit-reset: 55
+ x-ratelimit-limit: 100
+ origin-agent-cluster: ?1
+ vary: Origin
+ strict-transport-security: max-age=31536000; includeSubDomains
+ x-ratelimit-remaining: 93
+ referrer-policy: no-referrer
+ x-permitted-cross-domain-policies: none
+ content-type: application/json; charset=utf-8
+ cross-origin-opener-policy: same-origin
+ x-xss-protection: 0
+ x-request-id: fafae6a6-bd77-41a1-85c8-08cc14bfcc3c
+ cross-origin-resource-policy: same-origin
+ access-control-allow-credentials: true
+ keep-alive: timeout=5
+ content-length: 127
+ x-download-options: noopen
+ etag: W/"7f-RnmL+w6I5JNziUa+3iwsN6k5mZc"
+ x-frame-options: SAMEORIGIN
+ x-content-type-options: nosniff
+ content-security-policy: default-src 'self';base-uri 'self';font-src 'self' https: data:;form-action 'self';frame-ancestors 'self';img-src 'self' data:;object-src 'none';script-src 'self';script-src-attr 'none';style-src 'self' https: 'unsafe-inline';upgrade-insecure-requests
+Response Text:
+{"statusCode":200,"data":{"data":[],"total":100,"page":9999,"limit":10,"totalPages":10},"timestamp":"2025-10-27T18:08:13.452Z"}
+
+Γ£ô Handled large page number, returned 0 results
+00:05 +12 -7: 5. Error Handling Tests - 5.4. Handle invalid stroke range
+
+============================================================
+  TEST 5.4: HANDLE INVALID STROKE RANGE
+============================================================
+*** Request ***
+uri: http://localhost:3000/api/kanji/search?page=1&limit=10&minStrokes=20&maxStrokes=5
+method: GET
+responseType: ResponseType.json
+followRedirects: true
+persistentConnection: true
+connectTimeout: 0:00:30.000000
+sendTimeout: null
+receiveTimeout: 0:00:30.000000
+receiveDataWhenStatusError: true
+extra: {}
+headers:
+ Content-Type: application/json
+ Accept: application/json
+data:
+null
+
+*** Response ***
+uri: http://localhost:3000/api/kanji/search?page=1&limit=10&minStrokes=20&maxStrokes=5
+statusCode: 200
+headers:
+ connection: keep-alive
+ x-dns-prefetch-control: off
+ date: Mon, 27 Oct 2025 18:08:13 GMT
+ x-ratelimit-reset: 55
+ x-ratelimit-limit: 100
+ origin-agent-cluster: ?1
+ vary: Origin
+ strict-transport-security: max-age=31536000; includeSubDomains
+ x-ratelimit-remaining: 92
+ referrer-policy: no-referrer
+ x-permitted-cross-domain-policies: none
+ content-type: application/json; charset=utf-8
+ cross-origin-opener-policy: same-origin
+ x-xss-protection: 0
+ x-request-id: 5789a423-9512-4db4-9161-857212ef9b2f
+ cross-origin-resource-policy: same-origin
+ access-control-allow-credentials: true
+ keep-alive: timeout=5
+ content-length: 121
+ x-download-options: noopen
+ etag: W/"79-iv7ZNja8hdavY13/y2kbvik9zwg"
+ x-frame-options: SAMEORIGIN
+ x-content-type-options: nosniff
+ content-security-policy: default-src 'self';base-uri 'self';font-src 'self' https: data:;form-action 'self';frame-ancestors 'self';img-src 'self' data:;object-src 'none';script-src 'self';script-src-attr 'none';style-src 'self' https: 'unsafe-inline';upgrade-insecure-requests
+Response Text:
+{"statusCode":200,"data":{"data":[],"total":0,"page":1,"limit":10,"totalPages":0},"timestamp":"2025-10-27T18:08:13.487Z"}
+
+Γ£ô Returned 0 results
+00:05 +13 -7: 6. Performance Tests - 6.1. List performance test
+
+============================================================
+  TEST 6.1: LIST PERFORMANCE
+============================================================
+*** Request ***
+uri: http://localhost:3000/api/kanji?limit=50&offset=0
+method: GET
+responseType: ResponseType.json
+followRedirects: true
+persistentConnection: true
+connectTimeout: 0:00:30.000000
+sendTimeout: null
+receiveTimeout: 0:00:30.000000
+receiveDataWhenStatusError: true
+extra: {}
+headers:
+ Content-Type: application/json
+ Accept: application/json
+data:
+null
+
+*** Response ***
+uri: http://localhost:3000/api/kanji?limit=50&offset=0
+statusCode: 200
+headers:
+ connection: keep-alive
+ x-dns-prefetch-control: off
+ date: Mon, 27 Oct 2025 18:08:13 GMT
+ x-ratelimit-reset: 37
+ x-ratelimit-limit: 100
+ origin-agent-cluster: ?1
+ vary: Origin
+ strict-transport-security: max-age=31536000; includeSubDomains
+ x-ratelimit-remaining: 90
+ referrer-policy: no-referrer
+ x-permitted-cross-domain-policies: none
+ content-type: application/json; charset=utf-8
+ cross-origin-opener-policy: same-origin
+ x-xss-protection: 0
+ x-request-id: 3268ee15-ac21-4a9d-b960-5744bff12416
+ cross-origin-resource-policy: same-origin
+ access-control-allow-credentials: true
+ keep-alive: timeout=5
+ content-length: 13197
+ x-download-options: noopen
+ etag: W/"338d-lZrdxMS6f37C9myq2eDzhodGKRY"
+ x-frame-options: SAMEORIGIN
+ x-content-type-options: nosniff
+ content-security-policy: default-src 'self';base-uri 'self';font-src 'self' https: data:;form-action 'self';frame-ancestors 'self';img-src 'self' data:;object-src 'none';script-src 'self';script-src-attr 'none';style-src 'self' https: 'unsafe-inline';upgrade-insecure-requests
+Response Text:
+{"statusCode":200,"data":{"data":[{"id":10,"character":"µùÑ","onyomi":"πü½πüíπÇüπüÿπüñ","kunyomi":"πü▓πÇü-πü│πÇü-πüï","meanings":"Day, Sun, Japan, Counter For Days","strokeCount":4,"jlpt":5,"grade":1,"frequency":1,"createdAt":"2025-10-27T18:06:05.309Z","updatedAt":"2025-10-27T18:06:05.309Z"},{"id":1,"character":"Σ╕Ç","onyomi":"πüäπüíπÇüπüäπüñ","kunyomi":"πü▓πü¿-πÇüπü▓πü¿.πüñ","meanings":"One, One Radical (no.1)","strokeCount":1,"jlpt":5,"grade":1,"frequency":2,"createdAt":"2025-10-27T18:06:05.309Z","updatedAt":"2025-10-27T18:06:05.309Z"},{"id":6,"character":"σìü","onyomi":"πüÿπéàπüåπÇüπüÿπüúπÇüπüÿπéàπüú","kunyomi":"πü¿πüèπÇüπü¿","meanings":"Ten","strokeCount":2,"jlpt":5,"grade":1,"frequency":8,"createdAt":"2025-10-27T18:06:05.309Z","updatedAt":"2025-10-27T18:06:05.309Z"},{"id":2,"character":"Σ║î","onyomi":"πü½πÇüπüÿ","kunyomi":"πü╡πüƒπÇüπü╡πüƒ.πüñπÇüπü╡πüƒπüƒπü│","meanings":"Two, Two Radical (no. 7)","strokeCount":2,"jlpt":5,"grade":1,"frequency":9,"createdAt":"2025-10-27T18:06:05.309Z","updatedAt":"2025-10-27T18:06:05.309Z"},{"id":29,"character":"Θò╖","onyomi":"πüíπéçπüå","kunyomi":"πü¬πüî.πüäπÇüπüèπüò","meanings":"Long, Leader, Superior, Senior","strokeCount":8,"jlpt":5,"grade":2,"frequency":12,"createdAt":"2025-10-27T18:06:05.428Z","updatedAt":"2025-10-27T18:06:05.428Z"},{"id":7,"character":"Σ╕ë","onyomi":"πüòπéôπÇüπü₧πüå","kunyomi":"πü┐πÇüπü┐.πüñπÇüπü┐πüú.πüñ","meanings":"Three","strokeCount":3,"jlpt":5,"grade":1,"frequency":14,"createdAt":"2025-10-27T18:06:05.309Z","updatedAt":"2025-10-27T18:06:05.309Z"},{"id":35,"character":"Φç¬","onyomi":"πüÿπÇüπüù","kunyomi":"πü┐πüÜπüï.πéëπÇüπüèπü«.πüÜπüïπéëπÇüπüèπü«.πüÜπü¿","meanings":"Oneself","strokeCount":6,"jlpt":4,"grade":2,"frequency":19,"createdAt":"2025-10-27T18:06:05.428Z","updatedAt":"2025-10-27T18:06:05.428Z"},{"id":16,"character":"Φíî","onyomi":"πüôπüåπÇüπüÄπéçπüåπÇüπüéπéô","kunyomi":"πüä.πüÅπÇüπéå.πüÅπÇü-πéå.πüìπÇü-πéåπüìπÇü-πüä.πüìπÇü-πüäπüìπÇüπüèπüôπü¬.πüåπÇüπüèπüô.πü¬πüå","meanings":"Going, Journey, Carry Out, Conduct, Act, Line, Row, Bank","strokeCount":6,"jlpt":5,"grade":2,"frequency":20,"createdAt":"2025-10-27T18:06:05.309Z","updatedAt":"2025-10-27T18:06:05.309Z"},{"id":38,"character":"τñ╛","onyomi":"πüùπéâ","kunyomi":"πéäπüùπéì","meanings":"Company, Firm, Office, Association, Shrine","strokeCount":7,"jlpt":4,"grade":2,"frequency":21,"createdAt":"2025-10-27T18:06:05.428Z","updatedAt":"2025-10-27T18:06:05.428Z"},{"id":11,"character":"µ£ê","onyomi":"πüÆπüñπÇüπüîπüñ","kunyomi":"πüñπüì","meanings":"Month, Moon","strokeCount":4,"jlpt":5,"grade":1,"frequency":23,"createdAt":"2025-10-27T18:06:05.309Z","updatedAt":"2025-10-27T18:06:05.309Z"},{"id":19,"character":"σ╛î","onyomi":"πüöπÇüπüôπüå","kunyomi":"πü«πüíπÇüπüåπüù.πéìπÇüπüåπüùπéìπÇüπüéπü¿πÇüπüèπüÅ.πéîπéï","meanings":"Behind, Back, Later","strokeCount":9,"jlpt":5,"grade":2,"frequency":26,"createdAt":"2025-10-27T18:06:05.309Z","updatedAt":"2025-10-27T18:06:05.309Z"},{"id":8,"character":"Σ║ö","onyomi":"πüö","kunyomi":"πüäπüñπÇüπüäπüñ.πüñ","meanings":"Five","strokeCount":4,"jlpt":5,"grade":1,"frequency":31,"createdAt":"2025-10-27T18:06:05.309Z","updatedAt":"2025-10-27T18:06:05.309Z"},{"id":15,"character":"σ¢¢","onyomi":"πüù","kunyomi":"πéêπÇüπéê.πüñπÇüπéêπüú.πüñπÇüπéêπéô","meanings":"Four","strokeCount":5,"jlpt":5,"grade":1,"frequency":47,"createdAt":"2025-10-27T18:06:05.309Z","updatedAt":"2025-10-27T18:06:05.309Z"},{"id":3,"character":"Σ╣¥","onyomi":"πüìπéàπüåπÇüπüÅ","kunyomi":"πüôπüôπü«πÇüπüôπüôπü«.πüñ","meanings":"Nine","strokeCount":2,"jlpt":5,"grade":1,"frequency":55,"createdAt":"2025-10-27T18:06:05.309Z","updatedAt":"2025-10-27T18:06:05.309Z"},{"id":21,"character":"Θ½ÿ","onyomi":"πüôπüå","kunyomi":"πüƒπüï.πüäπÇüπüƒπüïπÇü-πüáπüïπÇüπüƒπüï.πü╛πéïπÇüπüƒπüï.πéüπéï","meanings":"Tall, High, Expensive","strokeCount":10,"jlpt":5,"grade":2,"frequency":65,"createdAt":"2025-10-27T18:06:05.428Z","updatedAt":"2025-10-27T18:06:05.428Z"},{"id":39,"character":"Σ╗ú","onyomi":"πüáπüäπÇüπüƒπüä","kunyomi":"πüï.πéÅπéïπÇüπüïπéÅ.πéïπÇüπüïπéÅ.πéèπÇüπüï.πéÅπéèπÇü-πüîπéÅ.πéèπÇü-πüî.πéÅπéèπÇüπüï.πüêπéïπÇüπéêπÇüπüùπéì","meanings":"Substitute, Change, Convert, Replace, Period, Age, Counter For Decades Of Ages, Eras, Etc., Generation, Charge, Rate, Fee","strokeCount":5,"jlpt":4,"grade":3,"frequency":66,"createdAt":"2025-10-27T18:06:05.428Z","updatedAt":"2025-10-27T18:06:05.428Z"},{"id":57,"character":"σ«ƒ","onyomi":"πüÿπüñπÇüπüùπüñ","kunyomi":"πü┐πÇüπü┐πü«.πéïπÇüπü╛πüôπü¿πÇüπü┐πü«πÇüπü┐πüí.πéï","meanings":"Reality, Truth","strokeCount":8,"jlpt":3,"grade":3,"frequency":68,"createdAt":"2025-10-27T18:06:05.549Z","updatedAt":"2025-10-27T18:06:05.549Z"},{"id":90,"character":"µ░Å","onyomi":"πüù","kunyomi":"πüåπüÿπÇü-πüåπüÿ","meanings":"Family Name, Surname, Clan","strokeCount":4,"jlpt":1,"grade":4,"frequency":84,"createdAt":"2025-10-27T18:06:05.772Z","updatedAt":"2025-10-27T18:06:05.772Z"},{"id":5,"character":"σà½","onyomi":"πü»πüí","kunyomi":"πéäπÇüπéä.πüñπÇüπéäπüú.πüñπÇüπéêπüå","meanings":"Eight, Eight Radical (no. 12)","strokeCount":2,"jlpt":5,"grade":1,"frequency":92,"createdAt":"2025-10-27T18:06:05.309Z","updatedAt":"2025-10-27T18:06:05.309Z"},{"id":9,"character":"σà¡","onyomi":"πéìπüÅπÇüπéèπüÅ","kunyomi":"πéÇπÇüπéÇ.πüñπÇüπéÇπüú.πüñπÇüπéÇπüä","meanings":"Six","strokeCount":4,"jlpt":5,"grade":1,"frequency":93,"createdAt":"2025-10-27T18:06:05.309Z","updatedAt":"2025-10-27T18:06:05.309Z"},{"id":26,"character":"Σ╕ï","onyomi":"πüïπÇüπüÆ","kunyomi":"πüùπüƒπÇüπüùπééπÇüπééπü¿πÇüπüò.πüÆπéïπÇüπüò.πüîπéïπÇüπüÅπüá.πéïπÇüπüÅπüá.πéèπÇüπüÅπüá.πüÖπÇü-πüÅπüá.πüÖπÇüπüÅπüá.πüòπéïπÇüπüè.πéìπüÖπÇüπüè.πéèπéï","meanings":"Below, Down, Descend, Give, Low, Inferior","strokeCount":3,"jlpt":5,"grade":1,"frequency":97,"createdAt":"2025-10-27T18:06:05.428Z","updatedAt":"2025-10-27T18:06:05.428Z"},{"id":58,"character":"Φªü","onyomi":"πéêπüå","kunyomi":"πüä.πéïπÇüπüïπü¬πéü","meanings":"Need, Main Point, Essence, Pivot, Key To","strokeCount":9,"jlpt":3,"grade":4,"frequency":106,"createdAt":"2025-10-27T18:06:05.549Z","updatedAt":"2025-10-27T18:06:05.549Z"},{"id":4,"character":"Σ╕â","onyomi":"πüùπüí","kunyomi":"πü¬πü¬πÇüπü¬πü¬.πüñπÇüπü¬πü«","meanings":"Seven","strokeCount":2,"jlpt":5,"grade":1,"frequency":115,"createdAt":"2025-10-27T18:06:05.309Z","updatedAt":"2025-10-27T18:06:05.309Z"},{"id":17,"character":"σ▒▒","onyomi":"πüòπéôπÇüπü¢πéô","kunyomi":"πéäπü╛","meanings":"Mountain","strokeCount":3,"jlpt":5,"grade":1,"frequency":131,"createdAt":"2025-10-27T18:06:05.309Z","updatedAt":"2025-10-27T18:06:05.309Z"},{"id":32,"character":"Φ⌐▒","onyomi":"πéÅ","kunyomi":"πü»πü¬.πüÖπÇüπü»πü¬πüù","meanings":"Tale, Talk","strokeCount":13,"jlpt":5,"grade":2,"frequency":134,"createdAt":"2025-10-27T18:06:05.428Z","updatedAt":"2025-10-27T18:06:05.428Z"},{"id":60,"character":"σÅù","onyomi":"πüÿπéà","kunyomi":"πüå.πüæπéïπÇü-πüå.πüæπÇüπüå.πüïπéï","meanings":"Accept, Undergo, Answer (phone), Take, Get, Catch, Receive","strokeCount":8,"jlpt":3,"grade":3,"frequency":136,"createdAt":"2025-10-27T18:06:05.549Z","updatedAt":"2025-10-27T18:06:05.549Z"},{"id":44,"character":"σñÜ","onyomi":"πüƒ","kunyomi":"πüèπüè.πüäπÇüπü╛πüò.πü½πÇüπü╛πüò.πéï","meanings":"Many, Frequent, Much","strokeCount":6,"jlpt":4,"grade":2,"frequency":139,"createdAt":"2025-10-27T18:06:05.549Z","updatedAt":"2025-10-27T18:06:05.549Z"},{"id":25,"character":"µ¢╕","onyomi":"πüùπéç","kunyomi":"πüï.πüÅπÇü-πüî.πüìπÇü-πüîπüì","meanings":"Write","strokeCount":10,"jlpt":5,"grade":2,"frequency":169,"createdAt":"2025-10-27T18:06:05.428Z","updatedAt":"2025-10-27T18:06:05.428Z"},{"id":63,"character":"σà▒","onyomi":"πüìπéçπüå","kunyomi":"πü¿πééπÇüπü¿πéé.πü½πÇü-πü⌐πéé","meanings":"Together, Both, Neither, All, And, Alike, With","strokeCount":6,"jlpt":3,"grade":4,"frequency":174,"createdAt":"2025-10-27T18:06:05.681Z","updatedAt":"2025-10-27T18:06:05.681Z"},{"id":46,"character":"Θüô","onyomi":"πü⌐πüåπÇüπü¿πüå","kunyomi":"πü┐πüíπÇüπüäπüå","meanings":"Road-way, Street, District, Journey, Course, Moral, Teachings","strokeCount":12,"jlpt":4,"grade":2,"frequency":207,"createdAt":"2025-10-27T18:06:05.549Z","updatedAt":"2025-10-27T18:06:05.549Z"},{"id":45,"character":"Θ¢å","onyomi":"πüùπéàπüå","kunyomi":"πüéπüñ.πü╛πéïπÇüπüéπüñ.πéüπéïπÇüπüñπü⌐.πüå","meanings":"Gather, Meet, Congregate, Swarm, Flock","strokeCount":12,"jlpt":4,"grade":3,"frequency":210,"createdAt":"2025-10-27T18:06:05.549Z","updatedAt":"2025-10-27T18:06:05.549Z"},{"id":13,"character":"µ░┤","onyomi":"πüÖπüä","kunyomi":"πü┐πüÜπÇüπü┐πüÜ-","meanings":"Water","strokeCount":4,"jlpt":5,"grade":1,"frequency":223,"createdAt":"2025-10-27T18:06:05.309Z","updatedAt":"2025-10-27T18:06:05.309Z"},{"id":52,"character":"µâà","onyomi":"πüÿπéçπüåπÇüπü¢πüä","kunyomi":"πü¬πüò.πüæ","meanings":"Feelings, Emotion, Passion, Sympathy, Circumstances, Facts","strokeCount":11,"jlpt":3,"grade":5,"frequency":235,"createdAt":"2025-10-27T18:06:05.549Z","updatedAt":"2025-10-27T18:06:05.549Z"},{"id":62,"character":"µèò","onyomi":"πü¿πüå","kunyomi":"πü¬.πüÆπéïπÇü-πü¬.πüÆ","meanings":"Throw, Discard, Abandon, Launch Into, Join, Invest In, Hurl, Give Up, Sell At A Loss","strokeCount":7,"jlpt":3,"grade":3,"frequency":236,"createdAt":"2025-10-27T18:06:05.681Z","updatedAt":"2025-10-27T18:06:05.681Z"},{"id":51,"character":"µëô","onyomi":"πüáπÇüπüáπüéπüÖ","kunyomi":"πüå.πüñπÇüπüå.πüí-πÇüπü╢.πüñ","meanings":"Strike, Hit, Knock, Pound, Dozen","strokeCount":5,"jlpt":3,"grade":3,"frequency":239,"createdAt":"2025-10-27T18:06:05.549Z","updatedAt":"2025-10-27T18:06:05.549Z"},{"id":22,"character":"ΦÑ┐","onyomi":"πü¢πüäπÇüπüòπüäπÇüπüÖ","kunyomi":"πü½πüù","meanings":"West, Spain","strokeCount":6,"jlpt":5,"grade":2,"frequency":259,"createdAt":"2025-10-27T18:06:05.428Z","updatedAt":"2025-10-27T18:06:05.428Z"},{"id":30,"character":"Θ¢╗","onyomi":"πüºπéô","kunyomi":"","meanings":"Electricity","strokeCount":13,"jlpt":5,"grade":2,"frequency":268,"createdAt":"2025-10-27T18:06:05.428Z","updatedAt":"2025-10-27T18:06:05.428Z"},{"id":47,"character":"σÅú","onyomi":"πüôπüåπÇüπüÅ","kunyomi":"πüÅπüí","meanings":"Mouth","strokeCount":3,"jlpt":4,"grade":1,"frequency":284,"createdAt":"2025-10-27T18:06:05.549Z","updatedAt":"2025-10-27T18:06:05.549Z"},{"id":41,"character":"σ░æ","onyomi":"πüùπéçπüå","kunyomi":"πüÖπüÅ.πü¬πüäπÇüπüÖπüô.πüù","meanings":"Few, Little","strokeCount":4,"jlpt":4,"grade":2,"frequency":287,"createdAt":"2025-10-27T18:06:05.549Z","updatedAt":"2025-10-27T18:06:05.549Z"},{"id":31,"character":"Φ¬₧","onyomi":"πüö","kunyomi":"πüïπüƒ.πéïπÇüπüïπüƒ.πéëπüå","meanings":"Word, Speech, Language","strokeCount":14,"jlpt":5,"grade":2,"frequency":301,"createdAt":"2025-10-27T18:06:05.428Z","updatedAt":"2025-10-27T18:06:05.428Z"},{"id":12,"character":"µ£¿","onyomi":"πü╝πüÅπÇüπééπüÅ","kunyomi":"πüìπÇüπüô-","meanings":"Tree, Wood","strokeCount":4,"jlpt":5,"grade":1,"frequency":317,"createdAt":"2025-10-27T18:06:05.309Z","updatedAt":"2025-10-27T18:06:05.309Z"},{"id":18,"character":"Φü₧","onyomi":"πü╢πéôπÇüπééπéô","kunyomi":"πüì.πüÅπÇüπüì.πüôπüêπéï","meanings":"Hear, Ask, Listen","strokeCount":14,"jlpt":5,"grade":2,"frequency":319,"createdAt":"2025-10-27T18:06:05.309Z","updatedAt":"2025-10-27T18:06:05.309Z"},{"id":50,"character":"σÅÄ","onyomi":"πüùπéàπüå","kunyomi":"πüèπüò.πéüπéïπÇüπüèπüò.πü╛πéï","meanings":"Income, Obtain, Reap, Pay, Supply, Store","strokeCount":4,"jlpt":3,"grade":6,"frequency":337,"createdAt":"2025-10-27T18:06:05.549Z","updatedAt":"2025-10-27T18:06:05.549Z"},{"id":24,"character":"Σ╜ò","onyomi":"πüï","kunyomi":"πü¬πü½πÇüπü¬πéôπÇüπü¬πü½-πÇüπü¬πéô-","meanings":"What","strokeCount":7,"jlpt":5,"grade":2,"frequency":340,"createdAt":"2025-10-27T18:06:05.428Z","updatedAt":"2025-10-27T18:06:05.428Z"},{"id":65,"character":"τƒ│","onyomi":"πü¢πüìπÇüπüùπéâπüÅπÇüπüôπüÅ","kunyomi":"πüäπüù","meanings":"Stone","strokeCount":5,"jlpt":3,"grade":1,"frequency":342,"createdAt":"2025-10-27T18:06:05.681Z","updatedAt":"2025-10-27T18:06:05.681Z"},{"id":48,"character":"µÑ╜","onyomi":"πüîπüÅπÇüπéëπüÅπÇüπüöπüå","kunyomi":"πüƒπü«.πüùπüäπÇüπüƒπü«.πüùπéÇπÇüπüôπü«.πéÇ","meanings":"Music, Comfort, Ease","strokeCount":13,"jlpt":4,"grade":2,"frequency":373,"createdAt":"2025-10-27T18:06:05.549Z","updatedAt":"2025-10-27T18:06:05.549Z"},{"id":27,"character":"Σ╕ç","onyomi":"πü╛πéôπÇüπü░πéô","kunyomi":"πéêπéìπüÜ","meanings":"Ten Thousand, 10,000","strokeCount":3,"jlpt":5,"grade":2,"frequency":375,"createdAt":"2025-10-27T18:06:05.428Z","updatedAt":"2025-10-27T18:06:05.428Z"},{"id":34,"character":"σ║ù","onyomi":"πüªπéô","kunyomi":"πü┐πü¢πÇüπüƒπü¬","meanings":"Store, Shop","strokeCount":8,"jlpt":4,"grade":2,"frequency":378,"createdAt":"2025-10-27T18:06:05.428Z","updatedAt":"2025-10-27T18:06:05.428Z"},{"id":40,"character":"Φª¬","onyomi":"πüùπéô","kunyomi":"πüèπéäπÇüπüèπéä-πÇüπüùπüƒ.πüùπüäπÇüπüùπüƒ.πüùπéÇ","meanings":"Parent, Intimacy, Relative, Familiarity, Dealer (cards)","strokeCount":16,"jlpt":4,"grade":2,"frequency":406,"createdAt":"2025-10-27T18:06:05.428Z","updatedAt":"2025-10-27T18:06:05.428Z"},{"id":43,"character":"σî╗","onyomi":"πüä","kunyomi":"πüä.πéäπüÖπÇüπüä.πüÖπéïπÇüπüÅπüÖπüù","meanings":"Doctor, Medicine","strokeCount":7,"jlpt":4,"grade":3,"frequency":437,"createdAt":"2025-10-27T18:06:05.549Z","updatedAt":"2025-10-27T18:06:05.549Z"}],"total":100,"limit":50,"offset":0},"timestamp":"2025-10-27T18:08:13.521Z"}
+
+00:05 +13 -8: 6. Performance Tests - 6.1. List performance test [E]
+  Should load kanji list
+  package:matcher                                      fail
+  test\integration\kanji_integration_test.dart 737:32  main.<fn>.<fn>.<fn>
+  package:dartz/src/either.dart 191:63                 Left.fold
+  test\integration\kanji_integration_test.dart 737:14  main.<fn>.<fn>
+  
+00:05 +13 -8: 6. Performance Tests - 6.2. Search performance test
+
+============================================================
+  TEST 6.2: SEARCH PERFORMANCE
+============================================================
+*** Request ***
+uri: http://localhost:3000/api/kanji/search?page=1&limit=20&query=%E6%97%A5&jlptLevels=5%2C4%2C3&grades=1%2C2&sortBy=strokes
+method: GET
+responseType: ResponseType.json
+followRedirects: true
+persistentConnection: true
+connectTimeout: 0:00:30.000000
+sendTimeout: null
+receiveTimeout: 0:00:30.000000
+receiveDataWhenStatusError: true
+extra: {}
+headers:
+ Content-Type: application/json
+ Accept: application/json
+data:
+null
+
+*** Response ***
+uri: http://localhost:3000/api/kanji/search?page=1&limit=20&query=%E6%97%A5&jlptLevels=5%2C4%2C3&grades=1%2C2&sortBy=strokes
+statusCode: 200
+headers:
+ connection: keep-alive
+ x-dns-prefetch-control: off
+ date: Mon, 27 Oct 2025 18:08:13 GMT
+ x-ratelimit-reset: 55
+ x-ratelimit-limit: 100
+ origin-agent-cluster: ?1
+ vary: Origin
+ strict-transport-security: max-age=31536000; includeSubDomains
+ x-ratelimit-remaining: 91
+ referrer-policy: no-referrer
+ x-permitted-cross-domain-policies: none
+ content-type: application/json; charset=utf-8
+ cross-origin-opener-policy: same-origin
+ x-xss-protection: 0
+ x-request-id: ae639f65-13c4-4964-b104-e97ddb4f611f
+ cross-origin-resource-policy: same-origin
+ access-control-allow-credentials: true
+ keep-alive: timeout=5
+ content-length: 379
+ x-download-options: noopen
+ etag: W/"17b-byZDj5GqCia9UUKfKBxGElknuBI"
+ x-frame-options: SAMEORIGIN
+ x-content-type-options: nosniff
+ content-security-policy: default-src 'self';base-uri 'self';font-src 'self' https: data:;form-action 'self';frame-ancestors 'self';img-src 'self' data:;object-src 'none';script-src 'self';script-src-attr 'none';style-src 'self' https: 'unsafe-inline';upgrade-insecure-requests
+Response Text:
+{"statusCode":200,"data":{"data":[{"id":10,"character":"µùÑ","onyomi":"πü½πüíπÇüπüÿπüñ","kunyomi":"πü▓πÇü-πü│πÇü-πüï","meanings":"Day, Sun, Japan, Counter For Days","strokeCount":4,"jlpt":5,"grade":1,"frequency":1,"createdAt":"2025-10-27T18:06:05.309Z","updatedAt":"2025-10-27T18:06:05.309Z"}],"total":1,"page":1,"limit":20,"totalPages":1},"timestamp":"2025-10-27T18:08:13.552Z"}
+
+Γ£ô Found 1 kanji in 14ms
+00:06 +14 -8: 6. Performance Tests - 6.3. Concurrent requests test
+
+============================================================
+  TEST 6.3: CONCURRENT REQUESTS
+============================================================
+*** Request ***
+uri: http://localhost:3000/api/kanji?limit=10&offset=0
+method: GET
+responseType: ResponseType.json
+followRedirects: true
+persistentConnection: true
+connectTimeout: 0:00:30.000000
+sendTimeout: null
+receiveTimeout: 0:00:30.000000
+receiveDataWhenStatusError: true
+extra: {}
+headers:
+ Content-Type: application/json
+ Accept: application/json
+data:
+null
+
+*** Request ***
+uri: http://localhost:3000/api/kanji?limit=10&offset=10
+method: GET
+responseType: ResponseType.json
+followRedirects: true
+persistentConnection: true
+connectTimeout: 0:00:30.000000
+sendTimeout: null
+receiveTimeout: 0:00:30.000000
+receiveDataWhenStatusError: true
+extra: {}
+headers:
+ Content-Type: application/json
+ Accept: application/json
+data:
+null
+
+*** Request ***
+uri: http://localhost:3000/api/kanji?limit=10&offset=20
+method: GET
+responseType: ResponseType.json
+followRedirects: true
+persistentConnection: true
+connectTimeout: 0:00:30.000000
+sendTimeout: null
+receiveTimeout: 0:00:30.000000
+receiveDataWhenStatusError: true
+extra: {}
+headers:
+ Content-Type: application/json
+ Accept: application/json
+data:
+null
+
+*** Request ***
+uri: http://localhost:3000/api/kanji?limit=10&offset=30
+method: GET
+responseType: ResponseType.json
+followRedirects: true
+persistentConnection: true
+connectTimeout: 0:00:30.000000
+sendTimeout: null
+receiveTimeout: 0:00:30.000000
+receiveDataWhenStatusError: true
+extra: {}
+headers:
+ Content-Type: application/json
+ Accept: application/json
+data:
+null
+
+*** Request ***
+uri: http://localhost:3000/api/kanji?limit=10&offset=40
+method: GET
+responseType: ResponseType.json
+followRedirects: true
+persistentConnection: true
+connectTimeout: 0:00:30.000000
+sendTimeout: null
+receiveTimeout: 0:00:30.000000
+receiveDataWhenStatusError: true
+extra: {}
+headers:
+ Content-Type: application/json
+ Accept: application/json
+data:
+null
+
+*** Response ***
+uri: http://localhost:3000/api/kanji?limit=10&offset=0
+statusCode: 200
+headers:
+ connection: keep-alive
+ x-dns-prefetch-control: off
+ date: Mon, 27 Oct 2025 18:08:13 GMT
+ x-ratelimit-reset: 37
+ x-ratelimit-limit: 100
+ origin-agent-cluster: ?1
+ vary: Origin
+ strict-transport-security: max-age=31536000; includeSubDomains
+ x-ratelimit-remaining: 89
+ referrer-policy: no-referrer
+ x-permitted-cross-domain-policies: none
+ content-type: application/json; charset=utf-8
+ cross-origin-opener-policy: same-origin
+ x-xss-protection: 0
+ x-request-id: 8236dfca-190d-427b-b65e-09770152ee54
+ cross-origin-resource-policy: same-origin
+ access-control-allow-credentials: true
+ keep-alive: timeout=5
+ content-length: 2717
+ x-download-options: noopen
+ etag: W/"a9d-a5wflfGYgdASGuXzIUAPh175MGY"
+ x-frame-options: SAMEORIGIN
+ x-content-type-options: nosniff
+ content-security-policy: default-src 'self';base-uri 'self';font-src 'self' https: data:;form-action 'self';frame-ancestors 'self';img-src 'self' data:;object-src 'none';script-src 'self';script-src-attr 'none';style-src 'self' https: 'unsafe-inline';upgrade-insecure-requests
+Response Text:
+{"statusCode":200,"data":{"data":[{"id":10,"character":"µùÑ","onyomi":"πü½πüíπÇüπüÿπüñ","kunyomi":"πü▓πÇü-πü│πÇü-πüï","meanings":"Day, Sun, Japan, Counter For Days","strokeCount":4,"jlpt":5,"grade":1,"frequency":1,"createdAt":"2025-10-27T18:06:05.309Z","updatedAt":"2025-10-27T18:06:05.309Z"},{"id":1,"character":"Σ╕Ç","onyomi":"πüäπüíπÇüπüäπüñ","kunyomi":"πü▓πü¿-πÇüπü▓πü¿.πüñ","meanings":"One, One Radical (no.1)","strokeCount":1,"jlpt":5,"grade":1,"frequency":2,"createdAt":"2025-10-27T18:06:05.309Z","updatedAt":"2025-10-27T18:06:05.309Z"},{"id":6,"character":"σìü","onyomi":"πüÿπéàπüåπÇüπüÿπüúπÇüπüÿπéàπüú","kunyomi":"πü¿πüèπÇüπü¿","meanings":"Ten","strokeCount":2,"jlpt":5,"grade":1,"frequency":8,"createdAt":"2025-10-27T18:06:05.309Z","updatedAt":"2025-10-27T18:06:05.309Z"},{"id":2,"character":"Σ║î","onyomi":"πü½πÇüπüÿ","kunyomi":"πü╡πüƒπÇüπü╡πüƒ.πüñπÇüπü╡πüƒπüƒπü│","meanings":"Two, Two Radical (no. 7)","strokeCount":2,"jlpt":5,"grade":1,"frequency":9,"createdAt":"2025-10-27T18:06:05.309Z","updatedAt":"2025-10-27T18:06:05.309Z"},{"id":29,"character":"Θò╖","onyomi":"πüíπéçπüå","kunyomi":"πü¬πüî.πüäπÇüπüèπüò","meanings":"Long, Leader, Superior, Senior","strokeCount":8,"jlpt":5,"grade":2,"frequency":12,"createdAt":"2025-10-27T18:06:05.428Z","updatedAt":"2025-10-27T18:06:05.428Z"},{"id":7,"character":"Σ╕ë","onyomi":"πüòπéôπÇüπü₧πüå","kunyomi":"πü┐πÇüπü┐.πüñπÇüπü┐πüú.πüñ","meanings":"Three","strokeCount":3,"jlpt":5,"grade":1,"frequency":14,"createdAt":"2025-10-27T18:06:05.309Z","updatedAt":"2025-10-27T18:06:05.309Z"},{"id":35,"character":"Φç¬","onyomi":"πüÿπÇüπüù","kunyomi":"πü┐πüÜπüï.πéëπÇüπüèπü«.πüÜπüïπéëπÇüπüèπü«.πüÜπü¿","meanings":"Oneself","strokeCount":6,"jlpt":4,"grade":2,"frequency":19,"createdAt":"2025-10-27T18:06:05.428Z","updatedAt":"2025-10-27T18:06:05.428Z"},{"id":16,"character":"Φíî","onyomi":"πüôπüåπÇüπüÄπéçπüåπÇüπüéπéô","kunyomi":"πüä.πüÅπÇüπéå.πüÅπÇü-πéå.πüìπÇü-πéåπüìπÇü-πüä.πüìπÇü-πüäπüìπÇüπüèπüôπü¬.πüåπÇüπüèπüô.πü¬πüå","meanings":"Going, Journey, Carry Out, Conduct, Act, Line, Row, Bank","strokeCount":6,"jlpt":5,"grade":2,"frequency":20,"createdAt":"2025-10-27T18:06:05.309Z","updatedAt":"2025-10-27T18:06:05.309Z"},{"id":38,"character":"τñ╛","onyomi":"πüùπéâ","kunyomi":"πéäπüùπéì","meanings":"Company, Firm, Office, Association, Shrine","strokeCount":7,"jlpt":4,"grade":2,"frequency":21,"createdAt":"2025-10-27T18:06:05.428Z","updatedAt":"2025-10-27T18:06:05.428Z"},{"id":11,"character":"µ£ê","onyomi":"πüÆπüñπÇüπüîπüñ","kunyomi":"πüñπüì","meanings":"Month, Moon","strokeCount":4,"jlpt":5,"grade":1,"frequency":23,"createdAt":"2025-10-27T18:06:05.309Z","updatedAt":"2025-10-27T18:06:05.309Z"}],"total":100,"limit":10,"offset":0},"timestamp":"2025-10-27T18:08:13.571Z"}
+
+*** Response ***
+uri: http://localhost:3000/api/kanji?limit=10&offset=10
+statusCode: 200
+headers:
+ connection: keep-alive
+ x-dns-prefetch-control: off
+ date: Mon, 27 Oct 2025 18:08:13 GMT
+ x-ratelimit-reset: 37
+ x-ratelimit-limit: 100
+ origin-agent-cluster: ?1
+ vary: Origin
+ strict-transport-security: max-age=31536000; includeSubDomains
+ x-ratelimit-remaining: 88
+ referrer-policy: no-referrer
+ x-permitted-cross-domain-policies: none
+ content-type: application/json; charset=utf-8
+ cross-origin-opener-policy: same-origin
+ x-xss-protection: 0
+ x-request-id: 4e12597a-e49f-45ea-b249-9e744d98d10b
+ cross-origin-resource-policy: same-origin
+ access-control-allow-credentials: true
+ keep-alive: timeout=5
+ content-length: 2832
+ x-download-options: noopen
+ etag: W/"b10-eHVhnQl7YgAYNdF3lEJM6sKwL34"
+ x-frame-options: SAMEORIGIN
+ x-content-type-options: nosniff
+ content-security-policy: default-src 'self';base-uri 'self';font-src 'self' https: data:;form-action 'self';frame-ancestors 'self';img-src 'self' data:;object-src 'none';script-src 'self';script-src-attr 'none';style-src 'self' https: 'unsafe-inline';upgrade-insecure-requests
+Response Text:
+{"statusCode":200,"data":{"data":[{"id":19,"character":"σ╛î","onyomi":"πüöπÇüπüôπüå","kunyomi":"πü«πüíπÇüπüåπüù.πéìπÇüπüåπüùπéìπÇüπüéπü¿πÇüπüèπüÅ.πéîπéï","meanings":"Behind, Back, Later","strokeCount":9,"jlpt":5,"grade":2,"frequency":26,"createdAt":"2025-10-27T18:06:05.309Z","updatedAt":"2025-10-27T18:06:05.309Z"},{"id":8,"character":"Σ║ö","onyomi":"πüö","kunyomi":"πüäπüñπÇüπüäπüñ.πüñ","meanings":"Five","strokeCount":4,"jlpt":5,"grade":1,"frequency":31,"createdAt":"2025-10-27T18:06:05.309Z","updatedAt":"2025-10-27T18:06:05.309Z"},{"id":15,"character":"σ¢¢","onyomi":"πüù","kunyomi":"πéêπÇüπéê.πüñπÇüπéêπüú.πüñπÇüπéêπéô","meanings":"Four","strokeCount":5,"jlpt":5,"grade":1,"frequency":47,"createdAt":"2025-10-27T18:06:05.309Z","updatedAt":"2025-10-27T18:06:05.309Z"},{"id":3,"character":"Σ╣¥","onyomi":"πüìπéàπüåπÇüπüÅ","kunyomi":"πüôπüôπü«πÇüπüôπüôπü«.πüñ","meanings":"Nine","strokeCount":2,"jlpt":5,"grade":1,"frequency":55,"createdAt":"2025-10-27T18:06:05.309Z","updatedAt":"2025-10-27T18:06:05.309Z"},{"id":21,"character":"Θ½ÿ","onyomi":"πüôπüå","kunyomi":"πüƒπüï.πüäπÇüπüƒπüïπÇü-πüáπüïπÇüπüƒπüï.πü╛πéïπÇüπüƒπüï.πéüπéï","meanings":"Tall, High, Expensive","strokeCount":10,"jlpt":5,"grade":2,"frequency":65,"createdAt":"2025-10-27T18:06:05.428Z","updatedAt":"2025-10-27T18:06:05.428Z"},{"id":39,"character":"Σ╗ú","onyomi":"πüáπüäπÇüπüƒπüä","kunyomi":"πüï.πéÅπéïπÇüπüïπéÅ.πéïπÇüπüïπéÅ.πéèπÇüπüï.πéÅπéèπÇü-πüîπéÅ.πéèπÇü-πüî.πéÅπéèπÇüπüï.πüêπéïπÇüπéêπÇüπüùπéì","meanings":"Substitute, Change, Convert, Replace, Period, Age, Counter For Decades Of Ages, Eras, Etc., Generation, Charge, Rate, Fee","strokeCount":5,"jlpt":4,"grade":3,"frequency":66,"createdAt":"2025-10-27T18:06:05.428Z","updatedAt":"2025-10-27T18:06:05.428Z"},{"id":57,"character":"σ«ƒ","onyomi":"πüÿπüñπÇüπüùπüñ","kunyomi":"πü┐πÇüπü┐πü«.πéïπÇüπü╛πüôπü¿πÇüπü┐πü«πÇüπü┐πüí.πéï","meanings":"Reality, Truth","strokeCount":8,"jlpt":3,"grade":3,"frequency":68,"createdAt":"2025-10-27T18:06:05.549Z","updatedAt":"2025-10-27T18:06:05.549Z"},{"id":90,"character":"µ░Å","onyomi":"πüù","kunyomi":"πüåπüÿπÇü-πüåπüÿ","meanings":"Family Name, Surname, Clan","strokeCount":4,"jlpt":1,"grade":4,"frequency":84,"createdAt":"2025-10-27T18:06:05.772Z","updatedAt":"2025-10-27T18:06:05.772Z"},{"id":5,"character":"σà½","onyomi":"πü»πüí","kunyomi":"πéäπÇüπéä.πüñπÇüπéäπüú.πüñπÇüπéêπüå","meanings":"Eight, Eight Radical (no. 12)","strokeCount":2,"jlpt":5,"grade":1,"frequency":92,"createdAt":"2025-10-27T18:06:05.309Z","updatedAt":"2025-10-27T18:06:05.309Z"},{"id":9,"character":"σà¡","onyomi":"πéìπüÅπÇüπéèπüÅ","kunyomi":"πéÇπÇüπéÇ.πüñπÇüπéÇπüú.πüñπÇüπéÇπüä","meanings":"Six","strokeCount":4,"jlpt":5,"grade":1,"frequency":93,"createdAt":"2025-10-27T18:06:05.309Z","updatedAt":"2025-10-27T18:06:05.309Z"}],"total":100,"limit":10,"offset":10},"timestamp":"2025-10-27T18:08:13.581Z"}
+
+*** Response ***
+uri: http://localhost:3000/api/kanji?limit=10&offset=20
+statusCode: 200
+headers:
+ connection: keep-alive
+ x-dns-prefetch-control: off
+ date: Mon, 27 Oct 2025 18:08:13 GMT
+ x-ratelimit-reset: 37
+ x-ratelimit-limit: 100
+ origin-agent-cluster: ?1
+ vary: Origin
+ strict-transport-security: max-age=31536000; includeSubDomains
+ x-ratelimit-remaining: 87
+ referrer-policy: no-referrer
+ x-permitted-cross-domain-policies: none
+ content-type: application/json; charset=utf-8
+ cross-origin-opener-policy: same-origin
+ x-xss-protection: 0
+ x-request-id: a846b138-a4af-456f-81c7-8a4da83543e7
+ cross-origin-resource-policy: same-origin
+ access-control-allow-credentials: true
+ keep-alive: timeout=5
+ content-length: 2805
+ x-download-options: noopen
+ etag: W/"af5-uAVpwhLFWFx4esnA4Z1lmvBU9bA"
+ x-frame-options: SAMEORIGIN
+ x-content-type-options: nosniff
+ content-security-policy: default-src 'self';base-uri 'self';font-src 'self' https: data:;form-action 'self';frame-ancestors 'self';img-src 'self' data:;object-src 'none';script-src 'self';script-src-attr 'none';style-src 'self' https: 'unsafe-inline';upgrade-insecure-requests
+Response Text:
+{"statusCode":200,"data":{"data":[{"id":26,"character":"Σ╕ï","onyomi":"πüïπÇüπüÆ","kunyomi":"πüùπüƒπÇüπüùπééπÇüπééπü¿πÇüπüò.πüÆπéïπÇüπüò.πüîπéïπÇüπüÅπüá.πéïπÇüπüÅπüá.πéèπÇüπüÅπüá.πüÖπÇü-πüÅπüá.πüÖπÇüπüÅπüá.πüòπéïπÇüπüè.πéìπüÖπÇüπüè.πéèπéï","meanings":"Below, Down, Descend, Give, Low, Inferior","strokeCount":3,"jlpt":5,"grade":1,"frequency":97,"createdAt":"2025-10-27T18:06:05.428Z","updatedAt":"2025-10-27T18:06:05.428Z"},{"id":58,"character":"Φªü","onyomi":"πéêπüå","kunyomi":"πüä.πéïπÇüπüïπü¬πéü","meanings":"Need, Main Point, Essence, Pivot, Key To","strokeCount":9,"jlpt":3,"grade":4,"frequency":106,"createdAt":"2025-10-27T18:06:05.549Z","updatedAt":"2025-10-27T18:06:05.549Z"},{"id":4,"character":"Σ╕â","onyomi":"πüùπüí","kunyomi":"πü¬πü¬πÇüπü¬πü¬.πüñπÇüπü¬πü«","meanings":"Seven","strokeCount":2,"jlpt":5,"grade":1,"frequency":115,"createdAt":"2025-10-27T18:06:05.309Z","updatedAt":"2025-10-27T18:06:05.309Z"},{"id":17,"character":"σ▒▒","onyomi":"πüòπéôπÇüπü¢πéô","kunyomi":"πéäπü╛","meanings":"Mountain","strokeCount":3,"jlpt":5,"grade":1,"frequency":131,"createdAt":"2025-10-27T18:06:05.309Z","updatedAt":"2025-10-27T18:06:05.309Z"},{"id":32,"character":"Φ⌐▒","onyomi":"πéÅ","kunyomi":"πü»πü¬.πüÖπÇüπü»πü¬πüù","meanings":"Tale, Talk","strokeCount":13,"jlpt":5,"grade":2,"frequency":134,"createdAt":"2025-10-27T18:06:05.428Z","updatedAt":"2025-10-27T18:06:05.428Z"},{"id":60,"character":"σÅù","onyomi":"πüÿπéà","kunyomi":"πüå.πüæπéïπÇü-πüå.πüæπÇüπüå.πüïπéï","meanings":"Accept, Undergo, Answer (phone), Take, Get, Catch, Receive","strokeCount":8,"jlpt":3,"grade":3,"frequency":136,"createdAt":"2025-10-27T18:06:05.549Z","updatedAt":"2025-10-27T18:06:05.549Z"},{"id":44,"character":"σñÜ","onyomi":"πüƒ","kunyomi":"πüèπüè.πüäπÇüπü╛πüò.πü½πÇüπü╛πüò.πéï","meanings":"Many, Frequent, Much","strokeCount":6,"jlpt":4,"grade":2,"frequency":139,"createdAt":"2025-10-27T18:06:05.549Z","updatedAt":"2025-10-27T18:06:05.549Z"},{"id":25,"character":"µ¢╕","onyomi":"πüùπéç","kunyomi":"πüï.πüÅπÇü-πüî.πüìπÇü-πüîπüì","meanings":"Write","strokeCount":10,"jlpt":5,"grade":2,"frequency":169,"createdAt":"2025-10-27T18:06:05.428Z","updatedAt":"2025-10-27T18:06:05.428Z"},{"id":63,"character":"σà▒","onyomi":"πüìπéçπüå","kunyomi":"πü¿πééπÇüπü¿πéé.πü½πÇü-πü⌐πéé","meanings":"Together, Both, Neither, All, And, Alike, With","strokeCount":6,"jlpt":3,"grade":4,"frequency":174,"createdAt":"2025-10-27T18:06:05.681Z","updatedAt":"2025-10-27T18:06:05.681Z"},{"id":46,"character":"Θüô","onyomi":"πü⌐πüåπÇüπü¿πüå","kunyomi":"πü┐πüíπÇüπüäπüå","meanings":"Road-way, Street, District, Journey, Course, Moral, Teachings","strokeCount":12,"jlpt":4,"grade":2,"frequency":207,"createdAt":"2025-10-27T18:06:05.549Z","updatedAt":"2025-10-27T18:06:05.549Z"}],"total":100,"limit":10,"offset":20},"timestamp":"2025-10-27T18:08:13.586Z"}
+
+*** Response ***
+uri: http://localhost:3000/api/kanji?limit=10&offset=30
+statusCode: 200
+headers:
+ connection: keep-alive
+ x-dns-prefetch-control: off
+ date: Mon, 27 Oct 2025 18:08:13 GMT
+ x-ratelimit-reset: 37
+ x-ratelimit-limit: 100
+ origin-agent-cluster: ?1
+ vary: Origin
+ strict-transport-security: max-age=31536000; includeSubDomains
+ x-ratelimit-remaining: 86
+ referrer-policy: no-referrer
+ x-permitted-cross-domain-policies: none
+ content-type: application/json; charset=utf-8
+ cross-origin-opener-policy: same-origin
+ x-xss-protection: 0
+ x-request-id: bf454933-0359-4f95-a3e8-b6c1be2c366f
+ cross-origin-resource-policy: same-origin
+ access-control-allow-credentials: true
+ keep-alive: timeout=5
+ content-length: 2637
+ x-download-options: noopen
+ etag: W/"a4d-guT/zvZidLuqKQ7mZzhPnbXKWFw"
+ x-frame-options: SAMEORIGIN
+ x-content-type-options: nosniff
+ content-security-policy: default-src 'self';base-uri 'self';font-src 'self' https: data:;form-action 'self';frame-ancestors 'self';img-src 'self' data:;object-src 'none';script-src 'self';script-src-attr 'none';style-src 'self' https: 'unsafe-inline';upgrade-insecure-requests
+Response Text:
+{"statusCode":200,"data":{"data":[{"id":45,"character":"Θ¢å","onyomi":"πüùπéàπüå","kunyomi":"πüéπüñ.πü╛πéïπÇüπüéπüñ.πéüπéïπÇüπüñπü⌐.πüå","meanings":"Gather, Meet, Congregate, Swarm, Flock","strokeCount":12,"jlpt":4,"grade":3,"frequency":210,"createdAt":"2025-10-27T18:06:05.549Z","updatedAt":"2025-10-27T18:06:05.549Z"},{"id":13,"character":"µ░┤","onyomi":"πüÖπüä","kunyomi":"πü┐πüÜπÇüπü┐πüÜ-","meanings":"Water","strokeCount":4,"jlpt":5,"grade":1,"frequency":223,"createdAt":"2025-10-27T18:06:05.309Z","updatedAt":"2025-10-27T18:06:05.309Z"},{"id":52,"character":"µâà","onyomi":"πüÿπéçπüåπÇüπü¢πüä","kunyomi":"πü¬πüò.πüæ","meanings":"Feelings, Emotion, Passion, Sympathy, Circumstances, Facts","strokeCount":11,"jlpt":3,"grade":5,"frequency":235,"createdAt":"2025-10-27T18:06:05.549Z","updatedAt":"2025-10-27T18:06:05.549Z"},{"id":62,"character":"µèò","onyomi":"πü¿πüå","kunyomi":"πü¬.πüÆπéïπÇü-πü¬.πüÆ","meanings":"Throw, Discard, Abandon, Launch Into, Join, Invest In, Hurl, Give Up, Sell At A Loss","strokeCount":7,"jlpt":3,"grade":3,"frequency":236,"createdAt":"2025-10-27T18:06:05.681Z","updatedAt":"2025-10-27T18:06:05.681Z"},{"id":51,"character":"µëô","onyomi":"πüáπÇüπüáπüéπüÖ","kunyomi":"πüå.πüñπÇüπüå.πüí-πÇüπü╢.πüñ","meanings":"Strike, Hit, Knock, Pound, Dozen","strokeCount":5,"jlpt":3,"grade":3,"frequency":239,"createdAt":"2025-10-27T18:06:05.549Z","updatedAt":"2025-10-27T18:06:05.549Z"},{"id":22,"character":"ΦÑ┐","onyomi":"πü¢πüäπÇüπüòπüäπÇüπüÖ","kunyomi":"πü½πüù","meanings":"West, Spain","strokeCount":6,"jlpt":5,"grade":2,"frequency":259,"createdAt":"2025-10-27T18:06:05.428Z","updatedAt":"2025-10-27T18:06:05.428Z"},{"id":30,"character":"Θ¢╗","onyomi":"πüºπéô","kunyomi":"","meanings":"Electricity","strokeCount":13,"jlpt":5,"grade":2,"frequency":268,"createdAt":"2025-10-27T18:06:05.428Z","updatedAt":"2025-10-27T18:06:05.428Z"},{"id":47,"character":"σÅú","onyomi":"πüôπüåπÇüπüÅ","kunyomi":"πüÅπüí","meanings":"Mouth","strokeCount":3,"jlpt":4,"grade":1,"frequency":284,"createdAt":"2025-10-27T18:06:05.549Z","updatedAt":"2025-10-27T18:06:05.549Z"},{"id":41,"character":"σ░æ","onyomi":"πüùπéçπüå","kunyomi":"πüÖπüÅ.πü¬πüäπÇüπüÖπüô.πüù","meanings":"Few, Little","strokeCount":4,"jlpt":4,"grade":2,"frequency":287,"createdAt":"2025-10-27T18:06:05.549Z","updatedAt":"2025-10-27T18:06:05.549Z"},{"id":31,"character":"Φ¬₧","onyomi":"πüö","kunyomi":"πüïπüƒ.πéïπÇüπüïπüƒ.πéëπüå","meanings":"Word, Speech, Language","strokeCount":14,"jlpt":5,"grade":2,"frequency":301,"createdAt":"2025-10-27T18:06:05.428Z","updatedAt":"2025-10-27T18:06:05.428Z"}],"total":100,"limit":10,"offset":30},"timestamp":"2025-10-27T18:08:13.588Z"}
+
+*** Response ***
+uri: http://localhost:3000/api/kanji?limit=10&offset=40
+statusCode: 200
+headers:
+ connection: keep-alive
+ x-dns-prefetch-control: off
+ date: Mon, 27 Oct 2025 18:08:13 GMT
+ x-ratelimit-reset: 37
+ x-ratelimit-limit: 100
+ origin-agent-cluster: ?1
+ vary: Origin
+ strict-transport-security: max-age=31536000; includeSubDomains
+ x-ratelimit-remaining: 85
+ referrer-policy: no-referrer
+ x-permitted-cross-domain-policies: none
+ content-type: application/json; charset=utf-8
+ cross-origin-opener-policy: same-origin
+ x-xss-protection: 0
+ x-request-id: 41f8608a-e2f6-4222-bed2-736a8d7c4cff
+ cross-origin-resource-policy: same-origin
+ access-control-allow-credentials: true
+ keep-alive: timeout=5
+ content-length: 2646
+ x-download-options: noopen
+ etag: W/"a56-mRVG4BxlhvcvdWEeqjEKFioz7VM"
+ x-frame-options: SAMEORIGIN
+ x-content-type-options: nosniff
+ content-security-policy: default-src 'self';base-uri 'self';font-src 'self' https: data:;form-action 'self';frame-ancestors 'self';img-src 'self' data:;object-src 'none';script-src 'self';script-src-attr 'none';style-src 'self' https: 'unsafe-inline';upgrade-insecure-requests
+Response Text:
+{"statusCode":200,"data":{"data":[{"id":12,"character":"µ£¿","onyomi":"πü╝πüÅπÇüπééπüÅ","kunyomi":"πüìπÇüπüô-","meanings":"Tree, Wood","strokeCount":4,"jlpt":5,"grade":1,"frequency":317,"createdAt":"2025-10-27T18:06:05.309Z","updatedAt":"2025-10-27T18:06:05.309Z"},{"id":18,"character":"Φü₧","onyomi":"πü╢πéôπÇüπééπéô","kunyomi":"πüì.πüÅπÇüπüì.πüôπüêπéï","meanings":"Hear, Ask, Listen","strokeCount":14,"jlpt":5,"grade":2,"frequency":319,"createdAt":"2025-10-27T18:06:05.309Z","updatedAt":"2025-10-27T18:06:05.309Z"},{"id":50,"character":"σÅÄ","onyomi":"πüùπéàπüå","kunyomi":"πüèπüò.πéüπéïπÇüπüèπüò.πü╛πéï","meanings":"Income, Obtain, Reap, Pay, Supply, Store","strokeCount":4,"jlpt":3,"grade":6,"frequency":337,"createdAt":"2025-10-27T18:06:05.549Z","updatedAt":"2025-10-27T18:06:05.549Z"},{"id":24,"character":"Σ╜ò","onyomi":"πüï","kunyomi":"πü¬πü½πÇüπü¬πéôπÇüπü¬πü½-πÇüπü¬πéô-","meanings":"What","strokeCount":7,"jlpt":5,"grade":2,"frequency":340,"createdAt":"2025-10-27T18:06:05.428Z","updatedAt":"2025-10-27T18:06:05.428Z"},{"id":65,"character":"τƒ│","onyomi":"πü¢πüìπÇüπüùπéâπüÅπÇüπüôπüÅ","kunyomi":"πüäπüù","meanings":"Stone","strokeCount":5,"jlpt":3,"grade":1,"frequency":342,"createdAt":"2025-10-27T18:06:05.681Z","updatedAt":"2025-10-27T18:06:05.681Z"},{"id":48,"character":"µÑ╜","onyomi":"πüîπüÅπÇüπéëπüÅπÇüπüöπüå","kunyomi":"πüƒπü«.πüùπüäπÇüπüƒπü«.πüùπéÇπÇüπüôπü«.πéÇ","meanings":"Music, Comfort, Ease","strokeCount":13,"jlpt":4,"grade":2,"frequency":373,"createdAt":"2025-10-27T18:06:05.549Z","updatedAt":"2025-10-27T18:06:05.549Z"},{"id":27,"character":"Σ╕ç","onyomi":"πü╛πéôπÇüπü░πéô","kunyomi":"πéêπéìπüÜ","meanings":"Ten Thousand, 10,000","strokeCount":3,"jlpt":5,"grade":2,"frequency":375,"createdAt":"2025-10-27T18:06:05.428Z","updatedAt":"2025-10-27T18:06:05.428Z"},{"id":34,"character":"σ║ù","onyomi":"πüªπéô","kunyomi":"πü┐πü¢πÇüπüƒπü¬","meanings":"Store, Shop","strokeCount":8,"jlpt":4,"grade":2,"frequency":378,"createdAt":"2025-10-27T18:06:05.428Z","updatedAt":"2025-10-27T18:06:05.428Z"},{"id":40,"character":"Φª¬","onyomi":"πüùπéô","kunyomi":"πüèπéäπÇüπüèπéä-πÇüπüùπüƒ.πüùπüäπÇüπüùπüƒ.πüùπéÇ","meanings":"Parent, Intimacy, Relative, Familiarity, Dealer (cards)","strokeCount":16,"jlpt":4,"grade":2,"frequency":406,"createdAt":"2025-10-27T18:06:05.428Z","updatedAt":"2025-10-27T18:06:05.428Z"},{"id":43,"character":"σî╗","onyomi":"πüä","kunyomi":"πüä.πéäπüÖπÇüπüä.πüÖπéïπÇüπüÅπüÖπüù","meanings":"Doctor, Medicine","strokeCount":7,"jlpt":4,"grade":3,"frequency":437,"createdAt":"2025-10-27T18:06:05.549Z","updatedAt":"2025-10-27T18:06:05.549Z"}],"total":100,"limit":10,"offset":40},"timestamp":"2025-10-27T18:08:13.590Z"}
+
+00:06 +14 -9: 6. Performance Tests - 6.3. Concurrent requests test [E]
+  Expected: true
+    Actual: <false>
+  All concurrent requests should succeed
+  
+  package:matcher                                     expect
+  package:flutter_test/src/widget_tester.dart 473:18  expect
+  test\integration\kanji_integration_test.dart 804:7  main.<fn>.<fn>
+  
+00:06 +14 -9: (tearDownAll)
+00:06 +14 -9: Some tests failed.

@@ -1,197 +1,186 @@
-import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../../../core/di/injection.dart';
-import '../../domain/entities/flashcard.dart';
+import 'package:flip_card/flip_card.dart';
+import 'package:flip_card/flip_card_controller.dart';
+import 'dart:async';
 import '../bloc/flashcard_bloc.dart';
 import '../bloc/flashcard_event.dart';
 import '../bloc/flashcard_state.dart';
-import 'session_results_page.dart';
+import '../../domain/entities/next_card.dart';
 
-/// Page for studying flashcards with flip animation
 class StudySessionPage extends StatefulWidget {
-  final String deckId;
-  final String deckName;
+  final int sessionId;
 
-  const StudySessionPage({
-    super.key,
-    required this.deckId,
-    required this.deckName,
-  });
+  const StudySessionPage({super.key, required this.sessionId});
 
   @override
   State<StudySessionPage> createState() => _StudySessionPageState();
 }
 
 class _StudySessionPageState extends State<StudySessionPage> {
-  late DateTime _sessionStartTime;
+  late FlipCardController _flipController;
+  NextCard? _currentCard;
+  DateTime? _cardStartTime;
+  int _cardsReviewed = 0;
+  int _totalCards = 0;
+  bool _showRatingButtons = false;
+  bool _isCardFlipped = false;
+  bool _hasReviewedCurrentCard = false;
 
   @override
   void initState() {
     super.initState();
-    _sessionStartTime = DateTime.now();
+    _flipController = FlipCardController();
+    _loadNextCard();
+  }
+
+  void _loadNextCard() {
+    setState(() {
+      _cardStartTime = DateTime.now();
+      _showRatingButtons = false; // Reset rating buttons
+      _isCardFlipped = false; // Reset flip state
+      _hasReviewedCurrentCard = false; // Reset review state
+      // Create new flip controller to ensure clean state
+      _flipController = FlipCardController();
+    });
+    context.read<FlashcardBloc>().add(LoadNextCardEvent(widget.sessionId));
+  }
+
+  double _getTimeSpent() {
+    if (_cardStartTime == null) return 0;
+    return DateTime.now().difference(_cardStartTime!).inMilliseconds / 1000.0;
   }
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (_) =>
-          getIt<FlashcardBloc>()..add(StartStudySessionEvent(widget.deckId)),
-      child: _StudySessionView(
-        deckName: widget.deckName,
-        deckId: widget.deckId,
-        sessionStartTime: _sessionStartTime,
-      ),
-    );
-  }
-}
-
-class _StudySessionView extends StatelessWidget {
-  final String deckName;
-  final String deckId;
-  final DateTime sessionStartTime;
-
-  const _StudySessionView({
-    required this.deckName,
-    required this.deckId,
-    required this.sessionStartTime,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.black,
-      appBar: AppBar(
-        backgroundColor: Colors.black,
-        title: Text(deckName, style: const TextStyle(color: Colors.white)),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.close, color: Colors.white),
-            onPressed: () => _showExitConfirmation(context),
-            tooltip: 'Exit Study Session',
+    return WillPopScope(
+      onWillPop: () async {
+        return await _showExitDialog();
+      },
+      child: Scaffold(
+        backgroundColor: const Color(0xFF0B0F14),
+        body: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [Color(0xFF071126), Color(0xFF0B0F14)],
+            ),
           ),
-        ],
-      ),
-      body: BlocConsumer<FlashcardBloc, FlashcardState>(
-        listener: (context, state) {
-          if (state is FlashcardError) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(state.message),
-                backgroundColor: Colors.red,
-              ),
-            );
-            Navigator.pop(context);
-          } else if (state is StudySessionCompleted) {
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(
-                builder: (_) => SessionResultsPage(progress: state.progress),
-              ),
-            );
-          }
-        },
-        builder: (context, state) {
-          if (state is FlashcardLoading) {
-            return const Center(
-              child: CircularProgressIndicator(color: Colors.white),
-            );
-          }
+          child: SafeArea(
+            child: BlocConsumer<FlashcardBloc, FlashcardState>(
+              listener: (context, state) {
+                if (state is FlashcardError) {
+                  if (state.message.contains('No more cards')) {
+                    _completeSession();
+                  } else {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(state.message),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
+                  }
+                } else if (state is NextCardLoaded) {
+                  setState(() {
+                    _currentCard = state.card;
+                    _totalCards = state.card.totalCards;
+                    _cardsReviewed = state.card.currentCard - 1;
+                  });
+                } else if (state is CardReviewed) {
+                  // Don't auto-load next card, let user decide when to continue
+                  setState(() {
+                    _hasReviewedCurrentCard = true;
+                  });
+                } else if (state is SessionCompleted) {
+                  _showCompletionDialog(state.session);
+                }
+              },
+              builder: (context, state) {
+                if (state is FlashcardLoading && _currentCard == null) {
+                  return const Center(
+                    child: CircularProgressIndicator(color: Colors.tealAccent),
+                  );
+                }
 
-          if (state is StudySessionActive) {
-            if (state.isComplete) {
-              // Auto-end session when complete
-              WidgetsBinding.instance.addPostFrameCallback((_) {
-                final duration = DateTime.now().difference(sessionStartTime);
-                context.read<FlashcardBloc>().add(
-                  EndStudySessionEvent(
-                    deckId: deckId,
-                    cardsStudied: state.cardsStudied,
-                    cardsCorrect: state.cardsCorrect,
-                    cardsIncorrect: state.cardsIncorrect,
-                    studyDuration: duration.inSeconds,
-                  ),
-                );
-              });
-              return const Center(
-                child: CircularProgressIndicator(color: Colors.white),
-              );
-            }
-
-            final currentCard = state.currentCard;
-            if (currentCard == null) {
-              return const Center(
-                child: Text(
-                  'No cards to study',
-                  style: TextStyle(color: Colors.white),
-                ),
-              );
-            }
-
-            return Column(
-              children: [
-                // Progress bar
-                _buildProgressBar(state),
-
-                // Stats row
-                _buildStatsRow(state),
-
-                // Flashcard with flip animation
-                Expanded(
-                  child: Center(
-                    child: _FlipCard(
-                      card: currentCard,
-                      showAnswer: state.showAnswer,
-                      onFlip: () =>
-                          context.read<FlashcardBloc>().add(FlipCardEvent()),
+                if (_currentCard == null) {
+                  return const Center(
+                    child: Text(
+                      'Loading card...',
+                      style: TextStyle(color: Colors.white70),
                     ),
-                  ),
-                ),
+                  );
+                }
 
-                // Quality rating buttons
-                if (state.showAnswer) _buildQualityButtons(context, state),
+                return Column(
+                  children: [
+                    // Custom App Bar
+                    _buildAppBar(),
 
-                const SizedBox(height: 16),
-              ],
-            );
-          }
+                    // Progress Bar
+                    _buildProgressBar(),
 
-          return const SizedBox.shrink();
-        },
+                    const SizedBox(height: 20),
+
+                    // Flip Card
+                    Expanded(
+                      child: Center(
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 20),
+                          child: _buildFlipCard(),
+                        ),
+                      ),
+                    ),
+
+                    // Action Buttons
+                    _buildActionButtons(),
+
+                    const SizedBox(height: 20),
+                  ],
+                );
+              },
+            ),
+          ),
+        ),
       ),
     );
   }
 
-  Widget _buildProgressBar(StudySessionActive state) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: Column(
+  Widget _buildAppBar() {
+    return Padding(
+      padding: const EdgeInsets.all(20),
+      child: Row(
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'Card ${state.currentIndex + 1} of ${state.cards.length}',
-                style: const TextStyle(color: Colors.white, fontSize: 14),
-              ),
-              Text(
-                '${state.progressPercentage.toStringAsFixed(0)}%',
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ],
+          Container(
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: IconButton(
+              icon: const Icon(Icons.close, color: Colors.white),
+              onPressed: () async {
+                if (await _showExitDialog()) {
+                  if (mounted) Navigator.pop(context);
+                }
+              },
+            ),
           ),
-          const SizedBox(height: 8),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(4),
-            child: LinearProgressIndicator(
-              value: state.progressPercentage / 100,
-              backgroundColor: Colors.white24,
-              valueColor: const AlwaysStoppedAnimation<Color>(Colors.blue),
-              minHeight: 6,
+          const SizedBox(width: 12),
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: Colors.tealAccent.withOpacity(0.2),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: const Icon(Icons.school, color: Colors.tealAccent, size: 28),
+          ),
+          const SizedBox(width: 12),
+          const Text(
+            'Study Session',
+            style: TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
             ),
           ),
         ],
@@ -199,341 +188,675 @@ class _StudySessionView extends StatelessWidget {
     );
   }
 
-  Widget _buildStatsRow(StudySessionActive state) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: [
-          _buildStatItem(
-            icon: Icons.check_circle,
-            label: 'Correct',
-            value: state.cardsCorrect,
-            color: Colors.green,
-          ),
-          _buildStatItem(
-            icon: Icons.cancel,
-            label: 'Incorrect',
-            value: state.cardsIncorrect,
-            color: Colors.red,
-          ),
-          _buildStatItem(
-            icon: Icons.percent,
-            label: 'Accuracy',
-            value: state.accuracy.toStringAsFixed(0),
-            color: Colors.blue,
-          ),
-        ],
-      ),
-    );
-  }
+  Widget _buildProgressBar() {
+    final progress = _totalCards > 0 ? _cardsReviewed / _totalCards : 0.0;
 
-  Widget _buildStatItem({
-    required IconData icon,
-    required String label,
-    required dynamic value,
-    required Color color,
-  }) {
     return Column(
       children: [
-        Icon(icon, color: color, size: 24),
-        const SizedBox(height: 4),
-        Text(
-          value.toString(),
-          style: const TextStyle(
-            color: Colors.white,
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Card $_cardsReviewed / $_totalCards',
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
+              if (_currentCard?.isNew ?? false)
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [Colors.blue, Colors.lightBlue],
+                    ),
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.blue.withOpacity(0.3),
+                        blurRadius: 8,
+                        spreadRadius: 1,
+                      ),
+                    ],
+                  ),
+                  child: const Text(
+                    'NEW',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 12,
+                    ),
+                  ),
+                ),
+            ],
           ),
         ),
-        Text(
-          label,
-          style: TextStyle(color: Colors.white.withOpacity(0.7), fontSize: 12),
+        const SizedBox(height: 12),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(10),
+            child: LinearProgressIndicator(
+              value: progress,
+              minHeight: 10,
+              backgroundColor: Colors.white.withOpacity(0.1),
+              valueColor: const AlwaysStoppedAnimation<Color>(
+                Colors.tealAccent,
+              ),
+            ),
+          ),
         ),
       ],
     );
   }
 
-  Widget _buildQualityButtons(BuildContext context, StudySessionActive state) {
+  Widget _buildFlipCard() {
+    return FlipCard(
+      controller: _flipController,
+      direction: FlipDirection.HORIZONTAL,
+      speed: 500,
+      onFlip: () {
+        setState(() {
+          _isCardFlipped = !_isCardFlipped;
+        });
+      },
+      front: _buildCardFront(),
+      back: _buildCardBack(),
+    );
+  }
+
+  Widget _buildCardFront() {
     return Container(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        children: [
-          const Text(
-            'How well did you remember?',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
+      constraints: const BoxConstraints(minHeight: 400, maxHeight: 500),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(24),
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Colors.tealAccent.withOpacity(0.3),
+            const Color(0xFF00BFA5).withOpacity(0.2),
+          ],
+        ),
+        border: Border.all(color: Colors.tealAccent.withOpacity(0.5), width: 2),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.tealAccent.withOpacity(0.3),
+            blurRadius: 20,
+            spreadRadius: 2,
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: () => _flipController.toggleCard(),
+          borderRadius: BorderRadius.circular(24),
+          child: Padding(
+            padding: const EdgeInsets.all(32),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  'What is the meaning of:',
+                  style: TextStyle(
+                    fontSize: 18,
+                    color: Colors.white.withOpacity(0.7),
+                  ),
+                ),
+                const SizedBox(height: 32),
+                Text(
+                  _currentCard!.character,
+                  style: const TextStyle(
+                    fontSize: 120,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                    shadows: [Shadow(color: Colors.tealAccent, blurRadius: 30)],
+                  ),
+                ),
+                const SizedBox(height: 32),
+                Icon(
+                  Icons.help_outline,
+                  size: 48,
+                  color: Colors.white.withOpacity(0.5),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'Think about the answer...',
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: Colors.white.withOpacity(0.6),
+                    fontStyle: FontStyle.italic,
+                  ),
+                ),
+                const SizedBox(height: 32),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.touch_app,
+                      size: 20,
+                      color: Colors.tealAccent.withOpacity(0.7),
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Tap to reveal',
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.tealAccent.withOpacity(0.7),
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
             ),
           ),
-          const SizedBox(height: 16),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            alignment: WrapAlignment.center,
-            children: [
-              _buildQualityButton(
-                context,
-                state,
-                quality: 0,
-                label: 'Blackout',
-                color: Colors.red.shade900,
-                icon: Icons.close,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCardBack() {
+    return Container(
+      constraints: const BoxConstraints(minHeight: 400, maxHeight: 500),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(24),
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Colors.tealAccent.withOpacity(0.3),
+            Colors.greenAccent.withOpacity(0.2),
+          ],
+        ),
+        border: Border.all(color: Colors.tealAccent.withOpacity(0.5), width: 2),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.tealAccent.withOpacity(0.3),
+            blurRadius: 20,
+            spreadRadius: 2,
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: () => _flipController.toggleCard(),
+          borderRadius: BorderRadius.circular(24),
+          child: Padding(
+            padding: const EdgeInsets.all(32),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  _currentCard!.character,
+                  style: const TextStyle(
+                    fontSize: 80,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+                const SizedBox(height: 24),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 12,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.tealAccent.withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Text(
+                    _currentCard!.meaning,
+                    style: const TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.tealAccent,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+                const SizedBox(height: 24),
+                if (_currentCard!.onyomi.isNotEmpty) ...[
+                  _buildReadingRow('音読み', _currentCard!.onyomi),
+                  const SizedBox(height: 12),
+                ],
+                if (_currentCard!.kunyomi.isNotEmpty) ...[
+                  _buildReadingRow('訓読み', _currentCard!.kunyomi),
+                ],
+                if (!_showRatingButtons) ...[
+                  const SizedBox(height: 32),
+                  Divider(color: Colors.white.withOpacity(0.2)),
+                  const SizedBox(height: 16),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.arrow_downward,
+                        size: 20,
+                        color: Colors.tealAccent.withOpacity(0.7),
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Tap below to rate your knowledge',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Colors.tealAccent.withOpacity(0.7),
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildReadingRow(String label, String reading) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Text(
+          '$label: ',
+          style: TextStyle(fontSize: 16, color: Colors.white.withOpacity(0.7)),
+        ),
+        Text(
+          reading,
+          style: const TextStyle(
+            fontSize: 16,
+            color: Colors.white,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildActionButtons() {
+    // When showing front - no buttons (tap card to flip)
+    if (!_isCardFlipped) {
+      return const SizedBox(height: 56); // Keep spacing consistent
+    }
+
+    // After reviewed - show Next Card button
+    if (_hasReviewedCurrentCard) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        child: SizedBox(
+          width: double.infinity,
+          height: 56,
+          child: ElevatedButton(
+            onPressed: _loadNextCard,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.tealAccent,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
               ),
-              _buildQualityButton(
-                context,
-                state,
-                quality: 1,
-                label: 'Wrong',
-                color: Colors.red.shade700,
-                icon: Icons.thumb_down,
+              elevation: 8,
+            ),
+            child: const Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.arrow_forward, color: Colors.black),
+                SizedBox(width: 8),
+                Text(
+                  'Next Card',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
+    // When showing back but not ready to rate - show "Rate" button
+    if (!_showRatingButtons) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        child: SizedBox(
+          width: double.infinity,
+          height: 56,
+          child: ElevatedButton(
+            onPressed: () {
+              setState(() {
+                _showRatingButtons = true;
+              });
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.tealAccent,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
               ),
-              _buildQualityButton(
-                context,
-                state,
-                quality: 2,
-                label: 'Hard',
-                color: Colors.orange.shade700,
-                icon: Icons.sentiment_dissatisfied,
-              ),
-              _buildQualityButton(
-                context,
-                state,
-                quality: 3,
-                label: 'Good',
-                color: Colors.yellow.shade700,
-                icon: Icons.sentiment_neutral,
-              ),
-              _buildQualityButton(
-                context,
-                state,
-                quality: 4,
-                label: 'Easy',
-                color: Colors.green.shade600,
-                icon: Icons.sentiment_satisfied,
-              ),
-              _buildQualityButton(
-                context,
-                state,
-                quality: 5,
-                label: 'Perfect',
-                color: Colors.green.shade800,
-                icon: Icons.star,
-              ),
-            ],
+              elevation: 8,
+            ),
+            child: const Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.rate_review, color: Colors.black),
+                SizedBox(width: 8),
+                Text(
+                  'Rate Your Knowledge',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
+    // Rating buttons when ready to rate
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: Row(
+        children: [
+          Expanded(
+            child: _buildQualityButton(
+              quality: 1,
+              label: 'Again',
+              color: Colors.red.shade400,
+              icon: Icons.close,
+            ),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: _buildQualityButton(
+              quality: 2,
+              label: 'Hard',
+              color: Colors.orange.shade400,
+              icon: Icons.sentiment_neutral,
+            ),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: _buildQualityButton(
+              quality: 4,
+              label: 'Good',
+              color: Colors.lightGreen.shade400,
+              icon: Icons.sentiment_satisfied,
+            ),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: _buildQualityButton(
+              quality: 5,
+              label: 'Easy',
+              color: Colors.green.shade600,
+              icon: Icons.check_circle,
+            ),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildQualityButton(
-    BuildContext context,
-    StudySessionActive state, {
+  Widget _buildQualityButton({
     required int quality,
     required String label,
     required Color color,
     required IconData icon,
   }) {
-    final currentCard = state.currentCard;
-    if (currentCard == null) return const SizedBox.shrink();
-
-    return ElevatedButton(
-      onPressed: () {
-        context.read<FlashcardBloc>().add(
-          AnswerCardEvent(cardId: currentCard.id, quality: quality),
-        );
-      },
-      style: ElevatedButton.styleFrom(
-        backgroundColor: color,
-        foregroundColor: Colors.white,
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 20),
-          const SizedBox(height: 4),
-          Text(label, style: const TextStyle(fontSize: 12)),
-          Text('($quality)', style: const TextStyle(fontSize: 10)),
-        ],
+    return SizedBox(
+      height: 80,
+      child: ElevatedButton(
+        onPressed: () => _reviewCard(quality),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: color,
+          foregroundColor: Colors.white,
+          padding: const EdgeInsets.symmetric(vertical: 12),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          elevation: 4,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, size: 28),
+            const SizedBox(height: 6),
+            Text(
+              label,
+              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
       ),
     );
   }
 
-  void _showExitConfirmation(BuildContext context) {
+  void _reviewCard(int quality) {
+    if (_currentCard == null) return;
+
+    final timeSpent = _getTimeSpent();
+    context.read<FlashcardBloc>().add(
+      ReviewCardEvent(
+        sessionId: widget.sessionId,
+        cardId: _currentCard!.cardId,
+        quality: quality,
+        timeSpent: timeSpent,
+      ),
+    );
+
+    setState(() {
+      _cardsReviewed++;
+    });
+  }
+
+  void _completeSession() {
+    context.read<FlashcardBloc>().add(CompleteSessionEvent(widget.sessionId));
+  }
+
+  void _showCompletionDialog(dynamic session) {
     showDialog(
       context: context,
-      builder: (dialogContext) => AlertDialog(
-        backgroundColor: const Color(0xFF1A1A1A),
-        title: const Text(
-          'Exit Study Session?',
-          style: TextStyle(color: Colors.white),
+      barrierDismissible: false,
+      builder: (context) => Dialog(
+        backgroundColor: const Color(0xFF1A1F2E),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(24),
+          side: BorderSide(color: Colors.tealAccent.withOpacity(0.3), width: 2),
         ),
-        content: const Text(
-          'Your progress will not be saved if you exit now.',
-          style: TextStyle(color: Colors.white70),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext),
-            child: const Text('Continue Studying'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pop(dialogContext);
-              Navigator.pop(context);
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red,
-              foregroundColor: Colors.white,
-            ),
-            child: const Text('Exit'),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-/// Flip card widget with animation
-class _FlipCard extends StatefulWidget {
-  final Flashcard card;
-  final bool showAnswer;
-  final VoidCallback onFlip;
-
-  const _FlipCard({
-    required this.card,
-    required this.showAnswer,
-    required this.onFlip,
-  });
-
-  @override
-  State<_FlipCard> createState() => _FlipCardState();
-}
-
-class _FlipCardState extends State<_FlipCard>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-  late Animation<double> _animation;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-      duration: const Duration(milliseconds: 400),
-      vsync: this,
-    );
-    _animation = Tween<double>(
-      begin: 0,
-      end: 1,
-    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
-  }
-
-  @override
-  void didUpdateWidget(_FlipCard oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (widget.showAnswer != oldWidget.showAnswer) {
-      if (widget.showAnswer) {
-        _controller.forward();
-      } else {
-        _controller.reverse();
-      }
-    }
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: _animation,
-      builder: (context, child) {
-        final angle = _animation.value * math.pi;
-        final isBack = angle > math.pi / 2;
-
-        return Transform(
-          alignment: Alignment.center,
-          transform: Matrix4.identity()
-            ..setEntry(3, 2, 0.001)
-            ..rotateY(angle),
-          child: GestureDetector(
-            onTap: widget.onFlip,
-            child: Container(
-              width: MediaQuery.of(context).size.width * 0.85,
-              height: MediaQuery.of(context).size.height * 0.5,
-              decoration: BoxDecoration(
-                color: const Color(0xFF1A1A1A),
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: Colors.white24, width: 2),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.5),
-                    blurRadius: 20,
-                    spreadRadius: 5,
-                  ),
-                ],
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.amber.withOpacity(0.2),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.celebration,
+                  color: Colors.amber,
+                  size: 48,
+                ),
               ),
-              child: Transform(
-                alignment: Alignment.center,
-                transform: Matrix4.identity()..rotateY(isBack ? math.pi : 0),
-                child: Center(
-                  child: Padding(
-                    padding: const EdgeInsets.all(32),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          isBack ? 'Answer' : 'Question',
-                          style: TextStyle(
-                            color: Colors.white.withOpacity(0.5),
-                            fontSize: 14,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        const SizedBox(height: 24),
-                        Expanded(
-                          child: Center(
-                            child: Text(
-                              isBack ? widget.card.back : widget.card.front,
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 32,
-                                fontWeight: FontWeight.bold,
-                                fontFamily: 'Noto Sans JP',
-                              ),
-                              textAlign: TextAlign.center,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 24),
-                        Icon(
-                          Icons.touch_app,
-                          color: Colors.white.withOpacity(0.3),
-                          size: 32,
-                        ),
-                        Text(
-                          'Tap to ${isBack ? 'see question' : 'reveal answer'}',
-                          style: TextStyle(
-                            color: Colors.white.withOpacity(0.3),
-                            fontSize: 12,
-                          ),
-                        ),
-                      ],
+              const SizedBox(height: 16),
+              const Text(
+                'Session Complete!',
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
+              const SizedBox(height: 24),
+              _buildStatRow('Cards Reviewed', '${session.cardsReviewed}'),
+              _buildStatRow('Correct', '${session.correctAnswers}'),
+              _buildStatRow('Incorrect', '${session.incorrectAnswers}'),
+              _buildStatRow('Accuracy', '${session.accuracy}%'),
+              if (session.cardsMastered != null)
+                _buildStatRow('Cards Mastered', '${session.cardsMastered}'),
+              const SizedBox(height: 24),
+              SizedBox(
+                width: double.infinity,
+                height: 50,
+                child: ElevatedButton(
+                  onPressed: () {
+                    Navigator.pop(context); // Close dialog
+                    Navigator.pop(context); // Go back to deck detail
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.tealAccent,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                  ),
+                  child: const Text(
+                    'Done',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black,
                     ),
                   ),
                 ),
               ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStatRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 16,
+              color: Colors.white.withOpacity(0.7),
             ),
           ),
-        );
-      },
+          Text(
+            value,
+            style: const TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: Colors.tealAccent,
+            ),
+          ),
+        ],
+      ),
     );
+  }
+
+  Future<bool> _showExitDialog() async {
+    return await showDialog<bool>(
+          context: context,
+          builder: (context) => Dialog(
+            backgroundColor: const Color(0xFF1A1F2E),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(24),
+              side: BorderSide(color: Colors.orange.withOpacity(0.3), width: 2),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(
+                    Icons.warning_amber_rounded,
+                    color: Colors.orange,
+                    size: 48,
+                  ),
+                  const SizedBox(height: 16),
+                  const Text(
+                    'Exit Study Session?',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Your progress will be saved, but you should complete the session for best results.',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.white.withOpacity(0.7),
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 24),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton(
+                          onPressed: () => Navigator.pop(context, false),
+                          style: OutlinedButton.styleFrom(
+                            side: BorderSide(
+                              color: Colors.white.withOpacity(0.3),
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                          ),
+                          child: const Text(
+                            'Continue',
+                            style: TextStyle(color: Colors.white),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: ElevatedButton(
+                          onPressed: () {
+                            _completeSession();
+                            Navigator.pop(context, true);
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.orange,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                          ),
+                          child: const Text(
+                            'Exit',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ) ??
+        false;
   }
 }

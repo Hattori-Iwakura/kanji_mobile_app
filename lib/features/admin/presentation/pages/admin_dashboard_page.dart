@@ -1,183 +1,412 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
 import 'package:fl_chart/fl_chart.dart';
-import '../../../../core/routes/app_router.dart';
-import '../../../auth/presentation/bloc/auth_bloc.dart';
-import '../../../auth/presentation/bloc/auth_state.dart';
-import 'admin_users_page.dart';
-import 'admin_kanji_page.dart';
-import 'admin_analytics_page.dart';
+import 'package:kanji_mobile_app/core/network/api_client.dart';
+import 'package:kanji_mobile_app/features/admin/services/admin_api_service.dart';
+import 'package:kanji_mobile_app/features/admin/models/admin_models.dart';
+import 'package:kanji_mobile_app/features/admin/presentation/pages/admin_publish_requests_page.dart';
+import 'package:kanji_mobile_app/features/admin/presentation/pages/admin_kanji_management_page.dart';
+import 'package:kanji_mobile_app/features/admin/presentation/pages/admin_user_management_page.dart';
 
-/// Admin Dashboard - Only accessible by ADMIN role
-class AdminDashboardPage extends StatelessWidget {
-  const AdminDashboardPage({super.key});
+class AdminDashboardPage extends StatefulWidget {
+  final ApiClient apiClient;
+
+  const AdminDashboardPage({super.key, required this.apiClient});
+
+  @override
+  State<AdminDashboardPage> createState() => _AdminDashboardPageState();
+}
+
+class _AdminDashboardPageState extends State<AdminDashboardPage> {
+  late final AdminApiService _adminApiService;
+  bool _isLoading = true;
+  String? _error;
+  String _selectedPeriod = 'week'; // week, month, year
+
+  DashboardOverview? _overview;
+  PublishStatistics? _publishStats;
+  SystemHealth? _systemHealth;
+  UserStatistics? _userStats;
+  ContentStatistics? _contentStats;
+  ActivityStatistics? _activityStats;
+  ChartData? _userChartData;
+  ChartData? _activityChartData;
+  SystemMetrics? _systemMetrics;
+
+  @override
+  void initState() {
+    super.initState();
+    _adminApiService = AdminApiService(widget.apiClient);
+    _loadDashboardData();
+  }
+
+  Future<void> _loadDashboardData() async {
+    setState(() {
+      _isLoading = true;
+      _error = null;
+    });
+
+    try {
+      final results = await Future.wait([
+        _adminApiService.getDashboardOverview(),
+        _adminApiService.getPublishStatistics(),
+        _adminApiService.getSystemHealth(),
+        _adminApiService.getUserStatistics(period: _selectedPeriod),
+        _adminApiService.getContentStatistics(period: _selectedPeriod),
+        _adminApiService.getActivityStatistics(
+          period: _selectedPeriod,
+          limit: 10,
+        ),
+        _adminApiService.getUserChartData(period: _selectedPeriod),
+        _adminApiService.getActivityChartData(period: _selectedPeriod),
+        _adminApiService.getSystemMetrics(period: _selectedPeriod),
+      ]);
+
+      setState(() {
+        _overview = results[0] as DashboardOverview;
+        _publishStats = results[1] as PublishStatistics;
+        _systemHealth = results[2] as SystemHealth;
+        _userStats = results[3] as UserStatistics;
+        _contentStats = results[4] as ContentStatistics;
+        _activityStats = results[5] as ActivityStatistics;
+        _userChartData = results[6] as ChartData;
+        _activityChartData = results[7] as ChartData;
+        _systemMetrics = results[8] as SystemMetrics;
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        _error = e.toString();
+        _isLoading = false;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<AuthBloc, AuthState>(
-      builder: (context, state) {
-        if (state is! Authenticated) {
-          return _buildUnauthorized();
-        }
-
-        if (state.user.role != 'ADMIN') {
-          return _buildUnauthorized();
-        }
-
-        return _buildDashboard(context);
-      },
-    );
-  }
-
-  Widget _buildUnauthorized() {
     return Scaffold(
-      backgroundColor: Colors.black,
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.lock_outline,
-              size: 100,
-              color: Colors.white.withOpacity(0.3),
-            ),
-            const SizedBox(height: 24),
-            Text(
-              'Access Denied',
-              style: TextStyle(
-                color: Colors.white.withOpacity(0.7),
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [Color(0xFF071126), Color(0xFF0B0F14)],
+          ),
+        ),
+        child: SafeArea(
+          child: Column(
+            children: [
+              _buildAppBar(),
+              Expanded(
+                child: _isLoading
+                    ? _buildLoadingState()
+                    : _error != null
+                    ? _buildErrorState()
+                    : _buildDashboardContent(),
               ),
-            ),
-            const SizedBox(height: 12),
-            Text(
-              'Admin privileges required',
-              style: TextStyle(
-                color: Colors.white.withOpacity(0.5),
-                fontSize: 16,
-              ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildDashboard(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.black,
-      appBar: AppBar(
-        backgroundColor: Colors.black,
-        title: const Text(
-          'Admin Dashboard',
-          style: TextStyle(color: Colors.white),
-        ),
-        actions: [
+  Widget _buildAppBar() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      child: Row(
+        children: [
           IconButton(
-            icon: const Icon(Icons.refresh, color: Colors.white),
-            onPressed: () {
-              // TODO: Refresh data
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Data refreshed'),
-                  backgroundColor: Colors.blue,
-                  duration: Duration(seconds: 1),
+            icon: const Icon(Icons.arrow_back, color: Colors.white),
+            onPressed: () => Navigator.of(context).pop(),
+          ),
+          const SizedBox(width: 8),
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [Color(0xFF00BFA5), Color(0xFF1DE9B6)],
+              ),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: const Icon(
+              Icons.admin_panel_settings,
+              color: Colors.white,
+              size: 24,
+            ),
+          ),
+          const SizedBox(width: 12),
+          const Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Admin Dashboard',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
                 ),
-              );
-            },
+              ),
+              Text(
+                'System Management',
+                style: TextStyle(color: Colors.white60, fontSize: 12),
+              ),
+            ],
+          ),
+          const Spacer(),
+          IconButton(
+            icon: const Icon(Icons.refresh, color: Colors.tealAccent),
+            onPressed: _loadDashboardData,
           ),
         ],
       ),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
+    );
+  }
+
+  Widget _buildLoadingState() {
+    return const Center(
+      child: CircularProgressIndicator(color: Colors.tealAccent),
+    );
+  }
+
+  Widget _buildErrorState() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          // Overview Stats
-          _buildOverviewStats(),
-
+          const Icon(Icons.error_outline, color: Colors.redAccent, size: 64),
+          const SizedBox(height: 16),
+          Text(
+            'Error Loading Dashboard',
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 32),
+            child: Text(
+              _error!,
+              textAlign: TextAlign.center,
+              style: const TextStyle(color: Colors.white60, fontSize: 14),
+            ),
+          ),
           const SizedBox(height: 24),
-
-          // Quick Actions
-          _buildQuickActions(context),
-
-          const SizedBox(height: 24),
-
-          // Charts Section
-          _buildChartsSection(),
-
-          const SizedBox(height: 24),
-
-          // Recent Activity
-          _buildRecentActivity(),
-
-          const SizedBox(height: 32),
+          ElevatedButton.icon(
+            onPressed: _loadDashboardData,
+            icon: const Icon(Icons.refresh),
+            label: const Text('Retry'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.tealAccent,
+              foregroundColor: Colors.black87,
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+            ),
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildOverviewStats() {
+  Widget _buildDashboardContent() {
+    return RefreshIndicator(
+      color: Colors.tealAccent,
+      backgroundColor: const Color(0xFF1A1F2E),
+      onRefresh: _loadDashboardData,
+      child: ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
+          _buildPeriodSelector(),
+          const SizedBox(height: 16),
+          _buildSystemHealthCard(),
+          const SizedBox(height: 16),
+          _buildSystemMetricsCard(),
+          const SizedBox(height: 16),
+          _buildStatsGrid(),
+          const SizedBox(height: 16),
+          _buildDetailedStatsSection(),
+          const SizedBox(height: 16),
+          _buildChartsSection(),
+          const SizedBox(height: 16),
+          _buildRecentActivitiesCard(),
+          const SizedBox(height: 16),
+          _buildQuickActionsCard(),
+          const SizedBox(height: 16),
+          _buildPublishRequestsCard(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPeriodSelector() {
+    return Container(
+      decoration: BoxDecoration(
+        color: const Color(0xFF1A1F2E),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.white.withOpacity(0.1), width: 1),
+      ),
+      padding: const EdgeInsets.all(4),
+      child: Row(
+        children: [
+          _buildPeriodButton('Today', 'day'),
+          _buildPeriodButton('Week', 'week'),
+          _buildPeriodButton('Month', 'month'),
+          _buildPeriodButton('Year', 'year'),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPeriodButton(String label, String period) {
+    final isSelected = _selectedPeriod == period;
+    return Expanded(
+      child: GestureDetector(
+        onTap: () {
+          setState(() {
+            _selectedPeriod = period;
+          });
+          _loadDashboardData();
+        },
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 10),
+          decoration: BoxDecoration(
+            gradient: isSelected
+                ? const LinearGradient(
+                    colors: [Color(0xFF00BFA5), Color(0xFF1DE9B6)],
+                  )
+                : null,
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Text(
+            label,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: isSelected ? Colors.white : Colors.white60,
+              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+              fontSize: 14,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSystemHealthCard() {
+    final isHealthy = _systemHealth?.isHealthy ?? false;
+
+    return Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: isHealthy
+              ? [const Color(0xFF00BFA5), const Color(0xFF1DE9B6)]
+              : [Colors.redAccent, Colors.red.shade700],
+        ),
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: (isHealthy ? Colors.tealAccent : Colors.redAccent)
+                .withOpacity(0.3),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      padding: const EdgeInsets.all(20),
+      child: Row(
+        children: [
+          Icon(
+            isHealthy ? Icons.check_circle : Icons.error,
+            color: Colors.white,
+            size: 48,
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  isHealthy ? 'System Healthy' : 'System Issues',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Database: ${_systemHealth?.database ?? 'Unknown'}',
+                  style: const TextStyle(color: Colors.white70, fontSize: 14),
+                ),
+              ],
+            ),
+          ),
+          const Icon(Icons.arrow_forward_ios, color: Colors.white70, size: 16),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStatsGrid() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'Overview',
+        const Text(
+          'System Overview',
           style: TextStyle(
-            color: Colors.white.withOpacity(0.7),
-            fontSize: 14,
+            color: Colors.white,
+            fontSize: 18,
             fontWeight: FontWeight.bold,
-            letterSpacing: 1,
           ),
         ),
         const SizedBox(height: 12),
-        Row(
+        GridView.count(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          crossAxisCount: 2,
+          crossAxisSpacing: 12,
+          mainAxisSpacing: 12,
+          childAspectRatio: 1.3,
           children: [
-            Expanded(
-              child: _buildStatCard(
-                icon: Icons.people,
-                title: 'Total Users',
-                value: '1,234',
-                change: '+12%',
-                isPositive: true,
-                color: Colors.blue,
+            _buildStatCard(
+              icon: Icons.people,
+              title: 'Total Users',
+              value: _overview?.users.total.toString() ?? '0',
+              subtitle: '${_overview?.users.active ?? 0} active',
+              gradient: const LinearGradient(
+                colors: [Color(0xFF667EEA), Color(0xFF764BA2)],
               ),
             ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: _buildStatCard(
-                icon: Icons.auto_stories,
-                title: 'Kanji Items',
-                value: '2,136',
-                change: '+5',
-                isPositive: true,
-                color: Colors.green,
+            _buildStatCard(
+              icon: Icons.library_books,
+              title: 'Content',
+              value:
+                  ((_overview?.content.quizzes ?? 0) +
+                          (_overview?.content.lists ?? 0) +
+                          (_overview?.content.decks ?? 0))
+                      .toString(),
+              subtitle:
+                  'Q:${_overview?.content.quizzes ?? 0} L:${_overview?.content.lists ?? 0} D:${_overview?.content.decks ?? 0}',
+              gradient: const LinearGradient(
+                colors: [Color(0xFF00BFA5), Color(0xFF1DE9B6)],
               ),
             ),
-          ],
-        ),
-        const SizedBox(height: 12),
-        Row(
-          children: [
-            Expanded(
-              child: _buildStatCard(
-                icon: Icons.style,
-                title: 'Flashcards',
-                value: '456',
-                change: '+23',
-                isPositive: true,
-                color: Colors.orange,
+            _buildStatCard(
+              icon: Icons.trending_up,
+              title: 'New Users',
+              value: _overview?.users.newUsers.toString() ?? '0',
+              subtitle: 'This week',
+              gradient: const LinearGradient(
+                colors: [Color(0xFFFA8BFF), Color(0xFF2BD2FF)],
               ),
             ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: _buildStatCard(
-                icon: Icons.quiz,
-                title: 'Quizzes',
-                value: '89',
-                change: '+8',
-                isPositive: true,
-                color: Colors.purple,
+            _buildStatCard(
+              icon: Icons.pending_actions,
+              title: 'Pending',
+              value:
+                  _overview?.activity.pendingPublishRequests.toString() ?? '0',
+              subtitle: 'Publish requests',
+              gradient: const LinearGradient(
+                colors: [Color(0xFFFFBE0B), Color(0xFFFB5607)],
               ),
             ),
           ],
@@ -190,58 +419,194 @@ class AdminDashboardPage extends StatelessWidget {
     required IconData icon,
     required String title,
     required String value,
-    required String change,
-    required bool isPositive,
-    required Color color,
+    required String subtitle,
+    required Gradient gradient,
   }) {
     return Container(
-      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFF1A1A1A),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color.withOpacity(0.3)),
+        color: const Color(0xFF1A1F2E),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.white.withOpacity(0.1), width: 1),
+      ),
+      padding: const EdgeInsets.all(12),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(6),
+                decoration: BoxDecoration(
+                  gradient: gradient,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(icon, color: Colors.white, size: 18),
+              ),
+              const SizedBox(height: 8),
+              Flexible(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    FittedBox(
+                      fit: BoxFit.scaleDown,
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        value,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      title,
+                      style: const TextStyle(
+                        color: Colors.white70,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w500,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 1),
+                    Text(
+                      subtitle,
+                      style: const TextStyle(
+                        color: Colors.white38,
+                        fontSize: 8,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildPublishRequestsCard() {
+    final pending = _publishStats?.pending ?? 0;
+    final total = _publishStats?.total ?? 0;
+    final approved = _publishStats?.approved ?? 0;
+
+    return Container(
+      decoration: BoxDecoration(
+        color: const Color(0xFF1A1F2E),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.white.withOpacity(0.1), width: 1),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Icon(icon, color: color, size: 24),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: isPositive
-                      ? Colors.green.withOpacity(0.2)
-                      : Colors.red.withOpacity(0.2),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Text(
-                  change,
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              children: [
+                const Icon(Icons.publish, color: Colors.tealAccent, size: 24),
+                const SizedBox(width: 12),
+                const Text(
+                  'Publish Requests',
                   style: TextStyle(
-                    color: isPositive ? Colors.green : Colors.red,
-                    fontSize: 10,
+                    color: Colors.white,
+                    fontSize: 18,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Text(
-            value,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
+                const Spacer(),
+                if (pending > 0)
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 6,
+                    ),
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        colors: [Color(0xFFFFBE0B), Color(0xFFFB5607)],
+                      ),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Text(
+                      '$pending pending',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+              ],
             ),
           ),
-          const SizedBox(height: 4),
-          Text(
-            title,
-            style: TextStyle(
-              color: Colors.white.withOpacity(0.6),
-              fontSize: 12,
+          const Divider(color: Color(0xFF2A2F3E), height: 1),
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: [
+                    _buildPublishStat('Total', total, Colors.blueAccent),
+                    _buildPublishStat('Approved', approved, Colors.tealAccent),
+                    _buildPublishStat('Pending', pending, Colors.orangeAccent),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    _buildTypeChip(
+                      'Quiz',
+                      _publishStats?.byType.quiz.pending ?? 0,
+                    ),
+                    const SizedBox(width: 8),
+                    _buildTypeChip(
+                      'List',
+                      _publishStats?.byType.list.pending ?? 0,
+                    ),
+                    const SizedBox(width: 8),
+                    _buildTypeChip(
+                      'Deck',
+                      _publishStats?.byType.deck.pending ?? 0,
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton.icon(
+                    onPressed: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => AdminPublishRequestsPage(
+                            apiClient: widget.apiClient,
+                          ),
+                        ),
+                      );
+                    },
+                    icon: const Icon(Icons.list_alt),
+                    label: const Text('Manage Requests'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.transparent,
+                      foregroundColor: Colors.tealAccent,
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        side: const BorderSide(
+                          color: Colors.tealAccent,
+                          width: 1,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
         ],
@@ -249,119 +614,201 @@ class AdminDashboardPage extends StatelessWidget {
     );
   }
 
-  Widget _buildQuickActions(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Quick Actions',
-          style: TextStyle(
-            color: Colors.white.withOpacity(0.7),
-            fontSize: 14,
-            fontWeight: FontWeight.bold,
-            letterSpacing: 1,
+  Widget _buildQuickActionsCard() {
+    return Container(
+      decoration: BoxDecoration(
+        color: const Color(0xFF1A1F2E),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.white.withOpacity(0.1), width: 1),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Padding(
+            padding: EdgeInsets.all(16),
+            child: Row(
+              children: [
+                Icon(Icons.flash_on, color: Colors.tealAccent, size: 24),
+                SizedBox(width: 12),
+                Text(
+                  'Quick Actions',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
           ),
-        ),
-        const SizedBox(height: 12),
-        Row(
-          children: [
-            Expanded(
-              child: _buildActionButton(
-                context,
-                icon: Icons.people,
-                label: 'Users',
-                color: Colors.blue,
-                onTap: () {
-                  context.go(AppRouter.userManagement);
-                },
-              ),
+          const Divider(color: Color(0xFF2A2F3E), height: 1),
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              children: [
+                _buildActionButton(
+                  icon: Icons.people,
+                  title: 'Manage Users',
+                  subtitle:
+                      'View and manage users (${_overview?.users.total ?? 0} total)',
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFF00BFA5), Color(0xFF1DE9B6)],
+                  ),
+                  onTap: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => AdminUserManagementPage(
+                          apiClient: widget.apiClient,
+                        ),
+                      ),
+                    );
+                  },
+                ),
+                const SizedBox(height: 12),
+                _buildActionButton(
+                  icon: Icons.text_fields,
+                  title: 'Manage Kanji',
+                  subtitle:
+                      'Add, edit or delete kanji (${_overview?.content.kanji ?? 0} total)',
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFF667EEA), Color(0xFF764BA2)],
+                  ),
+                  onTap: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => AdminKanjiManagementPage(
+                          apiClient: widget.apiClient,
+                        ),
+                      ),
+                    );
+                  },
+                ),
+                const SizedBox(height: 12),
+                _buildActionButton(
+                  icon: Icons.publish,
+                  title: 'Review Requests',
+                  subtitle:
+                      '${_overview?.activity.pendingPublishRequests ?? 0} pending approval',
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFFFFBE0B), Color(0xFFFB5607)],
+                  ),
+                  onTap: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => AdminPublishRequestsPage(
+                          apiClient: widget.apiClient,
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ],
             ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: _buildActionButton(
-                context,
-                icon: Icons.auto_stories,
-                label: 'Kanji',
-                color: Colors.green,
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const AdminKanjiPage()),
-                  );
-                },
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 12),
-        Row(
-          children: [
-            Expanded(
-              child: _buildActionButton(
-                context,
-                icon: Icons.bar_chart,
-                label: 'Analytics',
-                color: Colors.orange,
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => const AdminAnalyticsPage(),
-                    ),
-                  );
-                },
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: _buildActionButton(
-                context,
-                icon: Icons.settings,
-                label: 'Settings',
-                color: Colors.purple,
-                onTap: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Admin Settings - Coming Soon'),
-                      backgroundColor: Colors.blue,
-                    ),
-                  );
-                },
-              ),
-            ),
-          ],
-        ),
-      ],
+          ),
+        ],
+      ),
     );
   }
 
-  Widget _buildActionButton(
-    BuildContext context, {
+  Widget _buildActionButton({
     required IconData icon,
-    required String label,
-    required Color color,
+    required String title,
+    required String subtitle,
+    required Gradient gradient,
     required VoidCallback onTap,
   }) {
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(12),
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 20),
+        padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: const Color(0xFF1A1A1A),
+          color: const Color(0xFF0F1419),
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: color.withOpacity(0.3)),
+          border: Border.all(color: Colors.white.withOpacity(0.05)),
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                gradient: gradient,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Icon(icon, color: Colors.white, size: 24),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    subtitle,
+                    style: const TextStyle(color: Colors.white60, fontSize: 12),
+                  ),
+                ],
+              ),
+            ),
+            const Icon(
+              Icons.arrow_forward_ios,
+              color: Colors.white38,
+              size: 16,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPublishStat(String label, int count, Color color) {
+    return Column(
+      children: [
+        Text(
+          count.toString(),
+          style: TextStyle(
+            color: color,
+            fontSize: 28,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        Text(
+          label,
+          style: const TextStyle(color: Colors.white60, fontSize: 12),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildTypeChip(String type, int count) {
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        decoration: BoxDecoration(
+          color: const Color(0xFF0F1419),
+          borderRadius: BorderRadius.circular(8),
         ),
         child: Column(
           children: [
-            Icon(icon, color: color, size: 32),
-            const SizedBox(height: 8),
             Text(
-              label,
+              type,
+              style: const TextStyle(color: Colors.white70, fontSize: 12),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              count.toString(),
               style: const TextStyle(
-                color: Colors.white,
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
+                color: Colors.tealAccent,
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
               ),
             ),
           ],
@@ -370,208 +817,619 @@ class AdminDashboardPage extends StatelessWidget {
     );
   }
 
-  Widget _buildChartsSection() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'User Activity',
-          style: TextStyle(
-            color: Colors.white.withOpacity(0.7),
-            fontSize: 14,
-            fontWeight: FontWeight.bold,
-            letterSpacing: 1,
-          ),
-        ),
-        const SizedBox(height: 12),
-        Container(
-          height: 200,
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: const Color(0xFF1A1A1A),
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: Colors.white.withOpacity(0.1)),
-          ),
-          child: LineChart(
-            LineChartData(
-              gridData: FlGridData(show: false),
-              titlesData: FlTitlesData(
-                leftTitles: AxisTitles(
-                  sideTitles: SideTitles(
-                    showTitles: true,
-                    reservedSize: 40,
-                    getTitlesWidget: (value, meta) {
-                      return Text(
-                        value.toInt().toString(),
-                        style: TextStyle(
-                          color: Colors.white.withOpacity(0.5),
-                          fontSize: 10,
-                        ),
-                      );
-                    },
-                  ),
-                ),
-                bottomTitles: AxisTitles(
-                  sideTitles: SideTitles(
-                    showTitles: true,
-                    getTitlesWidget: (value, meta) {
-                      const days = [
-                        'Mon',
-                        'Tue',
-                        'Wed',
-                        'Thu',
-                        'Fri',
-                        'Sat',
-                        'Sun',
-                      ];
-                      if (value.toInt() >= 0 && value.toInt() < days.length) {
-                        return Text(
-                          days[value.toInt()],
-                          style: TextStyle(
-                            color: Colors.white.withOpacity(0.5),
-                            fontSize: 10,
-                          ),
-                        );
-                      }
-                      return const Text('');
-                    },
-                  ),
-                ),
-                rightTitles: AxisTitles(
-                  sideTitles: SideTitles(showTitles: false),
-                ),
-                topTitles: AxisTitles(
-                  sideTitles: SideTitles(showTitles: false),
+  Widget _buildSystemMetricsCard() {
+    if (_systemMetrics == null) return const SizedBox.shrink();
+
+    return Container(
+      decoration: BoxDecoration(
+        color: const Color(0xFF1A1F2E),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.white.withOpacity(0.1), width: 1),
+      ),
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Row(
+            children: [
+              Icon(Icons.speed, color: Colors.tealAccent, size: 24),
+              SizedBox(width: 12),
+              Text(
+                'System Metrics',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
                 ),
               ),
-              borderData: FlBorderData(show: false),
-              lineBarsData: [
-                LineChartBarData(
-                  spots: const [
-                    FlSpot(0, 30),
-                    FlSpot(1, 45),
-                    FlSpot(2, 38),
-                    FlSpot(3, 52),
-                    FlSpot(4, 48),
-                    FlSpot(5, 65),
-                    FlSpot(6, 58),
+            ],
+          ),
+          const SizedBox(height: 20),
+          Row(
+            children: [
+              Expanded(
+                flex: 2,
+                child: Column(
+                  children: [
+                    SizedBox(
+                      height: 150,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: [
+                          _buildPieMetric(
+                            'CPU',
+                            _systemMetrics!.performance.cpu,
+                            Colors.blueAccent,
+                            Icons.memory,
+                          ),
+                          _buildPieMetric(
+                            'Memory',
+                            _systemMetrics!.memory.percentage,
+                            Colors.orangeAccent,
+                            Icons.storage,
+                          ),
+                        ],
+                      ),
+                    ),
                   ],
-                  isCurved: true,
-                  color: Colors.blue,
-                  barWidth: 3,
-                  dotData: FlDotData(show: true),
-                  belowBarData: BarAreaData(
-                    show: true,
-                    color: Colors.blue.withOpacity(0.2),
-                  ),
                 ),
-              ],
-            ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  children: [
+                    _buildMetricStat(
+                      'DB Connections',
+                      _systemMetrics!.database.connections.toString(),
+                      Icons.cable,
+                      Colors.purpleAccent,
+                    ),
+                    const SizedBox(height: 12),
+                    _buildMetricStat(
+                      'Query Time',
+                      '${_systemMetrics!.database.queryTime.toStringAsFixed(0)}ms',
+                      Icons.query_stats,
+                      Colors.tealAccent,
+                    ),
+                    const SizedBox(height: 12),
+                    _buildMetricStat(
+                      'Requests/min',
+                      _systemMetrics!.performance.requestsPerMinute.toString(),
+                      Icons.trending_up,
+                      Colors.greenAccent,
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPieMetric(
+    String label,
+    double percentage,
+    Color color,
+    IconData icon,
+  ) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        SizedBox(
+          width: 100,
+          height: 100,
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              PieChart(
+                PieChartData(
+                  sectionsSpace: 0,
+                  centerSpaceRadius: 35,
+                  sections: [
+                    PieChartSectionData(
+                      value: percentage,
+                      color: color,
+                      radius: 12,
+                      showTitle: false,
+                    ),
+                    PieChartSectionData(
+                      value: 100 - percentage,
+                      color: Colors.white.withOpacity(0.1),
+                      radius: 12,
+                      showTitle: false,
+                    ),
+                  ],
+                ),
+              ),
+              Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(icon, color: color, size: 20),
+                  const SizedBox(height: 4),
+                  Text(
+                    '${percentage.toStringAsFixed(1)}%',
+                    style: TextStyle(
+                      color: color,
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          label,
+          style: const TextStyle(
+            color: Colors.white70,
+            fontSize: 12,
+            fontWeight: FontWeight.w500,
           ),
         ),
       ],
     );
   }
 
-  Widget _buildRecentActivity() {
-    final activities = [
-      {
-        'icon': Icons.person_add,
-        'title': 'New user registered',
-        'subtitle': 'user@example.com',
-        'time': '5 min ago',
-        'color': Colors.blue,
-      },
-      {
-        'icon': Icons.quiz,
-        'title': 'Quiz completed',
-        'subtitle': 'User scored 95% on JLPT N5',
-        'time': '12 min ago',
-        'color': Colors.green,
-      },
-      {
-        'icon': Icons.style,
-        'title': 'Flashcard deck created',
-        'subtitle': 'Admin added 20 new cards',
-        'time': '1 hour ago',
-        'color': Colors.orange,
-      },
-      {
-        'icon': Icons.auto_stories,
-        'title': 'Kanji updated',
-        'subtitle': 'Stroke order data refreshed',
-        'time': '2 hours ago',
-        'color': Colors.purple,
-      },
-    ];
+  Widget _buildMetricStat(
+    String label,
+    String value,
+    IconData icon,
+    Color color,
+  ) {
+    return Container(
+      padding: const EdgeInsets.all(8),
+      decoration: BoxDecoration(
+        color: const Color(0xFF0F1419),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Row(
+        children: [
+          Icon(icon, color: color, size: 16),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: const TextStyle(color: Colors.white60, fontSize: 9),
+                ),
+                Text(
+                  value,
+                  style: TextStyle(
+                    color: color,
+                    fontSize: 13,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 
+  Widget _buildDetailedStatsSection() {
+    return Container(
+      decoration: BoxDecoration(
+        color: const Color(0xFF1A1F2E),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.white.withOpacity(0.1), width: 1),
+      ),
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Row(
+            children: [
+              Icon(Icons.analytics, color: Colors.tealAccent, size: 24),
+              SizedBox(width: 12),
+              Text(
+                'Detailed Statistics',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          if (_userStats != null) ...[
+            _buildStatRow(
+              'Total Users',
+              _userStats!.totalUsers.toString(),
+              growth: _userStats!.growth,
+            ),
+            const SizedBox(height: 8),
+            _buildStatRow('Active Users', _userStats!.activeUsers.toString()),
+            const SizedBox(height: 8),
+            _buildStatRow('New Users', _userStats!.newUsers.toString()),
+            const Divider(color: Color(0xFF2A2F3E), height: 24),
+          ],
+          if (_contentStats != null) ...[
+            _buildStatRow('Total Kanji', _contentStats!.totalKanji.toString()),
+            const SizedBox(height: 8),
+            _buildStatRow(
+              'Total Quizzes',
+              _contentStats!.totalQuizzes.toString(),
+              growth: _contentStats!.growth,
+            ),
+            const SizedBox(height: 8),
+            _buildStatRow('Total Lists', _contentStats!.totalLists.toString()),
+            const SizedBox(height: 8),
+            _buildStatRow('Total Decks', _contentStats!.totalDecks.toString()),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStatRow(String label, String value, {GrowthData? growth}) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          label,
+          style: const TextStyle(color: Colors.white70, fontSize: 14),
+        ),
+        Row(
+          children: [
+            Text(
+              value,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            if (growth != null) ...[
+              const SizedBox(width: 8),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: growth.percentage >= 0
+                      ? Colors.green.withOpacity(0.2)
+                      : Colors.red.withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Row(
+                  children: [
+                    Icon(
+                      growth.percentage >= 0
+                          ? Icons.arrow_upward
+                          : Icons.arrow_downward,
+                      size: 12,
+                      color: growth.percentage >= 0 ? Colors.green : Colors.red,
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      '${growth.percentage.abs().toStringAsFixed(1)}%',
+                      style: TextStyle(
+                        color: growth.percentage >= 0
+                            ? Colors.green
+                            : Colors.red,
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildChartsSection() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'Recent Activity',
+        const Text(
+          'Trends',
           style: TextStyle(
-            color: Colors.white.withOpacity(0.7),
-            fontSize: 14,
+            color: Colors.white,
+            fontSize: 18,
             fontWeight: FontWeight.bold,
-            letterSpacing: 1,
           ),
         ),
         const SizedBox(height: 12),
-        Container(
-          decoration: BoxDecoration(
-            color: const Color(0xFF1A1A1A),
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: Colors.white.withOpacity(0.1)),
+        if (_userChartData != null)
+          _buildChartCard('User Growth', _userChartData!),
+        const SizedBox(height: 12),
+        if (_activityChartData != null)
+          _buildChartCard('Activity', _activityChartData!),
+      ],
+    );
+  }
+
+  Widget _buildChartCard(String title, ChartData chartData) {
+    return Container(
+      decoration: BoxDecoration(
+        color: const Color(0xFF1A1F2E),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.white.withOpacity(0.1), width: 1),
+      ),
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+            ),
           ),
-          child: ListView.separated(
+          const SizedBox(height: 16),
+          SizedBox(height: 200, child: _buildSimpleBarChart(chartData)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSimpleBarChart(ChartData chartData) {
+    if (chartData.data.isEmpty) {
+      return const Center(
+        child: Text(
+          'No data available',
+          style: TextStyle(color: Colors.white60),
+        ),
+      );
+    }
+
+    final maxValue = chartData.data
+        .map((d) => d.value)
+        .reduce((a, b) => a > b ? a : b);
+
+    return BarChart(
+      BarChartData(
+        alignment: BarChartAlignment.spaceAround,
+        maxY: maxValue > 0 ? maxValue * 1.2 : 10,
+        minY: 0,
+        barTouchData: BarTouchData(
+          enabled: true,
+          touchTooltipData: BarTouchTooltipData(
+            getTooltipColor: (_) => const Color(0xFF1A1F2E),
+            tooltipBorder: const BorderSide(color: Colors.tealAccent, width: 1),
+            tooltipPadding: const EdgeInsets.all(8),
+            tooltipMargin: 8,
+            getTooltipItem: (group, groupIndex, rod, rodIndex) {
+              return BarTooltipItem(
+                '${chartData.data[groupIndex].label}\n',
+                const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 12,
+                ),
+                children: [
+                  TextSpan(
+                    text: rod.toY.toInt().toString(),
+                    style: const TextStyle(
+                      color: Colors.tealAccent,
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              );
+            },
+          ),
+        ),
+        titlesData: FlTitlesData(
+          show: true,
+          bottomTitles: AxisTitles(
+            sideTitles: SideTitles(
+              showTitles: true,
+              getTitlesWidget: (value, meta) {
+                if (value.toInt() < 0 ||
+                    value.toInt() >= chartData.data.length) {
+                  return const SizedBox.shrink();
+                }
+                return Padding(
+                  padding: const EdgeInsets.only(top: 8),
+                  child: Text(
+                    chartData.data[value.toInt()].label,
+                    style: const TextStyle(color: Colors.white60, fontSize: 10),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                );
+              },
+              reservedSize: 30,
+            ),
+          ),
+          leftTitles: AxisTitles(
+            sideTitles: SideTitles(
+              showTitles: true,
+              getTitlesWidget: (value, meta) {
+                return Text(
+                  value.toInt().toString(),
+                  style: const TextStyle(color: Colors.white60, fontSize: 10),
+                );
+              },
+              reservedSize: 35,
+              interval: maxValue > 0 ? maxValue / 4 : 1,
+            ),
+          ),
+          rightTitles: const AxisTitles(
+            sideTitles: SideTitles(showTitles: false),
+          ),
+          topTitles: const AxisTitles(
+            sideTitles: SideTitles(showTitles: false),
+          ),
+        ),
+        gridData: FlGridData(
+          show: true,
+          drawVerticalLine: false,
+          horizontalInterval: maxValue > 0 ? maxValue / 4 : 1,
+          getDrawingHorizontalLine: (value) {
+            return FlLine(color: Colors.white.withOpacity(0.1), strokeWidth: 1);
+          },
+        ),
+        borderData: FlBorderData(
+          show: true,
+          border: Border(
+            bottom: BorderSide(color: Colors.white.withOpacity(0.2), width: 1),
+            left: BorderSide(color: Colors.white.withOpacity(0.2), width: 1),
+          ),
+        ),
+        barGroups: chartData.data.asMap().entries.map((entry) {
+          final index = entry.key;
+          final dataPoint = entry.value;
+          return BarChartGroupData(
+            x: index,
+            barRods: [
+              BarChartRodData(
+                toY: dataPoint.value.toDouble(),
+                gradient: const LinearGradient(
+                  begin: Alignment.bottomCenter,
+                  end: Alignment.topCenter,
+                  colors: [Color(0xFF00BFA5), Color(0xFF1DE9B6)],
+                ),
+                width: 16,
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(6),
+                  topRight: Radius.circular(6),
+                ),
+                backDrawRodData: BackgroundBarChartRodData(
+                  show: true,
+                  toY: maxValue * 1.2,
+                  color: Colors.white.withOpacity(0.05),
+                ),
+              ),
+            ],
+          );
+        }).toList(),
+      ),
+    );
+  }
+
+  Widget _buildRecentActivitiesCard() {
+    if (_activityStats == null || _activityStats!.recentActivities.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    return Container(
+      decoration: BoxDecoration(
+        color: const Color(0xFF1A1F2E),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.white.withOpacity(0.1), width: 1),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Padding(
+            padding: EdgeInsets.all(16),
+            child: Row(
+              children: [
+                Icon(Icons.history, color: Colors.tealAccent, size: 24),
+                SizedBox(width: 12),
+                Text(
+                  'Recent Activities',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const Divider(color: Color(0xFF2A2F3E), height: 1),
+          ListView.separated(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
-            itemCount: activities.length,
+            itemCount: _activityStats!.recentActivities.length,
             separatorBuilder: (_, __) =>
-                Divider(color: Colors.white.withOpacity(0.1), height: 1),
+                const Divider(color: Color(0xFF2A2F3E), height: 1),
             itemBuilder: (context, index) {
-              final activity = activities[index];
+              final activity = _activityStats!.recentActivities[index];
               return ListTile(
-                leading: Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: (activity['color'] as Color).withOpacity(0.2),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
+                leading: CircleAvatar(
+                  backgroundColor: Colors.tealAccent.withOpacity(0.2),
                   child: Icon(
-                    activity['icon'] as IconData,
-                    color: activity['color'] as Color,
+                    _getActivityIcon(activity.type),
+                    color: Colors.tealAccent,
                     size: 20,
                   ),
                 ),
                 title: Text(
-                  activity['title'] as String,
+                  activity.type,
                   style: const TextStyle(
                     color: Colors.white,
                     fontSize: 14,
-                    fontWeight: FontWeight.w600,
+                    fontWeight: FontWeight.w500,
                   ),
                 ),
                 subtitle: Text(
-                  activity['subtitle'] as String,
-                  style: TextStyle(
-                    color: Colors.white.withOpacity(0.6),
-                    fontSize: 12,
-                  ),
+                  _formatTimestamp(activity.timestamp),
+                  style: const TextStyle(color: Colors.white60, fontSize: 12),
                 ),
-                trailing: Text(
-                  activity['time'] as String,
-                  style: TextStyle(
-                    color: Colors.white.withOpacity(0.4),
-                    fontSize: 11,
+                trailing: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 6,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.tealAccent.withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    activity.count.toString(),
+                    style: const TextStyle(
+                      color: Colors.tealAccent,
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
               );
             },
           ),
-        ),
-      ],
+        ],
+      ),
     );
+  }
+
+  IconData _getActivityIcon(String type) {
+    switch (type.toLowerCase()) {
+      case 'quiz':
+        return Icons.quiz;
+      case 'flashcard':
+      case 'deck':
+        return Icons.style;
+      case 'study':
+        return Icons.school;
+      case 'list':
+        return Icons.list;
+      default:
+        return Icons.play_circle;
+    }
+  }
+
+  String _formatTimestamp(DateTime timestamp) {
+    final now = DateTime.now();
+    final difference = now.difference(timestamp);
+
+    if (difference.inMinutes < 1) {
+      return 'Just now';
+    } else if (difference.inHours < 1) {
+      return '${difference.inMinutes}m ago';
+    } else if (difference.inDays < 1) {
+      return '${difference.inHours}h ago';
+    } else if (difference.inDays < 7) {
+      return '${difference.inDays}d ago';
+    } else {
+      return '${timestamp.day}/${timestamp.month}/${timestamp.year}';
+    }
   }
 }

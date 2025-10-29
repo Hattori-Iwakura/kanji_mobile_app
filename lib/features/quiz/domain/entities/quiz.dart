@@ -1,68 +1,55 @@
-import 'package:equatable/equatable.dart';
+import 'question.dart';
 
-/// Entity representing a quiz
-class Quiz extends Equatable {
-  final String id;
+enum QuizQuestionType { multipleChoice, fillBlank, drawing }
+
+class Quiz {
+  final int id;
   final String title;
-  final String description;
-  final String difficulty; // EASY, MEDIUM, HARD
-  final int totalQuestions;
-  final int timeLimit; // in seconds, 0 = no limit
-  final int passingScore; // percentage (0-100)
-  final bool isPublished;
+  final String? description;
+  final bool isPublic;
+  final int userId;
   final DateTime createdAt;
   final DateTime updatedAt;
+  final List<Question>? questions;
+  final int? totalQuestions;
+  final int? totalPoints;
 
-  const Quiz({
+  Quiz({
     required this.id,
     required this.title,
-    required this.description,
-    required this.difficulty,
-    required this.totalQuestions,
-    required this.timeLimit,
-    required this.passingScore,
-    required this.isPublished,
+    this.description,
+    required this.isPublic,
+    required this.userId,
     required this.createdAt,
     required this.updatedAt,
+    this.questions,
+    this.totalQuestions,
+    this.totalPoints,
   });
 
-  @override
-  List<Object?> get props => [
-    id,
-    title,
-    description,
-    difficulty,
-    totalQuestions,
-    timeLimit,
-    passingScore,
-    isPublished,
-    createdAt,
-    updatedAt,
-  ];
-
-  /// Check if quiz has time limit
-  bool get hasTimeLimit => timeLimit > 0;
-
-  /// Get formatted time limit
-  String get formattedTimeLimit {
-    if (!hasTimeLimit) return 'No limit';
-    final minutes = timeLimit ~/ 60;
-    final seconds = timeLimit % 60;
-    if (seconds == 0) return '$minutes min';
-    return '$minutes:${seconds.toString().padLeft(2, '0')} min';
-  }
-
-  /// Get difficulty color
-  String get difficultyColor {
-    switch (difficulty.toUpperCase()) {
-      case 'EASY':
-        return 'green';
-      case 'MEDIUM':
-        return 'orange';
-      case 'HARD':
-        return 'red';
-      default:
-        return 'grey';
-    }
+  Quiz copyWith({
+    int? id,
+    String? title,
+    String? description,
+    bool? isPublic,
+    int? userId,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+    List<Question>? questions,
+    int? totalQuestions,
+    int? totalPoints,
+  }) {
+    return Quiz(
+      id: id ?? this.id,
+      title: title ?? this.title,
+      description: description ?? this.description,
+      isPublic: isPublic ?? this.isPublic,
+      userId: userId ?? this.userId,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      questions: questions ?? this.questions,
+      totalQuestions: totalQuestions ?? this.totalQuestions,
+      totalPoints: totalPoints ?? this.totalPoints,
+    );
   }
 }

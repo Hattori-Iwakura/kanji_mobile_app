@@ -1,45 +1,45 @@
 import '../../domain/entities/quiz_answer.dart';
+import 'question_model.dart';
 
-/// Model for QuizAnswer with JSON serialization
 class QuizAnswerModel extends QuizAnswer {
-  const QuizAnswerModel({
+  QuizAnswerModel({
+    required super.id,
+    required super.attemptId,
     required super.questionId,
     required super.userAnswer,
     required super.isCorrect,
-    required super.pointsEarned,
-    required super.answeredAt,
+    required super.points,
+    required super.createdAt,
+    super.question,
   });
 
-  /// Create QuizAnswerModel from JSON
   factory QuizAnswerModel.fromJson(Map<String, dynamic> json) {
     return QuizAnswerModel(
-      questionId: json['questionId'] as String,
-      userAnswer: json['userAnswer'] as String,
-      isCorrect: json['isCorrect'] as bool,
-      pointsEarned: json['pointsEarned'] as int,
-      answeredAt: DateTime.parse(json['answeredAt'] as String),
+      id: (json['id'] as int?) ?? 0,
+      attemptId: (json['attemptId'] as int?) ?? 0,
+      questionId: (json['questionId'] as int?) ?? 0,
+      userAnswer: (json['userAnswer'] as String?) ?? '',
+      isCorrect: (json['isCorrect'] as bool?) ?? false,
+      points: (json['points'] as int?) ?? 0,
+      createdAt: DateTime.parse(
+        json['createdAt'] as String? ?? DateTime.now().toIso8601String(),
+      ),
+      question: json['question'] != null
+          ? QuestionModel.fromJson(json['question'] as Map<String, dynamic>)
+          : null,
     );
   }
 
-  /// Convert QuizAnswerModel to JSON
   Map<String, dynamic> toJson() {
     return {
+      'id': id,
+      'attemptId': attemptId,
       'questionId': questionId,
       'userAnswer': userAnswer,
       'isCorrect': isCorrect,
-      'pointsEarned': pointsEarned,
-      'answeredAt': answeredAt.toIso8601String(),
+      'points': points,
+      'createdAt': createdAt.toIso8601String(),
+      if (question != null) 'question': (question as QuestionModel).toJson(),
     };
-  }
-
-  /// Convert QuizAnswer entity to QuizAnswerModel
-  factory QuizAnswerModel.fromEntity(QuizAnswer answer) {
-    return QuizAnswerModel(
-      questionId: answer.questionId,
-      userAnswer: answer.userAnswer,
-      isCorrect: answer.isCorrect,
-      pointsEarned: answer.pointsEarned,
-      answeredAt: answer.answeredAt,
-    );
   }
 }

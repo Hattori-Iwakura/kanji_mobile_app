@@ -2,51 +2,28 @@ import 'package:equatable/equatable.dart';
 
 class User extends Equatable {
   final int id;
-  final String account;
   final String email;
+  final String name;
   final String? profileImage;
-  final bool isFirstLogin;
-  final DateTime createdAt;
   final String role;
+  final bool isTwoFactorEnabled;
 
   const User({
     required this.id,
-    required this.account,
     required this.email,
+    required this.name,
     this.profileImage,
-    required this.isFirstLogin,
-    required this.createdAt,
     required this.role,
+    required this.isTwoFactorEnabled,
   });
 
   @override
   List<Object?> get props => [
     id,
-    account,
     email,
+    name,
     profileImage,
-    isFirstLogin,
-    createdAt,
     role,
+    isTwoFactorEnabled,
   ];
-
-  User copyWith({
-    int? id,
-    String? account,
-    String? email,
-    String? profileImage,
-    bool? isFirstLogin,
-    DateTime? createdAt,
-    String? role,
-  }) {
-    return User(
-      id: id ?? this.id,
-      account: account ?? this.account,
-      email: email ?? this.email,
-      profileImage: profileImage ?? this.profileImage,
-      isFirstLogin: isFirstLogin ?? this.isFirstLogin,
-      createdAt: createdAt ?? this.createdAt,
-      role: role ?? this.role,
-    );
-  }
 }

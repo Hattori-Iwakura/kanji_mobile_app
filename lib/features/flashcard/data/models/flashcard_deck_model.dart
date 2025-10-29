@@ -1,65 +1,54 @@
 import '../../domain/entities/flashcard_deck.dart';
+import 'flashcard_card_model.dart';
 
-/// Model for FlashcardDeck with JSON serialization
 class FlashcardDeckModel extends FlashcardDeck {
   const FlashcardDeckModel({
     required super.id,
     required super.userId,
     required super.name,
     super.description,
-    super.totalCards,
-    super.newCards,
-    super.dueCards,
-    super.masteredCards,
+    required super.isPublic,
     required super.createdAt,
     required super.updatedAt,
+    super.cards,
+    super.totalCards,
+    super.dueCards,
   });
 
-  /// Create model from JSON
   factory FlashcardDeckModel.fromJson(Map<String, dynamic> json) {
     return FlashcardDeckModel(
-      id: json['id'] as String,
-      userId: json['userId'] as String,
+      id: json['id'] as int,
+      userId: json['userId'] as int,
       name: json['name'] as String,
       description: json['description'] as String?,
-      totalCards: json['totalCards'] as int? ?? 0,
-      newCards: json['newCards'] as int? ?? 0,
-      dueCards: json['dueCards'] as int? ?? 0,
-      masteredCards: json['masteredCards'] as int? ?? 0,
+      isPublic: json['isPublic'] as bool,
       createdAt: DateTime.parse(json['createdAt'] as String),
       updatedAt: DateTime.parse(json['updatedAt'] as String),
+      cards: json['cards'] != null
+          ? (json['cards'] as List)
+                .map(
+                  (e) => FlashcardCardModel.fromJson(e as Map<String, dynamic>),
+                )
+                .toList()
+          : null,
+      totalCards: json['totalCards'] as int?,
+      dueCards: json['dueCards'] as int?,
     );
   }
 
-  /// Convert model to JSON
   Map<String, dynamic> toJson() {
     return {
       'id': id,
       'userId': userId,
       'name': name,
       'description': description,
-      'totalCards': totalCards,
-      'newCards': newCards,
-      'dueCards': dueCards,
-      'masteredCards': masteredCards,
+      'isPublic': isPublic,
       'createdAt': createdAt.toIso8601String(),
       'updatedAt': updatedAt.toIso8601String(),
+      if (cards != null)
+        'cards': cards!.map((e) => (e as FlashcardCardModel).toJson()).toList(),
+      if (totalCards != null) 'totalCards': totalCards,
+      if (dueCards != null) 'dueCards': dueCards,
     };
-  }
-
-  /// Convert model to entity
-  FlashcardDeck toEntity() {
-    return FlashcardDeck(
-      id: id,
-      userId: userId,
-      name: name,
-      description: description,
-      totalCards: totalCards,
-      newCards: newCards,
-      dueCards: dueCards,
-      masteredCards: masteredCards,
-      createdAt: createdAt,
-      updatedAt: updatedAt,
-    );
   }
 }

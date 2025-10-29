@@ -1,51 +1,41 @@
 import 'package:dartz/dartz.dart';
+import '../../../../core/error/exceptions.dart';
 import '../../../../core/error/failures.dart';
-import '../../domain/entities/flashcard.dart';
 import '../../domain/entities/flashcard_deck.dart';
-import '../../domain/entities/study_progress.dart';
+import '../../domain/entities/study_session.dart';
+import '../../domain/entities/next_card.dart';
+import '../../domain/entities/deck_statistics.dart';
 import '../../domain/repositories/flashcard_repository.dart';
 import '../datasources/flashcard_remote_datasource.dart';
-import '../datasources/flashcard_local_datasource.dart';
 
-/// Implementation of FlashcardRepository with caching
 class FlashcardRepositoryImpl implements FlashcardRepository {
   final FlashcardRemoteDataSource remoteDataSource;
-  final FlashcardLocalDataSource localDataSource;
 
-  FlashcardRepositoryImpl({
-    required this.remoteDataSource,
-    required this.localDataSource,
-  });
+  FlashcardRepositoryImpl({required this.remoteDataSource});
 
   @override
-  Future<Either<Failure, List<FlashcardDeck>>> getAllDecks() async {
+  Future<Either<Failure, List<FlashcardDeck>>> getDecks({
+    String? search,
+  }) async {
     try {
-      // Try remote first
-      final deckModels = await remoteDataSource.getAllDecks();
-
-      // Cache for offline use
-      await localDataSource.cacheDecks(deckModels);
-
-      final decks = deckModels.map((model) => model.toEntity()).toList();
+      final decks = await remoteDataSource.getDecks(search: search);
       return Right(decks);
-    } on Exception catch (e) {
-      // Try cache if network fails
-      final cachedDecks = await localDataSource.getCachedDecks();
-      if (cachedDecks != null) {
-        final decks = cachedDecks.map((model) => model.toEntity()).toList();
-        return Right(decks);
-      }
-      return Left(_mapExceptionToFailure(e));
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.message));
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
     }
   }
 
   @override
-  Future<Either<Failure, FlashcardDeck>> getDeckById(String deckId) async {
+  Future<Either<Failure, FlashcardDeck>> getDeckById(int deckId) async {
     try {
-      final deckModel = await remoteDataSource.getDeckById(deckId);
-      return Right(deckModel.toEntity());
-    } on Exception catch (e) {
-      return Left(_mapExceptionToFailure(e));
+      final deck = await remoteDataSource.getDeckById(deckId);
+      return Right(deck);
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.message));
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
     }
   }
 
@@ -53,226 +43,193 @@ class FlashcardRepositoryImpl implements FlashcardRepository {
   Future<Either<Failure, FlashcardDeck>> createDeck({
     required String name,
     String? description,
+    List<int>? kanjiIds,
   }) async {
     try {
-      final deckModel = await remoteDataSource.createDeck(
+      final deck = await remoteDataSource.createDeck(
         name: name,
         description: description,
+        kanjiIds: kanjiIds,
       );
-      return Right(deckModel.toEntity());
-    } on Exception catch (e) {
-      return Left(_mapExceptionToFailure(e));
+      return Right(deck);
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.message));
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
     }
   }
 
   @override
   Future<Either<Failure, FlashcardDeck>> updateDeck({
-    required String deckId,
+    required int deckId,
     String? name,
     String? description,
+    bool? isPublic,
   }) async {
     try {
-      final deckModel = await remoteDataSource.updateDeck(
+      final deck = await remoteDataSource.updateDeck(
         deckId: deckId,
         name: name,
         description: description,
+        isPublic: isPublic,
       );
-      return Right(deckModel.toEntity());
-    } on Exception catch (e) {
-      return Left(_mapExceptionToFailure(e));
+      return Right(deck);
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.message));
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
     }
   }
 
   @override
-  Future<Either<Failure, void>> deleteDeck(String deckId) async {
+  Future<Either<Failure, void>> deleteDeck(int deckId) async {
     try {
       await remoteDataSource.deleteDeck(deckId);
       return const Right(null);
-    } on Exception catch (e) {
-      return Left(_mapExceptionToFailure(e));
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.message));
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
     }
   }
 
   @override
-  Future<Either<Failure, List<Flashcard>>> getCardsByDeck(String deckId) async {
-    try {
-      final cardModels = await remoteDataSource.getCardsByDeck(deckId);
-
-      // Cache for offline use
-      await localDataSource.cacheCards(deckId, cardModels);
-
-      final cards = cardModels.map((model) => model.toEntity()).toList();
-      return Right(cards);
-    } on Exception catch (e) {
-      // Try cache if network fails
-      final cachedCards = await localDataSource.getCachedCards(deckId);
-      if (cachedCards != null) {
-        final cards = cachedCards.map((model) => model.toEntity()).toList();
-        return Right(cards);
-      }
-      return Left(_mapExceptionToFailure(e));
-    }
-  }
-
-  @override
-  Future<Either<Failure, List<Flashcard>>> getDueCards(String deckId) async {
-    try {
-      final cardModels = await remoteDataSource.getDueCards(deckId);
-      final cards = cardModels.map((model) => model.toEntity()).toList();
-      return Right(cards);
-    } on Exception catch (e) {
-      return Left(_mapExceptionToFailure(e));
-    }
-  }
-
-  @override
-  Future<Either<Failure, List<Flashcard>>> getNewCards(
-    String deckId, {
-    int limit = 20,
+  Future<Either<Failure, FlashcardDeck>> addCardToDeck({
+    required int deckId,
+    required int kanjiId,
   }) async {
     try {
-      final cardModels = await remoteDataSource.getNewCards(
-        deckId,
-        limit: limit,
-      );
-      final cards = cardModels.map((model) => model.toEntity()).toList();
-      return Right(cards);
-    } on Exception catch (e) {
-      return Left(_mapExceptionToFailure(e));
-    }
-  }
-
-  @override
-  Future<Either<Failure, Flashcard>> getCardById(String cardId) async {
-    try {
-      final cardModel = await remoteDataSource.getCardById(cardId);
-      return Right(cardModel.toEntity());
-    } on Exception catch (e) {
-      return Left(_mapExceptionToFailure(e));
-    }
-  }
-
-  @override
-  Future<Either<Failure, Flashcard>> createCard({
-    required String deckId,
-    required String kanjiId,
-    required String front,
-    required String back,
-    String? hint,
-  }) async {
-    try {
-      final cardModel = await remoteDataSource.createCard(
+      final deck = await remoteDataSource.addCardToDeck(
         deckId: deckId,
         kanjiId: kanjiId,
-        front: front,
-        back: back,
-        hint: hint,
       );
-      return Right(cardModel.toEntity());
-    } on Exception catch (e) {
-      return Left(_mapExceptionToFailure(e));
+      return Right(deck);
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.message));
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
     }
   }
 
   @override
-  Future<Either<Failure, Flashcard>> updateCardReview({
-    required String cardId,
-    required int quality,
+  Future<Either<Failure, FlashcardDeck>> removeCardFromDeck({
+    required int deckId,
+    required int kanjiId,
   }) async {
     try {
-      final cardModel = await remoteDataSource.updateCardReview(
+      final deck = await remoteDataSource.removeCardFromDeck(
+        deckId: deckId,
+        kanjiId: kanjiId,
+      );
+      return Right(deck);
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.message));
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, StudySession>> startSession({
+    required int deckId,
+    int? maxNewCards,
+    int? maxReviewCards,
+  }) async {
+    try {
+      final session = await remoteDataSource.startSession(
+        deckId: deckId,
+        maxNewCards: maxNewCards,
+        maxReviewCards: maxReviewCards,
+      );
+      return Right(session);
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.message));
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, StudySession>> getSessionProgress(
+    int sessionId,
+  ) async {
+    try {
+      final session = await remoteDataSource.getSessionProgress(sessionId);
+      return Right(session);
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.message));
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, NextCard?>> getNextCard(int sessionId) async {
+    try {
+      final card = await remoteDataSource.getNextCard(sessionId);
+      return Right(card);
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.message));
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, void>> reviewCard({
+    required int sessionId,
+    required int cardId,
+    required int quality,
+    double? timeSpent,
+  }) async {
+    try {
+      await remoteDataSource.reviewCard(
+        sessionId: sessionId,
         cardId: cardId,
         quality: quality,
+        timeSpent: timeSpent,
       );
-
-      // Update cache for offline use
-      await localDataSource.updateCachedCard(cardModel);
-
-      return Right(cardModel.toEntity());
-    } on Exception catch (e) {
-      return Left(_mapExceptionToFailure(e));
-    }
-  }
-
-  @override
-  Future<Either<Failure, void>> deleteCard(String cardId) async {
-    try {
-      await remoteDataSource.deleteCard(cardId);
       return const Right(null);
-    } on Exception catch (e) {
-      return Left(_mapExceptionToFailure(e));
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.message));
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
     }
   }
 
   @override
-  Future<Either<Failure, StudyProgress>> saveProgress({
-    required String deckId,
-    required int cardsStudied,
-    required int cardsCorrect,
-    required int cardsIncorrect,
-    required int studyDuration,
-  }) async {
+  Future<Either<Failure, StudySession>> completeSession(int sessionId) async {
     try {
-      final progressModel = await remoteDataSource.saveProgress(
-        deckId: deckId,
-        cardsStudied: cardsStudied,
-        cardsCorrect: cardsCorrect,
-        cardsIncorrect: cardsIncorrect,
-        studyDuration: studyDuration,
-      );
-      return Right(progressModel.toEntity());
-    } on Exception catch (e) {
-      return Left(_mapExceptionToFailure(e));
+      final session = await remoteDataSource.completeSession(sessionId);
+      return Right(session);
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.message));
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
     }
   }
 
   @override
-  Future<Either<Failure, List<StudyProgress>>> getProgressHistory({
-    String? deckId,
-    DateTime? startDate,
-    DateTime? endDate,
-  }) async {
+  Future<Either<Failure, Map<String, dynamic>>> getDueCards(int deckId) async {
     try {
-      final progressModels = await remoteDataSource.getProgressHistory(
-        deckId: deckId,
-        startDate: startDate,
-        endDate: endDate,
-      );
-      final progressList = progressModels
-          .map((model) => model.toEntity())
-          .toList();
-      return Right(progressList);
-    } on Exception catch (e) {
-      return Left(_mapExceptionToFailure(e));
+      final dueCards = await remoteDataSource.getDueCards(deckId);
+      return Right(dueCards);
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.message));
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
     }
   }
 
   @override
-  Future<Either<Failure, Map<String, dynamic>>> getStudyStatistics() async {
+  Future<Either<Failure, DeckStatistics>> getDeckStatistics(int deckId) async {
     try {
-      final stats = await remoteDataSource.getStudyStatistics();
+      final stats = await remoteDataSource.getDeckStatistics(deckId);
       return Right(stats);
-    } on Exception catch (e) {
-      return Left(_mapExceptionToFailure(e));
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.message));
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
     }
-  }
-
-  Failure _mapExceptionToFailure(Exception e) {
-    final message = e.toString();
-
-    if (message.contains('Unauthorized')) {
-      return const UnauthorizedFailure();
-    } else if (message.contains('Not found')) {
-      return const NotFoundFailure();
-    } else if (message.contains('Bad request')) {
-      return const BadRequestFailure();
-    } else if (message.contains('timeout') ||
-        message.contains('Network error')) {
-      return const NetworkFailure();
-    } else if (message.contains('Server error')) {
-      return const ServerFailure();
-    }
-
-    return UnknownFailure(message);
   }
 }
