@@ -39,6 +39,13 @@ app.*.symbols
 # Obfuscation related
 app.*.map.json
 
+# dotenv environment variable files
+.env
+.env.development.local
+.env.test.local
+.env.production.local
+.env.local
+
 # Android Studio will place build artifacts here
 /android/app/debug
 /android/app/profile
