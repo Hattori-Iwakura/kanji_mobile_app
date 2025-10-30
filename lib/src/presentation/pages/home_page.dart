@@ -13,6 +13,8 @@ import '../../../features/progress/presentation/pages/progress_statistics_page.d
 import '../../../features/quiz/presentation/bloc/quiz_bloc.dart';
 import '../../../features/quiz/presentation/pages/quiz_list_page.dart';
 import '../../../features/profile/presentation/pages/profile_page.dart';
+import '../../../features/settings/presentation/pages/settings_page.dart';
+import '../../../features/translate/presentation/pages/translate_page.dart';
 import '../../../injection_container.dart';
 import '../widgets/main_drawer.dart';
 
@@ -224,13 +226,13 @@ class HomePage extends StatelessWidget {
                                 children: List.generate(4, (index) {
                                   final titles = [
                                     'JLPT Tables',
-                                    'Lịch sử',
+                                    'Dịch thuật',
                                     'Thống kê',
                                     'Cài đặt',
                                   ];
                                   final icons = [
                                     Icons.grade,
-                                    Icons.history,
+                                    Icons.translate,
                                     Icons.bar_chart,
                                     Icons.settings,
                                   ];
@@ -251,6 +253,16 @@ class HomePage extends StatelessWidget {
                                               ),
                                             );
                                           }
+                                        : index == 1
+                                        ? () {
+                                            Navigator.push(
+                                              context,
+                                              MaterialPageRoute(
+                                                builder: (_) =>
+                                                    const TranslatePage(),
+                                              ),
+                                            );
+                                          }
                                         : index == 2
                                         ? () {
                                             Navigator.push(
@@ -261,6 +273,16 @@ class HomePage extends StatelessWidget {
                                                       apiClient:
                                                           sl<ApiClient>(),
                                                     ),
+                                              ),
+                                            );
+                                          }
+                                        : index == 3
+                                        ? () {
+                                            Navigator.push(
+                                              context,
+                                              MaterialPageRoute(
+                                                builder: (_) =>
+                                                    const SettingsPage(),
                                               ),
                                             );
                                           }

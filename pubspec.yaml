@@ -54,6 +54,18 @@ dependencies:
   
   # Smart Auth (Auto-fill OTP)
   smart_auth: ^1.1.1
+  
+  # Translation
+  translator: ^1.0.0
+  
+  # Text to Speech
+  flutter_tts: ^4.1.0
+  
+  # Speech to Text
+  speech_to_text: ^7.0.0
+  
+  # Permissions
+  permission_handler: ^11.3.1
 
 dev_dependencies:
   flutter_test:
