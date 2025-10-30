@@ -368,11 +368,15 @@ class _AdminPublishRequestsPageState extends State<AdminPublishRequestsPage> {
                                 fontSize: 12,
                               ),
                             ),
-                            Text(
-                              request.user?.email ?? 'Unknown',
-                              style: const TextStyle(
-                                color: Colors.white60,
-                                fontSize: 12,
+                            Flexible(
+                              child: Text(
+                                request.user?.email ?? 'Unknown',
+                                style: const TextStyle(
+                                  color: Colors.white60,
+                                  fontSize: 12,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
                               ),
                             ),
                           ],

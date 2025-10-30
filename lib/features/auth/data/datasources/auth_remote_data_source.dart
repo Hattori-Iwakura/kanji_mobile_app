@@ -19,6 +19,7 @@ abstract class AuthRemoteDataSource {
   Future<UserModel> updateProfile({String? name, String? profileImage});
   Future<void> forgotPassword(String email);
   Future<void> resetPassword(String token, String newPassword);
+  Future<void> changePassword(String currentPassword, String newPassword);
 
   // 2FA methods
   Future<TwoFactorSetupModel> setup2FA();
@@ -235,6 +236,34 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       final errorMessage = _extractErrorMessage(
         e.response?.data,
         'Failed to reset password',
+      );
+      throw ServerException(errorMessage);
+    } catch (e) {
+      throw ServerException('Unexpected error: $e');
+    }
+  }
+
+  @override
+  Future<void> changePassword(
+    String currentPassword,
+    String newPassword,
+  ) async {
+    try {
+      final response = await apiClient.dio.post(
+        '/auth/change-password',
+        data: {'currentPassword': currentPassword, 'newPassword': newPassword},
+      );
+
+      if (response.statusCode != 200 && response.statusCode != 201) {
+        throw ServerException('Failed to change password');
+      }
+    } on DioException catch (e) {
+      if (e.response?.statusCode == 401) {
+        throw UnauthorizedException('Session expired');
+      }
+      final errorMessage = _extractErrorMessage(
+        e.response?.data,
+        'Failed to change password',
       );
       throw ServerException(errorMessage);
     } catch (e) {

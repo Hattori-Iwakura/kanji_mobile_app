@@ -19,6 +19,7 @@ import 'features/auth/domain/usecases/logout.dart';
 import 'features/auth/domain/usecases/register.dart';
 import 'features/auth/domain/usecases/forgot_password.dart';
 import 'features/auth/domain/usecases/reset_password.dart';
+import 'features/auth/domain/usecases/change_password.dart';
 import 'features/auth/domain/usecases/setup_2fa.dart';
 import 'features/auth/domain/usecases/enable_2fa.dart';
 import 'features/auth/domain/usecases/disable_2fa.dart';
@@ -121,6 +122,7 @@ Future<void> initializeDependencies({
   sl.registerLazySingleton(() => CheckAuthStatus(sl()));
   sl.registerLazySingleton(() => ForgotPassword(sl()));
   sl.registerLazySingleton(() => ResetPassword(sl()));
+  sl.registerLazySingleton(() => ChangePassword(sl()));
   sl.registerLazySingleton(() => Setup2FA(sl()));
   sl.registerLazySingleton(() => Enable2FA(sl()));
   sl.registerLazySingleton(() => Disable2FA(sl()));
@@ -138,6 +140,9 @@ Future<void> initializeDependencies({
       enable2FA: sl(),
       disable2FA: sl(),
       sendEmailOTP: sl(),
+      forgotPassword: sl(),
+      resetPassword: sl(),
+      changePassword: sl(),
     ),
   );
 

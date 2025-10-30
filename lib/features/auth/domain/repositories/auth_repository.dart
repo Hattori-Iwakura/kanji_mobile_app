@@ -23,6 +23,10 @@ abstract class AuthRepository {
   Future<Either<Failure, bool>> isAuthenticated();
   Future<Either<Failure, void>> forgotPassword(String email);
   Future<Either<Failure, void>> resetPassword(String token, String newPassword);
+  Future<Either<Failure, void>> changePassword(
+    String currentPassword,
+    String newPassword,
+  );
 
   // 2FA methods
   Future<Either<Failure, TwoFactorSetup>> setup2FA();

@@ -7,6 +7,7 @@ import 'package:kanji_mobile_app/features/profile/models/profile_models.dart';
 import 'package:kanji_mobile_app/features/profile/presentation/pages/two_factor_setup_page.dart';
 import 'package:kanji_mobile_app/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:kanji_mobile_app/features/auth/presentation/bloc/auth_event.dart';
+import 'package:kanji_mobile_app/features/auth/presentation/bloc/auth_state.dart';
 
 class ProfilePage extends StatefulWidget {
   final ApiClient apiClient;
@@ -190,11 +191,11 @@ class _ProfilePageState extends State<ProfilePage> {
     if (!mounted) return;
 
     try {
-      // Use AuthBloc to handle logout properly
+      // Use AuthBloc to handle logout
       context.read<AuthBloc>().add(LogoutEvent());
 
-      // Navigate to login and clear all routes
-      Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
+      // AuthWrapper will automatically redirect to LoginPage
+      // when state changes to Unauthenticated
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -467,21 +468,29 @@ class _ProfilePageState extends State<ProfilePage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [Color(0xFF071126), Color(0xFF0B0F14)],
+    return BlocListener<AuthBloc, AuthState>(
+      listener: (context, state) {
+        if (state is Unauthenticated) {
+          // When logged out, pop all routes and let AuthWrapper handle navigation
+          Navigator.of(context).popUntil((route) => route.isFirst);
+        }
+      },
+      child: Scaffold(
+        body: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [Color(0xFF071126), Color(0xFF0B0F14)],
+            ),
           ),
-        ),
-        child: SafeArea(
-          child: _isLoading
-              ? _buildLoadingState()
-              : _error != null
-              ? _buildErrorState()
-              : _buildProfileContent(),
+          child: SafeArea(
+            child: _isLoading
+                ? _buildLoadingState()
+                : _error != null
+                ? _buildErrorState()
+                : _buildProfileContent(),
+          ),
         ),
       ),
     );

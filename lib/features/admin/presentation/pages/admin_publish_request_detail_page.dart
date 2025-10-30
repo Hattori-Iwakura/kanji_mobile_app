@@ -383,6 +383,7 @@ class _AdminPublishRequestDetailPageState
   Widget _buildContentDetails() {
     final request = _fullRequest ?? widget.request;
 
+    // Handle Quiz
     if (request.quiz != null) {
       final quiz = request.quiz as Map<String, dynamic>;
       return Column(
@@ -398,6 +399,143 @@ class _AdminPublishRequestDetailPageState
             'Questions',
             (quiz['questions'] as List?)?.length.toString() ?? '0',
           ),
+        ],
+      );
+    }
+
+    // Handle Kanji List
+    if (request.list != null) {
+      final kanjiList = request.list as Map<String, dynamic>;
+      final items = (kanjiList['items'] as List?) ?? [];
+
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildInfoRow('Name', kanjiList['name'] ?? 'Untitled'),
+          const SizedBox(height: 12),
+          _buildInfoRow(
+            'Description',
+            kanjiList['description'] ?? 'No description',
+          ),
+          const SizedBox(height: 12),
+          _buildInfoRow('Total Kanji', items.length.toString()),
+          if (items.isNotEmpty) ...[
+            const SizedBox(height: 16),
+            const Text(
+              'Kanji Characters:',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 14,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: items.map((item) {
+                final kanji = item['kanji'] as Map<String, dynamic>?;
+                return Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF0F1419),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(
+                      color: Colors.tealAccent.withOpacity(0.3),
+                    ),
+                  ),
+                  child: Text(
+                    kanji?['character'] ?? '?',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                );
+              }).toList(),
+            ),
+          ],
+        ],
+      );
+    }
+
+    // Handle Flashcard Deck
+    if (request.deck != null) {
+      final deck = request.deck as Map<String, dynamic>;
+      final cards = (deck['cards'] as List?) ?? [];
+
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildInfoRow('Name', deck['name'] ?? 'Untitled'),
+          const SizedBox(height: 12),
+          _buildInfoRow('Description', deck['description'] ?? 'No description'),
+          const SizedBox(height: 12),
+          _buildInfoRow('Total Cards', cards.length.toString()),
+          if (cards.isNotEmpty) ...[
+            const SizedBox(height: 16),
+            const Text(
+              'Sample Cards:',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 14,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 8),
+            ...cards.take(5).map((card) {
+              final kanji = card['kanji'] as Map<String, dynamic>?;
+              return Container(
+                margin: const EdgeInsets.only(bottom: 8),
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF0F1419),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.tealAccent.withOpacity(0.3)),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Text(
+                          kanji?['character'] ?? '?',
+                          style: const TextStyle(
+                            color: Colors.tealAccent,
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            kanji?['meanings'] ?? '',
+                            style: const TextStyle(
+                              color: Colors.white70,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              );
+            }).toList(),
+            if (cards.length > 5)
+              Padding(
+                padding: const EdgeInsets.only(top: 8),
+                child: Text(
+                  '... and ${cards.length - 5} more cards',
+                  style: const TextStyle(
+                    color: Colors.white60,
+                    fontSize: 12,
+                    fontStyle: FontStyle.italic,
+                  ),
+                ),
+              ),
+          ],
         ],
       );
     }

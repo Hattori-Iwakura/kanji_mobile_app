@@ -36,20 +36,27 @@ class _AddKanjiToTablePageState extends State<AddKanjiToTablePage> {
   void _loadKanji() {
     if (_selectedJlptLevel != null) {
       context.read<KanjiBloc>().add(
-        LoadKanjiListEvent(jlpt: int.parse(_selectedJlptLevel!.substring(1))),
+        LoadKanjiListEvent(
+          jlpt: int.parse(_selectedJlptLevel!.substring(1)),
+          limit: 10000, // Load all kanji
+        ),
       );
     } else if (_searchController.text.isNotEmpty) {
       context.read<KanjiBloc>().add(
         SearchKanjiEvent(query: _searchController.text),
       );
     } else {
-      context.read<KanjiBloc>().add(const LoadKanjiListEvent());
+      context.read<KanjiBloc>().add(
+        const LoadKanjiListEvent(limit: 10000), // Load all kanji
+      );
     }
   }
 
   void _searchKanji(String query) {
     if (query.isEmpty) {
-      context.read<KanjiBloc>().add(const LoadKanjiListEvent());
+      context.read<KanjiBloc>().add(
+        const LoadKanjiListEvent(limit: 10000), // Load all kanji
+      );
     } else {
       context.read<KanjiBloc>().add(SearchKanjiEvent(query: query));
     }
@@ -62,10 +69,15 @@ class _AddKanjiToTablePageState extends State<AddKanjiToTablePage> {
     });
     if (level != null) {
       context.read<KanjiBloc>().add(
-        LoadKanjiListEvent(jlpt: int.parse(level.substring(1))),
+        LoadKanjiListEvent(
+          jlpt: int.parse(level.substring(1)),
+          limit: 10000, // Load all kanji
+        ),
       );
     } else {
-      context.read<KanjiBloc>().add(const LoadKanjiListEvent());
+      context.read<KanjiBloc>().add(
+        const LoadKanjiListEvent(limit: 10000), // Load all kanji
+      );
     }
   }
 

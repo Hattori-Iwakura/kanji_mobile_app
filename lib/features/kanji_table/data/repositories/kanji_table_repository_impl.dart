@@ -190,11 +190,12 @@ class KanjiTableRepositoryImpl implements KanjiTableRepository {
       final request = await remoteDataSource.requestPublish(tableId);
       return Right(request);
     } on DioException catch (e) {
-      return Left(
-        ServerFailure(
-          e.response?.data['message'] ?? e.message ?? 'Server error',
-        ),
-      );
+      final errorMessage =
+          e.response?.data['error'] ??
+          e.response?.data['message'] ??
+          e.message ??
+          'Server error';
+      return Left(ServerFailure(errorMessage));
     } catch (e) {
       return Left(ServerFailure(e.toString()));
     }

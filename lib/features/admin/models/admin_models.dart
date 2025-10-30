@@ -170,8 +170,8 @@ class PublishRequest {
       reviewedBy: json['reviewedBy'] as int?,
       reviewMessage: json['reviewMessage'] as String?,
       quiz: json['quiz'],
-      list: json['list'],
-      deck: json['deck'],
+      list: json['list'] ?? json['kanjiList'],
+      deck: json['deck'] ?? json['flashcardDeck'],
       user: json['user'] != null ? User.fromJson(json['user']) : null,
       reviewer: json['reviewer'] != null
           ? User.fromJson(json['reviewer'])

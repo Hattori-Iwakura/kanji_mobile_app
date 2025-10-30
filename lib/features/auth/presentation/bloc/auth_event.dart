@@ -58,3 +58,36 @@ class Disable2FAEvent extends AuthEvent {
 }
 
 class SendEmailOTPEvent extends AuthEvent {}
+
+// Password Reset Events
+class ForgotPasswordEvent extends AuthEvent {
+  final String email;
+
+  const ForgotPasswordEvent(this.email);
+
+  @override
+  List<Object?> get props => [email];
+}
+
+class ResetPasswordEvent extends AuthEvent {
+  final String token;
+  final String newPassword;
+
+  const ResetPasswordEvent(this.token, this.newPassword);
+
+  @override
+  List<Object?> get props => [token, newPassword];
+}
+
+class ChangePasswordEvent extends AuthEvent {
+  final String currentPassword;
+  final String newPassword;
+
+  const ChangePasswordEvent({
+    required this.currentPassword,
+    required this.newPassword,
+  });
+
+  @override
+  List<Object?> get props => [currentPassword, newPassword];
+}

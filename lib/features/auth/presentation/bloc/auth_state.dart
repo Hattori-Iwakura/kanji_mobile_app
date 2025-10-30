@@ -72,3 +72,10 @@ class TwoFactorDisabled extends AuthState {
 }
 
 class EmailOTPSent extends AuthState {}
+
+// Password Reset States
+class ForgotPasswordSuccess extends AuthState {}
+
+class ResetPasswordSuccess extends AuthState {}
+
+class PasswordChangeSuccess extends AuthState {}

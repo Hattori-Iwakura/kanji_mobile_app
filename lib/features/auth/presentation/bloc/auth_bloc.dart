@@ -8,6 +8,9 @@ import '../../domain/usecases/setup_2fa.dart';
 import '../../domain/usecases/enable_2fa.dart';
 import '../../domain/usecases/disable_2fa.dart';
 import '../../domain/usecases/send_email_otp.dart';
+import '../../domain/usecases/forgot_password.dart';
+import '../../domain/usecases/reset_password.dart';
+import '../../domain/usecases/change_password.dart';
 import 'auth_event.dart';
 import 'auth_state.dart';
 
@@ -21,6 +24,9 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   final Enable2FA enable2FA;
   final Disable2FA disable2FA;
   final SendEmailOTP sendEmailOTP;
+  final ForgotPassword forgotPassword;
+  final ResetPassword resetPassword;
+  final ChangePassword changePassword;
 
   AuthBloc({
     required this.login,
@@ -32,6 +38,9 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     required this.enable2FA,
     required this.disable2FA,
     required this.sendEmailOTP,
+    required this.forgotPassword,
+    required this.resetPassword,
+    required this.changePassword,
   }) : super(AuthInitial()) {
     on<CheckAuthStatusEvent>(_onCheckAuthStatus);
     on<LoginEvent>(_onLogin);
@@ -42,6 +51,9 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<Enable2FAEvent>(_onEnable2FA);
     on<Disable2FAEvent>(_onDisable2FA);
     on<SendEmailOTPEvent>(_onSendEmailOTP);
+    on<ForgotPasswordEvent>(_onForgotPassword);
+    on<ResetPasswordEvent>(_onResetPassword);
+    on<ChangePasswordEvent>(_onChangePassword);
   }
 
   Future<void> _onCheckAuthStatus(
@@ -187,6 +199,51 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     result.fold(
       (failure) => emit(AuthError(failure.message)),
       (_) => emit(EmailOTPSent()),
+    );
+  }
+
+  Future<void> _onForgotPassword(
+    ForgotPasswordEvent event,
+    Emitter<AuthState> emit,
+  ) async {
+    emit(AuthLoading());
+
+    final result = await forgotPassword(event.email);
+
+    result.fold(
+      (failure) => emit(AuthError(failure.message)),
+      (_) => emit(ForgotPasswordSuccess()),
+    );
+  }
+
+  Future<void> _onResetPassword(
+    ResetPasswordEvent event,
+    Emitter<AuthState> emit,
+  ) async {
+    emit(AuthLoading());
+
+    final result = await resetPassword(event.token, event.newPassword);
+
+    result.fold(
+      (failure) => emit(AuthError(failure.message)),
+      (_) => emit(ResetPasswordSuccess()),
+    );
+  }
+
+  Future<void> _onChangePassword(
+    ChangePasswordEvent event,
+    Emitter<AuthState> emit,
+  ) async {
+    emit(AuthLoading());
+
+    final result = await changePassword(
+      event.currentPassword,
+      event.newPassword,
+    );
+
+    result.fold(
+      (failure) => emit(AuthError(failure.message)),
+      (_) => emit(PasswordChangeSuccess()),
     );
   }
 }

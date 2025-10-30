@@ -5,6 +5,7 @@ import '../bloc/auth_event.dart';
 import '../bloc/auth_state.dart';
 import 'register_page.dart';
 import 'two_factor_verify_page.dart';
+import 'forgot_password_page.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -58,6 +59,7 @@ class _LoginPageState extends State<LoginPage> {
                   const SnackBar(
                     content: Text('Đăng nhập thành công!'),
                     backgroundColor: Colors.green,
+                    behavior: SnackBarBehavior.floating,
                   ),
                 );
               } else if (state is TwoFactorRequired) {
@@ -73,10 +75,66 @@ class _LoginPageState extends State<LoginPage> {
                 );
               } else if (state is AuthError) {
                 print('State is AuthError: ${state.message}');
+
+                // Parse error message for better user experience
+                String userMessage = state.message;
+                IconData icon = Icons.error_outline;
+                Color backgroundColor = Colors.red;
+
+                // Check for specific error types
+                if (state.message.toLowerCase().contains(
+                      'invalid credentials',
+                    ) ||
+                    state.message.toLowerCase().contains('invalid') ||
+                    state.message.toLowerCase().contains('incorrect') ||
+                    state.message.toLowerCase().contains('sai')) {
+                  userMessage =
+                      '🔒 Email hoặc mật khẩu không đúng.\n\nVui lòng kiểm tra và thử lại.';
+                  icon = Icons.lock_outline;
+                } else if (state.message.toLowerCase().contains('not found') ||
+                    state.message.toLowerCase().contains('không tìm thấy') ||
+                    state.message.toLowerCase().contains('does not exist')) {
+                  userMessage =
+                      '👤 Tài khoản không tồn tại.\n\nVui lòng kiểm tra lại email hoặc đăng ký tài khoản mới.';
+                  icon = Icons.person_outline;
+                } else if (state.message.toLowerCase().contains('network') ||
+                    state.message.toLowerCase().contains('connection') ||
+                    state.message.toLowerCase().contains('timeout')) {
+                  userMessage =
+                      '🌐 Lỗi kết nối mạng.\n\nVui lòng kiểm tra internet và thử lại.';
+                  icon = Icons.wifi_off;
+                  backgroundColor = Colors.orange;
+                } else if (state.message.toLowerCase().contains('server')) {
+                  userMessage = '☁️ Lỗi máy chủ.\n\nVui lòng thử lại sau.';
+                  icon = Icons.cloud_off;
+                }
+
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
-                    content: Text(state.message),
-                    backgroundColor: Colors.red,
+                    content: Row(
+                      children: [
+                        Icon(icon, color: Colors.white, size: 24),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Text(
+                            userMessage,
+                            style: const TextStyle(fontSize: 14),
+                          ),
+                        ),
+                      ],
+                    ),
+                    backgroundColor: backgroundColor,
+                    behavior: SnackBarBehavior.floating,
+                    margin: const EdgeInsets.all(16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    duration: const Duration(seconds: 5),
+                    action: SnackBarAction(
+                      label: 'Đóng',
+                      textColor: Colors.white,
+                      onPressed: () {},
+                    ),
                   ),
                 );
               }
@@ -146,13 +204,28 @@ class _LoginPageState extends State<LoginPage> {
                               width: 2,
                             ),
                           ),
+                          errorBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: const BorderSide(color: Colors.red),
+                          ),
+                          focusedErrorBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: const BorderSide(
+                              color: Colors.red,
+                              width: 2,
+                            ),
+                          ),
                         ),
                         validator: (value) {
                           if (value == null || value.isEmpty) {
                             return 'Vui lòng nhập email';
                           }
-                          if (!value.contains('@')) {
-                            return 'Email không hợp lệ';
+                          // More comprehensive email validation
+                          final emailRegex = RegExp(
+                            r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$',
+                          );
+                          if (!emailRegex.hasMatch(value)) {
+                            return 'Email không hợp lệ (ví dụ: example@domain.com)';
                           }
                           return null;
                         },
@@ -200,6 +273,17 @@ class _LoginPageState extends State<LoginPage> {
                               width: 2,
                             ),
                           ),
+                          errorBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: const BorderSide(color: Colors.red),
+                          ),
+                          focusedErrorBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: const BorderSide(
+                              color: Colors.red,
+                              width: 2,
+                            ),
+                          ),
                         ),
                         validator: (value) {
                           if (value == null || value.isEmpty) {
@@ -217,7 +301,12 @@ class _LoginPageState extends State<LoginPage> {
                         alignment: Alignment.centerRight,
                         child: TextButton(
                           onPressed: () {
-                            // TODO: Implement forgot password
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (context) =>
+                                    const ForgotPasswordPage(),
+                              ),
+                            );
                           },
                           child: const Text(
                             'Quên mật khẩu?',

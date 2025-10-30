@@ -100,58 +100,84 @@ class _KanjiTableDetailPageState extends State<KanjiTableDetailPage> {
 
   Future<void> _showPublishDialog() async {
     final reasonController = TextEditingController();
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: const Color(0xFF1A1F2E),
-        title: const Text(
-          'Request Publish',
-          style: TextStyle(color: Colors.white),
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Text(
-              'Submit this table for public approval?',
-              style: TextStyle(color: Colors.white70),
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: reasonController,
-              style: const TextStyle(color: Colors.white),
-              decoration: InputDecoration(
-                labelText: 'Reason (optional)',
-                labelStyle: TextStyle(
-                  color: Colors.tealAccent.withOpacity(0.7),
-                ),
-                border: const OutlineInputBorder(),
-                enabledBorder: OutlineInputBorder(
-                  borderSide: BorderSide(
-                    color: Colors.tealAccent.withOpacity(0.3),
+
+    try {
+      final confirmed = await showDialog<bool>(
+        context: context,
+        barrierDismissible: false,
+        builder: (dialogContext) => AlertDialog(
+          backgroundColor: const Color(0xFF1A1F2E),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          title: const Text(
+            'Request Publish',
+            style: TextStyle(color: Colors.white),
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text(
+                'Submit this table for public approval?',
+                style: TextStyle(color: Colors.white70),
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: reasonController,
+                style: const TextStyle(color: Colors.white),
+                decoration: InputDecoration(
+                  labelText: 'Reason (optional)',
+                  labelStyle: TextStyle(
+                    color: Colors.tealAccent.withOpacity(0.7),
+                  ),
+                  border: const OutlineInputBorder(),
+                  enabledBorder: OutlineInputBorder(
+                    borderSide: BorderSide(
+                      color: Colors.tealAccent.withOpacity(0.3),
+                    ),
+                  ),
+                  focusedBorder: const OutlineInputBorder(
+                    borderSide: BorderSide(color: Colors.tealAccent),
                   ),
                 ),
+                maxLines: 3,
               ),
-              maxLines: 3,
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                if (Navigator.canPop(dialogContext)) {
+                  Navigator.pop(dialogContext, false);
+                }
+              },
+              child: const Text(
+                'Cancel',
+                style: TextStyle(color: Colors.white70),
+              ),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                if (Navigator.canPop(dialogContext)) {
+                  Navigator.pop(dialogContext, true);
+                }
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.tealAccent,
+                foregroundColor: Colors.black,
+              ),
+              child: const Text('Submit'),
             ),
           ],
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('Submit'),
-          ),
-        ],
-      ),
-    );
+      );
 
-    if (confirmed == true && mounted) {
-      context.read<KanjiTableBloc>().add(RequestPublishEvent(widget.tableId));
+      if (confirmed == true && mounted) {
+        context.read<KanjiTableBloc>().add(RequestPublishEvent(widget.tableId));
+      }
+    } finally {
+      reasonController.dispose();
     }
-    reasonController.dispose();
   }
 
   @override
@@ -169,33 +195,64 @@ class _KanjiTableDetailPageState extends State<KanjiTableDetailPage> {
         child: SafeArea(
           child: BlocConsumer<KanjiTableBloc, KanjiTableState>(
             listenWhen: (previous, current) {
+              // Always listen to loading states
               if (current is KanjiTableLoading) return false;
+
+              // Always listen to errors and operation results
+              if (current is KanjiTableError) return true;
+              if (current is KanjiTableOperationSuccess) return true;
+
+              // For other states, skip if same type
               if (previous.runtimeType == current.runtimeType) return false;
               return true;
             },
             listener: (context, state) {
-              if (state is KanjiTableOperationSuccess) {
-                ScaffoldMessenger.of(context).clearSnackBars();
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(state.message),
-                    backgroundColor: Colors.tealAccent,
-                  ),
-                );
-                if (state.message.contains('deleted')) {
-                  Navigator.pop(context);
-                } else {
-                  _loadTableDetail();
-                }
+              print('🔔 Listener triggered: ${state.runtimeType}');
+              if (!mounted) {
+                print('⚠️ Widget not mounted, skipping');
+                return;
               }
+
+              if (state is KanjiTableOperationSuccess) {
+                print('✅ Operation success: ${state.message}');
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  if (!mounted) return;
+
+                  ScaffoldMessenger.of(context).clearSnackBars();
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(state.message),
+                      backgroundColor: Colors.tealAccent,
+                      duration: const Duration(seconds: 2),
+                    ),
+                  );
+
+                  if (state.message.contains('deleted')) {
+                    if (mounted) Navigator.pop(context);
+                  } else if (mounted) {
+                    _loadTableDetail();
+                  }
+                });
+              }
+
               if (state is KanjiTableError) {
-                ScaffoldMessenger.of(context).clearSnackBars();
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(state.message),
-                    backgroundColor: Colors.red,
-                  ),
-                );
+                print('❌ Error: ${state.message}');
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  print('📱 Showing error SnackBar');
+                  if (!mounted) {
+                    print('⚠️ Widget not mounted in callback');
+                    return;
+                  }
+
+                  ScaffoldMessenger.of(context).clearSnackBars();
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(state.message),
+                      backgroundColor: Colors.red,
+                      duration: const Duration(seconds: 3),
+                    ),
+                  );
+                });
               }
             },
             buildWhen: (previous, current) {

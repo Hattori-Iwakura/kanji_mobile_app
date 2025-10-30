@@ -141,8 +141,46 @@ class MainDrawer extends StatelessWidget {
                       style: TextStyle(color: Colors.white),
                     ),
                     onTap: () {
-                      context.read<AuthBloc>().add(LogoutEvent());
+                      // Close drawer first
                       Navigator.of(context).pop();
+
+                      // Show confirmation dialog
+                      showDialog(
+                        context: context,
+                        builder: (ctx) => AlertDialog(
+                          backgroundColor: const Color(0xFF1A1F2E),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          title: const Text(
+                            'Xác nhận đăng xuất',
+                            style: TextStyle(color: Colors.white),
+                          ),
+                          content: const Text(
+                            'Bạn có chắc chắn muốn đăng xuất?',
+                            style: TextStyle(color: Colors.white70),
+                          ),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.of(ctx).pop(),
+                              child: const Text(
+                                'Hủy',
+                                style: TextStyle(color: Colors.white70),
+                              ),
+                            ),
+                            ElevatedButton(
+                              onPressed: () {
+                                Navigator.of(ctx).pop();
+                                context.read<AuthBloc>().add(LogoutEvent());
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.redAccent,
+                              ),
+                              child: const Text('Đăng xuất'),
+                            ),
+                          ],
+                        ),
+                      );
                     },
                   )
                 else

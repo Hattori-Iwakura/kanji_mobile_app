@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../models/app_settings.dart';
 import '../../services/settings_service.dart';
+import '../../../auth/presentation/pages/change_password_page.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -162,6 +163,22 @@ class _SettingsPageState extends State<SettingsPage> {
             value: _settings.vibrationEnabled,
             onChanged: (value) {
               _updateSettings(_settings.copyWith(vibrationEnabled: value));
+            },
+          ),
+          Divider(height: 32, color: Colors.white.withOpacity(0.12)),
+
+          // Account Section
+          _buildSectionHeader('Tài khoản'),
+          _buildListTile(
+            title: 'Đổi mật khẩu',
+            subtitle: 'Thay đổi mật khẩu đăng nhập',
+            icon: Icons.lock_outline,
+            onTap: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => const ChangePasswordPage(),
+                ),
+              );
             },
           ),
           Divider(height: 32, color: Colors.white.withOpacity(0.12)),

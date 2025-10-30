@@ -205,6 +205,28 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
+  Future<Either<Failure, void>> changePassword(
+    String currentPassword,
+    String newPassword,
+  ) async {
+    try {
+      final token = await localDataSource.getToken();
+      if (token != null) {
+        apiClient.setAuthToken(token);
+      }
+
+      await remoteDataSource.changePassword(currentPassword, newPassword);
+      return const Right(null);
+    } on UnauthorizedException catch (e) {
+      return Left(UnauthorizedFailure(e.message));
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.message));
+    } catch (e) {
+      return Left(ServerFailure('Unexpected error: $e'));
+    }
+  }
+
+  @override
   Future<Either<Failure, TwoFactorSetup>> setup2FA() async {
     try {
       final token = await localDataSource.getToken();
