@@ -12,6 +12,7 @@ class FlashcardBloc extends Bloc<FlashcardEvent, FlashcardState> {
   final AddCardToDeckUseCase addCardToDeck;
   final RemoveCardFromDeckUseCase removeCardFromDeck;
   final StartSessionUseCase startSession;
+  final GetActiveSessionUseCase getActiveSession;
   final GetSessionProgressUseCase getSessionProgress;
   final GetNextCardUseCase getNextCard;
   final ReviewCardUseCase reviewCard;
@@ -28,6 +29,7 @@ class FlashcardBloc extends Bloc<FlashcardEvent, FlashcardState> {
     required this.addCardToDeck,
     required this.removeCardFromDeck,
     required this.startSession,
+    required this.getActiveSession,
     required this.getSessionProgress,
     required this.getNextCard,
     required this.reviewCard,
@@ -42,6 +44,7 @@ class FlashcardBloc extends Bloc<FlashcardEvent, FlashcardState> {
     on<DeleteDeckEvent>(_onDeleteDeck);
     on<AddCardToDeckEvent>(_onAddCardToDeck);
     on<RemoveCardFromDeckEvent>(_onRemoveCardFromDeck);
+    on<CheckActiveSessionEvent>(_onCheckActiveSession);
     on<StartSessionEvent>(_onStartSession);
     on<LoadSessionProgressEvent>(_onLoadSessionProgress);
     on<LoadNextCardEvent>(_onLoadNextCard);
@@ -150,6 +153,18 @@ class FlashcardBloc extends Bloc<FlashcardEvent, FlashcardState> {
     );
   }
 
+  Future<void> _onCheckActiveSession(
+    CheckActiveSessionEvent event,
+    Emitter<FlashcardState> emit,
+  ) async {
+    emit(FlashcardLoading());
+    final result = await getActiveSession(event.deckId);
+    result.fold(
+      (failure) => emit(FlashcardError(failure.message)),
+      (activeSession) => emit(ActiveSessionChecked(activeSession)),
+    );
+  }
+
   Future<void> _onStartSession(
     StartSessionEvent event,
     Emitter<FlashcardState> emit,
@@ -159,6 +174,7 @@ class FlashcardBloc extends Bloc<FlashcardEvent, FlashcardState> {
       deckId: event.deckId,
       maxNewCards: event.maxNewCards,
       maxReviewCards: event.maxReviewCards,
+      reviewType: event.reviewType,
     );
     result.fold(
       (failure) => emit(FlashcardError(failure.message)),

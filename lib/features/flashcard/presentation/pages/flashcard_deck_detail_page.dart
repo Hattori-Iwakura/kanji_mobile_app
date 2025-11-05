@@ -4,6 +4,7 @@ import '../bloc/flashcard_bloc.dart';
 import '../bloc/flashcard_event.dart';
 import '../bloc/flashcard_state.dart';
 import '../../domain/entities/flashcard_deck.dart';
+import '../../domain/entities/review_type.dart';
 import 'study_session_page.dart';
 import 'add_kanji_to_deck_page.dart';
 import '../../../kanji/presentation/bloc/kanji_bloc.dart';
@@ -53,6 +54,11 @@ class _FlashcardDeckDetailPageState extends State<FlashcardDeckDetailPage> {
                 );
               } else if (state is DeckDeleted) {
                 Navigator.pop(context);
+              } else if (state is ActiveSessionChecked) {
+                // Show dialog with resume option if active session exists
+                _showStudySessionDialog(
+                  resumeSessionId: state.activeSession?.sessionId,
+                );
               } else if (state is SessionStarted) {
                 _navigateToStudySession(state.session.sessionId);
               } else if (state is CardAddedToDeck) {
@@ -546,52 +552,33 @@ class _FlashcardDeckDetailPageState extends State<FlashcardDeckDetailPage> {
   }
 
   void _startStudySession() {
+    // Check for active session first
+    context.read<FlashcardBloc>().add(CheckActiveSessionEvent(widget.deckId));
+  }
+
+  void _showStudySessionDialog({int? resumeSessionId}) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Study Session Settings'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Text('Configure your study session:'),
-            const SizedBox(height: 16),
-            ListTile(
-              leading: const Icon(Icons.fiber_new),
-              title: const Text('New Cards'),
-              trailing: const Text('10'),
-              onTap: () {
-                // TODO: Allow customization
-              },
+      builder: (dialogContext) => _StudySessionConfigDialog(
+        deckId: widget.deckId,
+        resumeSessionId: resumeSessionId,
+        onStart: (int maxNew, int maxReview, ReviewType reviewType) {
+          Navigator.pop(dialogContext);
+          context.read<FlashcardBloc>().add(
+            StartSessionEvent(
+              deckId: widget.deckId,
+              maxNewCards: maxNew,
+              maxReviewCards: maxReview,
+              reviewType: reviewType,
             ),
-            ListTile(
-              leading: const Icon(Icons.replay),
-              title: const Text('Review Cards'),
-              trailing: const Text('20'),
-              onTap: () {
-                // TODO: Allow customization
-              },
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pop(context);
-              context.read<FlashcardBloc>().add(
-                StartSessionEvent(
-                  deckId: widget.deckId,
-                  maxNewCards: 10,
-                  maxReviewCards: 20,
-                ),
-              );
-            },
-            child: const Text('Start'),
-          ),
-        ],
+          );
+        },
+        onResume: resumeSessionId != null
+            ? (int sessionId) {
+                Navigator.pop(dialogContext);
+                _navigateToStudySession(sessionId);
+              }
+            : null,
       ),
     );
   }
@@ -1178,6 +1165,353 @@ class _EditDeckDialogState extends State<_EditDeckDialog> {
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+}
+
+// Study Session Configuration Dialog
+class _StudySessionConfigDialog extends StatefulWidget {
+  final int deckId;
+  final int? resumeSessionId;
+  final void Function(int maxNew, int maxReview, ReviewType reviewType) onStart;
+  final void Function(int sessionId)? onResume;
+
+  const _StudySessionConfigDialog({
+    required this.deckId,
+    required this.onStart,
+    this.resumeSessionId,
+    this.onResume,
+  });
+
+  @override
+  State<_StudySessionConfigDialog> createState() =>
+      _StudySessionConfigDialogState();
+}
+
+class _StudySessionConfigDialogState extends State<_StudySessionConfigDialog> {
+  int _maxNewCards = 10;
+  int _maxReviewCards = 20;
+  ReviewType _selectedReviewType = ReviewType.all;
+
+  @override
+  Widget build(BuildContext context) {
+    return Dialog(
+      backgroundColor: const Color(0xFF1A1F2E),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(20),
+        side: const BorderSide(color: Colors.tealAccent, width: 1),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Header
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [Colors.tealAccent, Color(0xFF00BFA5)],
+                    ),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Icon(
+                    Icons.play_circle_filled,
+                    color: Colors.white,
+                    size: 24,
+                  ),
+                ),
+                const SizedBox(width: 16),
+                const Expanded(
+                  child: Text(
+                    'Start Study Session',
+                    style: TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 24),
+
+            // Review Type Selection
+            const Text(
+              'Review Type',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: Colors.tealAccent,
+              ),
+            ),
+            const SizedBox(height: 12),
+            ...ReviewType.values.map((type) {
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: _buildReviewTypeOption(type),
+              );
+            }).toList(),
+
+            const SizedBox(height: 24),
+
+            // Max Cards Settings
+            const Text(
+              'Card Limits',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: Colors.tealAccent,
+              ),
+            ),
+            const SizedBox(height: 12),
+
+            // New Cards Slider
+            if (_selectedReviewType != ReviewType.dueOnly) ...[
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    'New Cards',
+                    style: TextStyle(color: Colors.white70),
+                  ),
+                  Text(
+                    '$_maxNewCards',
+                    style: const TextStyle(
+                      color: Colors.tealAccent,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 18,
+                    ),
+                  ),
+                ],
+              ),
+              Slider(
+                value: _maxNewCards.toDouble(),
+                min: 0,
+                max: 50,
+                divisions: 10,
+                activeColor: Colors.tealAccent,
+                inactiveColor: Colors.white24,
+                onChanged: (value) {
+                  setState(() {
+                    _maxNewCards = value.toInt();
+                  });
+                },
+              ),
+            ],
+
+            // Review Cards Slider
+            if (_selectedReviewType != ReviewType.newOnly) ...[
+              const SizedBox(height: 8),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    'Review Cards',
+                    style: TextStyle(color: Colors.white70),
+                  ),
+                  Text(
+                    '$_maxReviewCards',
+                    style: const TextStyle(
+                      color: Colors.tealAccent,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 18,
+                    ),
+                  ),
+                ],
+              ),
+              Slider(
+                value: _maxReviewCards.toDouble(),
+                min: 0,
+                max: 100,
+                divisions: 10,
+                activeColor: Colors.tealAccent,
+                inactiveColor: Colors.white24,
+                onChanged: (value) {
+                  setState(() {
+                    _maxReviewCards = value.toInt();
+                  });
+                },
+              ),
+            ],
+
+            const SizedBox(height: 24),
+
+            // Resume Session Banner (if active session exists)
+            if (widget.resumeSessionId != null) ...[
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.orange.withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.orange.withOpacity(0.5)),
+                ),
+                child: Row(
+                  children: [
+                    Icon(Icons.pause_circle, color: Colors.orange, size: 28),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Active Session Found',
+                            style: TextStyle(
+                              color: Colors.orange,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 15,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            'You have an unfinished study session',
+                            style: TextStyle(
+                              color: Colors.white.withOpacity(0.7),
+                              fontSize: 13,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 16),
+            ],
+
+            // Action Buttons
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: () => Navigator.pop(context),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: Colors.white70,
+                      side: BorderSide(color: Colors.white.withOpacity(0.3)),
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    child: const Text('Cancel'),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                if (widget.resumeSessionId != null) ...[
+                  Expanded(
+                    child: ElevatedButton.icon(
+                      onPressed: () {
+                        widget.onResume?.call(widget.resumeSessionId!);
+                      },
+                      icon: const Icon(Icons.play_arrow, color: Colors.black),
+                      label: const Text(
+                        'Resume',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.orange,
+                        foregroundColor: Colors.black,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                ],
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: () {
+                      widget.onStart(
+                        _maxNewCards,
+                        _maxReviewCards,
+                        _selectedReviewType,
+                      );
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.tealAccent,
+                      foregroundColor: Colors.black,
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    child: Text(
+                      widget.resumeSessionId != null ? 'Start New' : 'Start',
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildReviewTypeOption(ReviewType type) {
+    final isSelected = _selectedReviewType == type;
+    return InkWell(
+      onTap: () {
+        setState(() {
+          _selectedReviewType = type;
+        });
+      },
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? Colors.tealAccent.withOpacity(0.2)
+              : Colors.white.withOpacity(0.05),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: isSelected
+                ? Colors.tealAccent
+                : Colors.white.withOpacity(0.2),
+            width: isSelected ? 2 : 1,
+          ),
+        ),
+        child: Row(
+          children: [
+            Icon(
+              isSelected ? Icons.radio_button_checked : Icons.radio_button_off,
+              color: isSelected ? Colors.tealAccent : Colors.white54,
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    type.label,
+                    style: TextStyle(
+                      color: isSelected ? Colors.white : Colors.white70,
+                      fontWeight: isSelected
+                          ? FontWeight.bold
+                          : FontWeight.normal,
+                      fontSize: 15,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    type.description,
+                    style: TextStyle(
+                      color: Colors.white.withOpacity(0.5),
+                      fontSize: 12,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
       ),
     );

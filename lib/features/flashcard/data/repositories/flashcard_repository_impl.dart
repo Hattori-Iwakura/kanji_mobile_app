@@ -5,6 +5,8 @@ import '../../domain/entities/flashcard_deck.dart';
 import '../../domain/entities/study_session.dart';
 import '../../domain/entities/next_card.dart';
 import '../../domain/entities/deck_statistics.dart';
+import '../../domain/entities/active_session.dart';
+import '../../domain/entities/review_type.dart';
 import '../../domain/repositories/flashcard_repository.dart';
 import '../datasources/flashcard_remote_datasource.dart';
 
@@ -134,14 +136,28 @@ class FlashcardRepositoryImpl implements FlashcardRepository {
     required int deckId,
     int? maxNewCards,
     int? maxReviewCards,
+    ReviewType? reviewType,
   }) async {
     try {
       final session = await remoteDataSource.startSession(
         deckId: deckId,
         maxNewCards: maxNewCards,
         maxReviewCards: maxReviewCards,
+        reviewType: reviewType,
       );
       return Right(session);
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.message));
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, ActiveSession?>> getActiveSession(int deckId) async {
+    try {
+      final activeSession = await remoteDataSource.getActiveSession(deckId);
+      return Right(activeSession);
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message));
     } catch (e) {

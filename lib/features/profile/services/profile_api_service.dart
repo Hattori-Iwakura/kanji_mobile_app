@@ -74,12 +74,15 @@ class ProfileApiService {
 
         // Convert progress data to ProfileStats format
         return ProfileStats(
-          totalKanjiStudied: data['totalKanjiStudied'] as int? ?? 0,
-          quizzesCompleted: data['quizzesCompleted'] as int? ?? 0,
-          flashcardsReviewed: data['flashcardsReviewed'] as int? ?? 0,
+          totalKanjiStudied: data['kanjiMastered'] as int? ?? 0,
+          quizzesCompleted: data['totalQuizAttempts'] as int? ?? 0,
+          flashcardsReviewed: data['totalFlashcardSessions'] as int? ?? 0,
           currentStreak: data['currentStreak'] as int? ?? 0,
           totalXp: data['xp'] as int? ?? 0,
-          averageScore: (data['averageQuizScore'] as num?)?.toDouble() ?? 0.0,
+          averageScore:
+              ((data['flashcardAccuracy'] as num? ?? 0) +
+                  (data['quizAccuracy'] as num? ?? 0)) /
+              2,
           recentActivity: [], // Would need separate endpoint
         );
       }

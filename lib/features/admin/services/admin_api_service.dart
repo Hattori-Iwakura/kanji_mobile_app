@@ -114,7 +114,7 @@ class AdminApiService {
         '/admin/dashboard/stats/users',
         queryParameters: queryParams,
       );
-      return UserStatistics.fromJson(response.data);
+      return UserStatistics.fromJson(response.data['data']);
     } on DioException catch (e) {
       throw Exception('Failed to get user statistics: ${e.message}');
     }
@@ -127,7 +127,7 @@ class AdminApiService {
         '/admin/dashboard/stats/content',
         queryParameters: queryParams,
       );
-      return ContentStatistics.fromJson(response.data);
+      return ContentStatistics.fromJson(response.data['data']);
     } on DioException catch (e) {
       throw Exception('Failed to get content statistics: ${e.message}');
     }
@@ -146,7 +146,7 @@ class AdminApiService {
         '/admin/dashboard/stats/activity',
         queryParameters: queryParams.isNotEmpty ? queryParams : null,
       );
-      return ActivityStatistics.fromJson(response.data);
+      return ActivityStatistics.fromJson(response.data['data']);
     } on DioException catch (e) {
       throw Exception('Failed to get activity statistics: ${e.message}');
     }
@@ -160,7 +160,7 @@ class AdminApiService {
         '/admin/dashboard/charts/users',
         queryParameters: queryParams,
       );
-      return ChartData.fromJson(response.data);
+      return ChartData.fromJson(response.data['data']);
     } on DioException catch (e) {
       throw Exception('Failed to get user chart data: ${e.message}');
     }
@@ -173,7 +173,7 @@ class AdminApiService {
         '/admin/dashboard/charts/activity',
         queryParameters: queryParams,
       );
-      return ChartData.fromJson(response.data);
+      return ChartData.fromJson(response.data['data']);
     } on DioException catch (e) {
       throw Exception('Failed to get activity chart data: ${e.message}');
     }
@@ -187,7 +187,7 @@ class AdminApiService {
         '/admin/system/metrics',
         queryParameters: queryParams,
       );
-      return SystemMetrics.fromJson(response.data);
+      return SystemMetrics.fromJson(response.data['data']);
     } on DioException catch (e) {
       throw Exception('Failed to get system metrics: ${e.message}');
     }
@@ -242,7 +242,7 @@ class AdminApiService {
   Future<UserInfo> getUserById(int id) async {
     try {
       final response = await _apiClient.dio.get('/admin/users/$id');
-      return UserInfo.fromJson(response.data);
+      return UserInfo.fromJson(response.data['data']);
     } on DioException catch (e) {
       if (e.response?.statusCode == 404) {
         throw Exception('User not found');
@@ -257,7 +257,7 @@ class AdminApiService {
         '/admin/users/$id',
         data: request.toJson(),
       );
-      return UserInfo.fromJson(response.data);
+      return UserInfo.fromJson(response.data['data']);
     } on DioException catch (e) {
       if (e.response?.statusCode == 404) {
         throw Exception('User not found');

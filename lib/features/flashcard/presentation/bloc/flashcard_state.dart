@@ -3,6 +3,7 @@ import '../../domain/entities/flashcard_deck.dart';
 import '../../domain/entities/study_session.dart';
 import '../../domain/entities/next_card.dart';
 import '../../domain/entities/deck_statistics.dart';
+import '../../domain/entities/active_session.dart';
 
 abstract class FlashcardState extends Equatable {
   @override
@@ -72,6 +73,15 @@ class CardRemovedFromDeck extends FlashcardState {
 }
 
 // ==================== STUDY SESSION STATES ====================
+
+class ActiveSessionChecked extends FlashcardState {
+  final ActiveSession? activeSession;
+
+  ActiveSessionChecked(this.activeSession);
+
+  @override
+  List<Object?> get props => [activeSession];
+}
 
 class SessionStarted extends FlashcardState {
   final StudySession session;

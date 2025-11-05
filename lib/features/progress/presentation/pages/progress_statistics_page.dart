@@ -153,13 +153,18 @@ class _ProgressStatisticsPageState extends State<ProgressStatisticsPage>
                           ],
                         ),
                       )
-                    : TabBarView(
-                        controller: _tabController,
-                        children: [
-                          _buildOverviewTab(),
-                          _buildStreakTab(),
-                          _buildAchievementsTab(),
-                        ],
+                    : RefreshIndicator(
+                        onRefresh: _loadData,
+                        color: Colors.tealAccent,
+                        backgroundColor: const Color(0xFF1A1F2E),
+                        child: TabBarView(
+                          controller: _tabController,
+                          children: [
+                            _buildOverviewTab(),
+                            _buildStreakTab(),
+                            _buildAchievementsTab(),
+                          ],
+                        ),
                       ),
               ),
             ],

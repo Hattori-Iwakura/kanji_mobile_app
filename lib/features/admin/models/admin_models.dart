@@ -329,7 +329,7 @@ class UserStatistics {
   final int totalUsers;
   final int activeUsers;
   final int newUsers;
-  final GrowthData? growth;
+  final double? growth; // Changed from GrowthData to double (percentage)
   final Map<String, dynamic>? retention;
 
   UserStatistics({
@@ -345,9 +345,7 @@ class UserStatistics {
       totalUsers: json['totalUsers'] as int? ?? 0,
       activeUsers: json['activeUsers'] as int? ?? 0,
       newUsers: json['newUsers'] as int? ?? 0,
-      growth: json['growth'] != null
-          ? GrowthData.fromJson(json['growth'] as Map<String, dynamic>)
-          : null,
+      growth: (json['growth'] as num?)?.toDouble(),
       retention: json['retention'] as Map<String, dynamic>?,
     );
   }
@@ -372,7 +370,6 @@ class ContentStatistics {
   final int totalQuizzes;
   final int totalDecks;
   final int totalLists;
-  final GrowthData? growth;
   final Map<String, dynamic>? byType;
 
   ContentStatistics({
@@ -380,7 +377,6 @@ class ContentStatistics {
     required this.totalQuizzes,
     required this.totalDecks,
     required this.totalLists,
-    this.growth,
     this.byType,
   });
 
@@ -390,9 +386,6 @@ class ContentStatistics {
       totalQuizzes: json['totalQuizzes'] as int? ?? 0,
       totalDecks: json['totalDecks'] as int? ?? 0,
       totalLists: json['totalLists'] as int? ?? 0,
-      growth: json['growth'] != null
-          ? GrowthData.fromJson(json['growth'] as Map<String, dynamic>)
-          : null,
       byType: json['byType'] as Map<String, dynamic>?,
     );
   }

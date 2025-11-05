@@ -4,6 +4,8 @@ import '../entities/flashcard_deck.dart';
 import '../entities/study_session.dart';
 import '../entities/next_card.dart';
 import '../entities/deck_statistics.dart';
+import '../entities/active_session.dart';
+import '../entities/review_type.dart';
 import '../repositories/flashcard_repository.dart';
 
 // ==================== DECK MANAGEMENT ====================
@@ -113,12 +115,24 @@ class StartSessionUseCase {
     required int deckId,
     int? maxNewCards,
     int? maxReviewCards,
+    ReviewType? reviewType,
   }) {
     return repository.startSession(
       deckId: deckId,
       maxNewCards: maxNewCards,
       maxReviewCards: maxReviewCards,
+      reviewType: reviewType,
     );
+  }
+}
+
+class GetActiveSessionUseCase {
+  final FlashcardRepository repository;
+
+  GetActiveSessionUseCase(this.repository);
+
+  Future<Either<Failure, ActiveSession?>> call(int deckId) {
+    return repository.getActiveSession(deckId);
   }
 }
 

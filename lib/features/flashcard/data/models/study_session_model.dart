@@ -20,24 +20,27 @@ class StudySessionModel extends StudySession {
 
   factory StudySessionModel.fromJson(Map<String, dynamic> json) {
     return StudySessionModel(
-      sessionId: (json['sessionId'] as int?) ?? (json['id'] as int? ?? 0),
-      deckId: json['deckId'] as int? ?? 0,
+      sessionId:
+          (json['sessionId'] as num?)?.toInt() ??
+          (json['id'] as num?)?.toInt() ??
+          0,
+      deckId: (json['deckId'] as num?)?.toInt() ?? 0,
       deckName: json['deckName'] as String? ?? '',
-      totalCards: json['totalCards'] as int? ?? 0,
-      newCards: json['newCards'] as int? ?? 0,
-      reviewCards: json['reviewCards'] as int? ?? 0,
-      cardsReviewed: json['cardsReviewed'] as int? ?? 0,
-      correctAnswers: json['correctAnswers'] as int? ?? 0,
-      incorrectAnswers: json['incorrectAnswers'] as int? ?? 0,
-      accuracy: json['accuracy'] as int? ?? 0,
+      totalCards: (json['totalCards'] as num?)?.toInt() ?? 0,
+      newCards: (json['newCards'] as num?)?.toInt() ?? 0,
+      reviewCards: (json['reviewCards'] as num?)?.toInt() ?? 0,
+      cardsReviewed: (json['cardsReviewed'] as num?)?.toInt() ?? 0,
+      correctAnswers: (json['correctAnswers'] as num?)?.toInt() ?? 0,
+      incorrectAnswers: (json['incorrectAnswers'] as num?)?.toInt() ?? 0,
+      accuracy: (json['accuracy'] as num?)?.toInt() ?? 0,
       startedAt: json['startedAt'] != null
           ? DateTime.parse(json['startedAt'] as String)
           : DateTime.now(),
       completedAt: json['completedAt'] != null
           ? DateTime.parse(json['completedAt'] as String)
           : null,
-      totalTime: json['totalTime'] as int?,
-      cardsMastered: json['cardsMastered'] as int?,
+      totalTime: (json['totalTime'] as num?)?.toInt(),
+      cardsMastered: (json['cardsMastered'] as num?)?.toInt(),
     );
   }
 

@@ -1,10 +1,11 @@
 import 'package:dartz/dartz.dart';
 import '../../../../core/error/failures.dart';
 import '../entities/flashcard_deck.dart';
-import '../entities/flashcard_card.dart';
 import '../entities/study_session.dart';
 import '../entities/next_card.dart';
 import '../entities/deck_statistics.dart';
+import '../entities/active_session.dart';
+import '../entities/review_type.dart';
 
 abstract class FlashcardRepository {
   // Deck Management
@@ -36,7 +37,9 @@ abstract class FlashcardRepository {
     required int deckId,
     int? maxNewCards,
     int? maxReviewCards,
+    ReviewType? reviewType,
   });
+  Future<Either<Failure, ActiveSession?>> getActiveSession(int deckId);
   Future<Either<Failure, StudySession>> getSessionProgress(int sessionId);
   Future<Either<Failure, NextCard?>> getNextCard(int sessionId);
   Future<Either<Failure, void>> reviewCard({

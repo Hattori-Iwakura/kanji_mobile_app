@@ -20,6 +20,7 @@ class QuizAttemptPage extends StatefulWidget {
 class _QuizAttemptPageState extends State<QuizAttemptPage> {
   late final List<Question> questions;
   final Map<int, String> answers = {};
+  final Map<int, TextEditingController> _textControllers = {};
   int currentQuestionIndex = 0;
   late Timer _timer;
   int _elapsedSeconds = 0;
@@ -34,6 +35,10 @@ class _QuizAttemptPageState extends State<QuizAttemptPage> {
   @override
   void dispose() {
     _timer.cancel();
+    // Dispose all text controllers
+    for (var controller in _textControllers.values) {
+      controller.dispose();
+    }
     super.dispose();
   }
 
@@ -137,9 +142,7 @@ class _QuizAttemptPageState extends State<QuizAttemptPage> {
                     children: [
                       Text(
                         'Questions answered:',
-                        style: TextStyle(
-                          color: Colors.white.withOpacity(0.7),
-                        ),
+                        style: TextStyle(color: Colors.white.withOpacity(0.7)),
                       ),
                       Text(
                         '${answers.length}/${questions.length}',
@@ -157,9 +160,7 @@ class _QuizAttemptPageState extends State<QuizAttemptPage> {
                     children: [
                       Text(
                         'Time spent:',
-                        style: TextStyle(
-                          color: Colors.white.withOpacity(0.7),
-                        ),
+                        style: TextStyle(color: Colors.white.withOpacity(0.7)),
                       ),
                       Text(
                         _formatTime(_elapsedSeconds),
@@ -246,10 +247,7 @@ class _QuizAttemptPageState extends State<QuizAttemptPage> {
         backgroundColor: const Color(0xFF0B0F14),
         appBar: AppBar(
           backgroundColor: Colors.transparent,
-          title: const Text(
-            'Quiz',
-            style: TextStyle(color: Colors.white),
-          ),
+          title: const Text('Quiz', style: TextStyle(color: Colors.white)),
         ),
         body: Center(
           child: Column(
@@ -281,7 +279,7 @@ class _QuizAttemptPageState extends State<QuizAttemptPage> {
       canPop: false,
       onPopInvokedWithResult: (didPop, result) async {
         if (didPop) return;
-        
+
         final shouldPop = await showDialog<bool>(
           context: context,
           barrierColor: Colors.black87,
@@ -535,10 +533,7 @@ class _QuizAttemptPageState extends State<QuizAttemptPage> {
             gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
-              colors: [
-                Color(0xFF071126),
-                Color(0xFF0B0F14),
-              ],
+              colors: [Color(0xFF071126), Color(0xFF0B0F14)],
             ),
           ),
           child: BlocListener<QuizBloc, QuizState>(
@@ -557,7 +552,10 @@ class _QuizAttemptPageState extends State<QuizAttemptPage> {
                   SnackBar(
                     content: Row(
                       children: [
-                        const Icon(Icons.error_outline, color: Colors.redAccent),
+                        const Icon(
+                          Icons.error_outline,
+                          color: Colors.redAccent,
+                        ),
                         const SizedBox(width: 12),
                         Expanded(
                           child: Text(
@@ -932,10 +930,7 @@ class _QuizAttemptPageState extends State<QuizAttemptPage> {
                               height: 50,
                               decoration: BoxDecoration(
                                 gradient: const LinearGradient(
-                                  colors: [
-                                    Colors.greenAccent,
-                                    Colors.green,
-                                  ],
+                                  colors: [Colors.greenAccent, Colors.green],
                                 ),
                                 borderRadius: BorderRadius.circular(12),
                                 boxShadow: [
@@ -1060,8 +1055,7 @@ class _QuizAttemptPageState extends State<QuizAttemptPage> {
                                 ? optionLabels[index]
                                 : '${index + 1}',
                             style: TextStyle(
-                              color:
-                                  isSelected ? Colors.black87 : Colors.white,
+                              color: isSelected ? Colors.black87 : Colors.white,
                               fontWeight: FontWeight.bold,
                               fontSize: 14,
                             ),
@@ -1077,8 +1071,9 @@ class _QuizAttemptPageState extends State<QuizAttemptPage> {
                                 ? Colors.white
                                 : Colors.white.withOpacity(0.9),
                             fontSize: 16,
-                            fontWeight:
-                                isSelected ? FontWeight.w600 : FontWeight.normal,
+                            fontWeight: isSelected
+                                ? FontWeight.w600
+                                : FontWeight.normal,
                           ),
                         ),
                       ),
@@ -1107,10 +1102,7 @@ class _QuizAttemptPageState extends State<QuizAttemptPage> {
             ],
           ),
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: Colors.white.withOpacity(0.1),
-            width: 1,
-          ),
+          border: Border.all(color: Colors.white.withOpacity(0.1), width: 1),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -1125,15 +1117,14 @@ class _QuizAttemptPageState extends State<QuizAttemptPage> {
             ),
             const SizedBox(height: 12),
             TextField(
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 16,
+              controller: _textControllers.putIfAbsent(
+                question.id,
+                () => TextEditingController(text: answers[question.id] ?? ''),
               ),
+              style: const TextStyle(color: Colors.white, fontSize: 16),
               decoration: InputDecoration(
                 hintText: 'Enter your answer here...',
-                hintStyle: TextStyle(
-                  color: Colors.white.withOpacity(0.38),
-                ),
+                hintStyle: TextStyle(color: Colors.white.withOpacity(0.38)),
                 filled: true,
                 fillColor: Colors.white.withOpacity(0.05),
                 enabledBorder: OutlineInputBorder(
@@ -1155,8 +1146,6 @@ class _QuizAttemptPageState extends State<QuizAttemptPage> {
               onChanged: (value) {
                 answers[question.id] = value;
               },
-              controller:
-                  TextEditingController(text: answers[question.id] ?? ''),
             ),
           ],
         ),
@@ -1173,18 +1162,10 @@ class _QuizAttemptPageState extends State<QuizAttemptPage> {
           gradient: const LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [
-              Color(0xFF1A1F2E),
-              Color(0xFF0B0F14),
-            ],
+            colors: [Color(0xFF1A1F2E), Color(0xFF0B0F14)],
           ),
-          borderRadius: const BorderRadius.vertical(
-            top: Radius.circular(24),
-          ),
-          border: Border.all(
-            color: Colors.white.withOpacity(0.1),
-            width: 1,
-          ),
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+          border: Border.all(color: Colors.white.withOpacity(0.1), width: 1),
         ),
         padding: const EdgeInsets.all(24),
         child: Column(
@@ -1256,31 +1237,32 @@ class _QuizAttemptPageState extends State<QuizAttemptPage> {
                                 Colors.tealAccent.withOpacity(0.7),
                               ]
                             : isAnswered
-                                ? [
-                                    Colors.greenAccent.withOpacity(0.6),
-                                    Colors.green.withOpacity(0.6),
-                                  ]
-                                : [
-                                    Colors.white.withOpacity(0.08),
-                                    Colors.white.withOpacity(0.05),
-                                  ],
+                            ? [
+                                Colors.greenAccent.withOpacity(0.6),
+                                Colors.green.withOpacity(0.6),
+                              ]
+                            : [
+                                Colors.white.withOpacity(0.08),
+                                Colors.white.withOpacity(0.05),
+                              ],
                       ),
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(
                         color: isCurrent
                             ? Colors.tealAccent
                             : isAnswered
-                                ? Colors.greenAccent
-                                : Colors.white.withOpacity(0.2),
+                            ? Colors.greenAccent
+                            : Colors.white.withOpacity(0.2),
                         width: isCurrent ? 2 : 1,
                       ),
                       boxShadow: isCurrent || isAnswered
                           ? [
                               BoxShadow(
-                                color: (isCurrent
-                                        ? Colors.tealAccent
-                                        : Colors.greenAccent)
-                                    .withOpacity(0.3),
+                                color:
+                                    (isCurrent
+                                            ? Colors.tealAccent
+                                            : Colors.greenAccent)
+                                        .withOpacity(0.3),
                                 blurRadius: 8,
                                 spreadRadius: 1,
                               ),
@@ -1309,10 +1291,7 @@ class _QuizAttemptPageState extends State<QuizAttemptPage> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
-                _buildLegendItem(
-                  Colors.tealAccent,
-                  'Current',
-                ),
+                _buildLegendItem(Colors.tealAccent, 'Current'),
                 _buildLegendItem(
                   Colors.greenAccent.withOpacity(0.6),
                   'Answered',
@@ -1338,19 +1317,13 @@ class _QuizAttemptPageState extends State<QuizAttemptPage> {
           decoration: BoxDecoration(
             color: color,
             borderRadius: BorderRadius.circular(6),
-            border: Border.all(
-              color: Colors.white.withOpacity(0.3),
-              width: 1,
-            ),
+            border: Border.all(color: Colors.white.withOpacity(0.3), width: 1),
           ),
         ),
         const SizedBox(width: 8),
         Text(
           label,
-          style: TextStyle(
-            fontSize: 13,
-            color: Colors.white.withOpacity(0.9),
-          ),
+          style: TextStyle(fontSize: 13, color: Colors.white.withOpacity(0.9)),
         ),
       ],
     );

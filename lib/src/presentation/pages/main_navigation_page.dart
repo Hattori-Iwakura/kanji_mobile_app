@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
+import '../../../core/network/api_client.dart';
 import '../../../features/flashcard/presentation/pages/flashcard_deck_list_page.dart';
 import '../../../features/kanji/presentation/pages/kanji_list_page.dart';
+import '../../../features/quiz/presentation/pages/quiz_list_page.dart';
+import '../../../features/profile/presentation/pages/profile_page.dart';
+import '../../../injection_container.dart';
 import '../widgets/fancy_bottom_app_bar.dart';
 import 'home_page.dart';
 
@@ -14,19 +18,24 @@ class MainNavigationPage extends StatefulWidget {
 class _MainNavigationPageState extends State<MainNavigationPage> {
   int _currentIndex = 0;
 
-  final List<Widget> _pages = const [
-    HomePage(),
-    KanjiListPage(),
-    FlashcardDeckListPage(),
-    Center(
-      child: Text('Profile Page', style: TextStyle(color: Colors.white)),
-    ),
-  ];
+  late final List<Widget> _pages;
+
+  @override
+  void initState() {
+    super.initState();
+    _pages = [
+      const HomePage(),
+      const KanjiListPage(),
+      const QuizListPage(),
+      const FlashcardDeckListPage(),
+      ProfilePage(apiClient: sl<ApiClient>()),
+    ];
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      extendBody: true,
+      extendBody: false,
       body: _pages[_currentIndex],
       bottomNavigationBar: FancyBottomAppBar(
         currentIndex: _currentIndex,
@@ -36,14 +45,6 @@ class _MainNavigationPageState extends State<MainNavigationPage> {
           });
         },
       ),
-      floatingActionButton: _currentIndex == 0
-          ? FloatingActionButton(
-              onPressed: () {},
-              backgroundColor: Colors.tealAccent.shade700,
-              child: const Icon(Icons.play_arrow, color: Colors.black87),
-            )
-          : null,
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
     );
   }
 }

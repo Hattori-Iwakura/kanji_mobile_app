@@ -5,6 +5,7 @@ import 'package:kanji_mobile_app/core/network/api_client.dart';
 import 'package:kanji_mobile_app/features/profile/services/profile_api_service.dart';
 import 'package:kanji_mobile_app/features/profile/models/profile_models.dart';
 import 'package:kanji_mobile_app/features/profile/presentation/pages/two_factor_setup_page.dart';
+import 'package:kanji_mobile_app/features/profile/presentation/pages/my_publish_requests_page.dart';
 import 'package:kanji_mobile_app/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:kanji_mobile_app/features/auth/presentation/bloc/auth_event.dart';
 import 'package:kanji_mobile_app/features/auth/presentation/bloc/auth_state.dart';
@@ -206,6 +207,16 @@ class _ProfilePageState extends State<ProfilePage> {
         );
       }
     }
+  }
+
+  void _viewPublishRequests() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) =>
+            MyPublishRequestsPage(apiClient: widget.apiClient),
+      ),
+    );
   }
 
   Future<void> _showEditProfileDialog() async {
@@ -975,6 +986,14 @@ class _ProfilePageState extends State<ProfilePage> {
                 : 'Disabled - Tap to enable',
             onTap: _manage2FA,
             color: _profile!.twoFactorEnabled ? Colors.green : Colors.orange,
+          ),
+          const SizedBox(height: 12),
+          _buildActionButton(
+            icon: Icons.publish,
+            title: 'My Publish Requests',
+            subtitle: 'View your quiz, list, and deck submissions',
+            onTap: _viewPublishRequests,
+            color: Colors.blue,
           ),
           const SizedBox(height: 12),
           _buildActionButton(

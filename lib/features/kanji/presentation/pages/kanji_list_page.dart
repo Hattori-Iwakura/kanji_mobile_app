@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../../../core/network/api_client.dart';
 import '../../../../injection_container.dart';
-import '../../../admin/presentation/pages/admin_kanji_management_page.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../../auth/presentation/bloc/auth_state.dart';
 import '../../domain/usecases/create_kanji.dart';
+import '../../domain/usecases/delete_kanji.dart';
 import '../bloc/kanji_bloc.dart';
 import '../bloc/kanji_event.dart';
 import '../bloc/kanji_state.dart';
@@ -24,7 +23,7 @@ class _KanjiListPageState extends State<KanjiListPage> {
   int? _selectedJLPT;
   int? _selectedGrade;
   bool _isSelectionMode = false;
-  final Set<String> _selectedKanji = {};
+  final Map<String, int> _selectedKanji = {}; // character -> id
 
   // Lazy load variables
   final ScrollController _scrollController = ScrollController();
@@ -99,15 +98,15 @@ class _KanjiListPageState extends State<KanjiListPage> {
     });
   }
 
-  void _toggleKanjiSelection(String character) {
+  void _toggleKanjiSelection(String character, int id) {
     setState(() {
-      if (_selectedKanji.contains(character)) {
+      if (_selectedKanji.containsKey(character)) {
         _selectedKanji.remove(character);
         if (_selectedKanji.isEmpty) {
           _isSelectionMode = false;
         }
       } else {
-        _selectedKanji.add(character);
+        _selectedKanji[character] = id;
       }
     });
   }
@@ -140,16 +139,56 @@ class _KanjiListPageState extends State<KanjiListPage> {
     );
 
     if (confirm == true && mounted) {
-      // TODO: Implement bulk delete via admin API
-      // For now, show a message
-      ScaffoldMessenger.of(context).showSnackBar(
+      final deleteKanji = sl<DeleteKanji>();
+      final scaffoldMessenger = ScaffoldMessenger.of(context);
+
+      int successCount = 0;
+      int failCount = 0;
+
+      // Show loading indicator
+      scaffoldMessenger.showSnackBar(
         SnackBar(
           content: Text('Deleting ${_selectedKanji.length} kanji...'),
-          backgroundColor: Colors.deepPurpleAccent,
+          backgroundColor: Colors.blue,
+          duration: const Duration(seconds: 30),
         ),
       );
+
+      // Delete each kanji
+      for (final entry in _selectedKanji.entries) {
+        final id = entry.value;
+        final result = await deleteKanji(id);
+
+        result.fold((failure) => failCount++, (_) => successCount++);
+      }
+
+      // Clear selection and show result
       _toggleSelectionMode();
-      _applyFilters();
+      scaffoldMessenger.clearSnackBars();
+
+      if (successCount > 0) {
+        scaffoldMessenger.showSnackBar(
+          SnackBar(
+            content: Text(
+              failCount > 0
+                  ? 'Deleted $successCount kanji, failed $failCount'
+                  : 'Successfully deleted $successCount kanji',
+            ),
+            backgroundColor: failCount > 0 ? Colors.orange : Colors.green,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+        // Reload list
+        _applyFilters();
+      } else {
+        scaffoldMessenger.showSnackBar(
+          const SnackBar(
+            content: Text('Failed to delete kanji'),
+            backgroundColor: Colors.red,
+            duration: Duration(seconds: 3),
+          ),
+        );
+      }
     }
   }
 
@@ -163,215 +202,218 @@ class _KanjiListPageState extends State<KanjiListPage> {
     int? selectedJlpt;
     int? selectedGrade;
 
-    final result = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) => StatefulBuilder(
-        builder: (context, setState) => AlertDialog(
-          backgroundColor: const Color(0xFF1A1F2E),
-          title: Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [Colors.deepPurpleAccent, Colors.purpleAccent],
+    // Save the scaffold messenger for later use
+    final scaffoldMessenger = ScaffoldMessenger.of(context);
+
+    try {
+      final result = await showDialog<bool>(
+        context: context,
+        builder: (dialogContext) => StatefulBuilder(
+          builder: (statefulContext, setState) => AlertDialog(
+            backgroundColor: const Color(0xFF1A1F2E),
+            title: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [Colors.deepPurpleAccent, Colors.purpleAccent],
+                    ),
+                    borderRadius: BorderRadius.circular(8),
                   ),
-                  borderRadius: BorderRadius.circular(8),
+                  child: const Icon(Icons.add, color: Colors.white, size: 20),
                 ),
-                child: const Icon(Icons.add, color: Colors.white, size: 20),
+                const SizedBox(width: 12),
+                const Text(
+                  'Create New Kanji',
+                  style: TextStyle(color: Colors.white, fontSize: 18),
+                ),
+              ],
+            ),
+            content: SingleChildScrollView(
+              child: SizedBox(
+                width: MediaQuery.of(dialogContext).size.width * 0.9,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    _buildTextField(
+                      controller: characterController,
+                      label: 'Character *',
+                      hint: '漢',
+                      maxLength: 1,
+                    ),
+                    const SizedBox(height: 12),
+                    _buildTextField(
+                      controller: meaningsController,
+                      label: 'Meanings *',
+                      hint: 'Chinese character, Han',
+                    ),
+                    const SizedBox(height: 12),
+                    _buildTextField(
+                      controller: onReadingsController,
+                      label: 'On Readings *',
+                      hint: 'カン',
+                    ),
+                    const SizedBox(height: 12),
+                    _buildTextField(
+                      controller: kunReadingsController,
+                      label: 'Kun Readings *',
+                      hint: 'から',
+                    ),
+                    const SizedBox(height: 12),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _buildDropdown(
+                            value: selectedJlpt,
+                            label: 'JLPT Level',
+                            items: [1, 2, 3, 4, 5],
+                            onChanged: (value) {
+                              setState(() => selectedJlpt = value);
+                            },
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: _buildDropdown(
+                            value: selectedGrade,
+                            label: 'Grade',
+                            items: [1, 2, 3, 4, 5, 6, 8],
+                            onChanged: (value) {
+                              setState(() => selectedGrade = value);
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _buildTextField(
+                            controller: strokeCountController,
+                            label: 'Stroke Count *',
+                            hint: '12',
+                            keyboardType: TextInputType.number,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: _buildTextField(
+                            controller: frequencyController,
+                            label: 'Frequency *',
+                            hint: '100',
+                            keyboardType: TextInputType.number,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
-              const SizedBox(width: 12),
-              const Text(
-                'Create New Kanji',
-                style: TextStyle(color: Colors.white, fontSize: 18),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(dialogContext, false),
+                child: const Text('Cancel'),
+              ),
+              ElevatedButton(
+                onPressed: () async {
+                  if (characterController.text.isEmpty ||
+                      meaningsController.text.isEmpty ||
+                      onReadingsController.text.isEmpty ||
+                      kunReadingsController.text.isEmpty ||
+                      strokeCountController.text.isEmpty ||
+                      frequencyController.text.isEmpty) {
+                    scaffoldMessenger.showSnackBar(
+                      const SnackBar(
+                        content: Text('Please fill all required fields'),
+                        backgroundColor: Colors.redAccent,
+                      ),
+                    );
+                    return;
+                  }
+
+                  Navigator.pop(dialogContext, true);
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.deepPurpleAccent,
+                  foregroundColor: Colors.white,
+                ),
+                child: const Text('Create'),
               ),
             ],
           ),
-          content: SingleChildScrollView(
-            child: SizedBox(
-              width: MediaQuery.of(context).size.width * 0.9,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  _buildTextField(
-                    controller: characterController,
-                    label: 'Character *',
-                    hint: '漢',
-                    maxLength: 1,
-                  ),
-                  const SizedBox(height: 12),
-                  _buildTextField(
-                    controller: meaningsController,
-                    label: 'Meanings *',
-                    hint: 'Chinese character, Han',
-                  ),
-                  const SizedBox(height: 12),
-                  _buildTextField(
-                    controller: onReadingsController,
-                    label: 'On Readings *',
-                    hint: 'カン',
-                  ),
-                  const SizedBox(height: 12),
-                  _buildTextField(
-                    controller: kunReadingsController,
-                    label: 'Kun Readings *',
-                    hint: 'から',
-                  ),
-                  const SizedBox(height: 12),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _buildDropdown(
-                          value: selectedJlpt,
-                          label: 'JLPT Level',
-                          items: [1, 2, 3, 4, 5],
-                          onChanged: (value) {
-                            setState(() => selectedJlpt = value);
-                          },
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: _buildDropdown(
-                          value: selectedGrade,
-                          label: 'Grade',
-                          items: [1, 2, 3, 4, 5, 6, 8],
-                          onChanged: (value) {
-                            setState(() => selectedGrade = value);
-                          },
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _buildTextField(
-                          controller: strokeCountController,
-                          label: 'Stroke Count *',
-                          hint: '12',
-                          keyboardType: TextInputType.number,
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: _buildTextField(
-                          controller: frequencyController,
-                          label: 'Frequency *',
-                          hint: '100',
-                          keyboardType: TextInputType.number,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(dialogContext, false),
-              child: const Text('Cancel'),
-            ),
-            ElevatedButton(
-              onPressed: () async {
-                if (characterController.text.isEmpty ||
-                    meaningsController.text.isEmpty ||
-                    onReadingsController.text.isEmpty ||
-                    kunReadingsController.text.isEmpty ||
-                    strokeCountController.text.isEmpty ||
-                    frequencyController.text.isEmpty) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Please fill all required fields'),
-                      backgroundColor: Colors.redAccent,
-                    ),
-                  );
-                  return;
-                }
-
-                Navigator.pop(dialogContext, true);
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.deepPurpleAccent,
-                foregroundColor: Colors.white,
-              ),
-              child: const Text('Create'),
-            ),
-          ],
         ),
-      ),
-    );
+      );
 
-    // Save values before disposing controllers
-    final character = characterController.text;
-    final meanings = meaningsController.text;
-    final onReadings = onReadingsController.text;
-    final kunReadings = kunReadingsController.text;
-    final strokeCount = strokeCountController.text;
-    final frequency = frequencyController.text;
+      // Save values before disposing controllers
+      final character = characterController.text;
+      final meanings = meaningsController.text;
+      final onReadings = onReadingsController.text;
+      final kunReadings = kunReadingsController.text;
+      final strokeCount = strokeCountController.text;
+      final frequency = frequencyController.text;
 
-    // Dispose controllers after a short delay to avoid assertion errors
-    Future.microtask(() {
+      // Only process if user confirmed
+      if (result == true && mounted) {
+        try {
+          final createKanji = sl<CreateKanji>();
+          final params = CreateKanjiParams(
+            character: character,
+            meanings: meanings,
+            onReadings: onReadings,
+            kunReadings: kunReadings,
+            jlptLevel: selectedJlpt,
+            grade: selectedGrade,
+            strokeCount: int.parse(strokeCount),
+            frequency: int.parse(frequency),
+          );
+
+          final response = await createKanji(params);
+
+          if (mounted) {
+            response.fold(
+              (failure) {
+                scaffoldMessenger.showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      'Failed to create kanji: ${failure.toString()}',
+                    ),
+                    backgroundColor: Colors.redAccent,
+                  ),
+                );
+              },
+              (kanji) {
+                scaffoldMessenger.showSnackBar(
+                  SnackBar(
+                    content: Text('Created kanji: ${kanji.character}'),
+                    backgroundColor: Colors.green,
+                  ),
+                );
+                _applyFilters();
+              },
+            );
+          }
+        } catch (e) {
+          if (mounted) {
+            scaffoldMessenger.showSnackBar(
+              SnackBar(
+                content: Text('Error: ${e.toString()}'),
+                backgroundColor: Colors.redAccent,
+              ),
+            );
+          }
+        }
+      }
+    } finally {
+      // Always dispose controllers after dialog is closed
       characterController.dispose();
       meaningsController.dispose();
       onReadingsController.dispose();
       kunReadingsController.dispose();
       strokeCountController.dispose();
       frequencyController.dispose();
-    });
-
-    // Only process if user confirmed
-    if (result == true && mounted) {
-      try {
-        final createKanji = sl<CreateKanji>();
-        final params = CreateKanjiParams(
-          character: character,
-          meanings: meanings,
-          onReadings: onReadings,
-          kunReadings: kunReadings,
-          jlptLevel: selectedJlpt,
-          grade: selectedGrade,
-          strokeCount: int.parse(strokeCount),
-          frequency: int.parse(frequency),
-        );
-
-        final response = await createKanji(params);
-
-        if (mounted) {
-          response.fold(
-            (failure) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(
-                    'Failed to create kanji: ${failure.toString()}',
-                  ),
-                  backgroundColor: Colors.redAccent,
-                ),
-              );
-            },
-            (kanji) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text('Created kanji: ${kanji.character}'),
-                  backgroundColor: Colors.green,
-                ),
-              );
-              _applyFilters();
-            },
-          );
-        }
-      } catch (e) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Error: ${e.toString()}'),
-              backgroundColor: Colors.redAccent,
-            ),
-          );
-        }
-      }
     }
   }
 
@@ -514,37 +556,6 @@ class _KanjiListPageState extends State<KanjiListPage> {
                           ),
                         ),
                         const Spacer(),
-                        // Admin Management Button (only for admins)
-                        if (isAdmin)
-                          Container(
-                            decoration: BoxDecoration(
-                              color: Colors.deepPurpleAccent.withOpacity(0.2),
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: IconButton(
-                              icon: const Icon(
-                                Icons.admin_panel_settings,
-                                color: Colors.deepPurpleAccent,
-                              ),
-                              onPressed: () async {
-                                await Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) =>
-                                        AdminKanjiManagementPage(
-                                          apiClient: sl<ApiClient>(),
-                                        ),
-                                  ),
-                                );
-                                // Reload list when back from admin management
-                                if (mounted) {
-                                  _applyFilters();
-                                }
-                              },
-                              tooltip: 'Admin: Manage Kanji',
-                            ),
-                          ),
-                        if (isAdmin) const SizedBox(width: 8),
                         // Canvas Search Button
                         Container(
                           decoration: BoxDecoration(
@@ -824,9 +835,8 @@ class _KanjiListPageState extends State<KanjiListPage> {
                                     index,
                                   ) {
                                     final kanji = kanjiList[index];
-                                    final isSelected = _selectedKanji.contains(
-                                      kanji.character,
-                                    );
+                                    final isSelected = _selectedKanji
+                                        .containsKey(kanji.character);
 
                                     return _KanjiCard(
                                       character: kanji.character,
@@ -842,6 +852,7 @@ class _KanjiListPageState extends State<KanjiListPage> {
                                         if (_isSelectionMode) {
                                           _toggleKanjiSelection(
                                             kanji.character,
+                                            kanji.id,
                                           );
                                         } else {
                                           await Navigator.push(
@@ -863,9 +874,9 @@ class _KanjiListPageState extends State<KanjiListPage> {
                                               if (!_isSelectionMode) {
                                                 setState(() {
                                                   _isSelectionMode = true;
-                                                  _selectedKanji.add(
-                                                    kanji.character,
-                                                  );
+                                                  _selectedKanji[kanji
+                                                          .character] =
+                                                      kanji.id;
                                                 });
                                               }
                                             }

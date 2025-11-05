@@ -195,6 +195,10 @@ class _KanjiTableDetailPageState extends State<KanjiTableDetailPage> {
         child: SafeArea(
           child: BlocConsumer<KanjiTableBloc, KanjiTableState>(
             listenWhen: (previous, current) {
+              // Only listen to states relevant to detail page
+              // Ignore KanjiTableListLoaded from shared bloc (list page reload)
+              if (current is KanjiTableListLoaded) return false;
+
               // Always listen to loading states
               if (current is KanjiTableLoading) return false;
 
@@ -218,19 +222,30 @@ class _KanjiTableDetailPageState extends State<KanjiTableDetailPage> {
                 WidgetsBinding.instance.addPostFrameCallback((_) {
                   if (!mounted) return;
 
-                  ScaffoldMessenger.of(context).clearSnackBars();
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(state.message),
-                      backgroundColor: Colors.tealAccent,
-                      duration: const Duration(seconds: 2),
-                    ),
-                  );
+                  try {
+                    final scaffoldMessenger = ScaffoldMessenger.of(context);
+                    scaffoldMessenger.clearSnackBars();
+                    scaffoldMessenger.showSnackBar(
+                      SnackBar(
+                        content: Text(state.message),
+                        backgroundColor: Colors.tealAccent,
+                        duration: const Duration(seconds: 2),
+                      ),
+                    );
 
-                  if (state.message.contains('deleted')) {
-                    if (mounted) Navigator.pop(context);
-                  } else if (mounted) {
-                    _loadTableDetail();
+                    if (state.message.contains('deleted')) {
+                      if (mounted) Navigator.pop(context);
+                    } else if (mounted) {
+                      _loadTableDetail();
+                    }
+                  } catch (e) {
+                    print('⚠️ Error showing success SnackBar: $e');
+                    // Still perform navigation/reload even if SnackBar fails
+                    if (state.message.contains('deleted')) {
+                      if (mounted) Navigator.pop(context);
+                    } else if (mounted) {
+                      _loadTableDetail();
+                    }
                   }
                 });
               }
@@ -244,14 +259,20 @@ class _KanjiTableDetailPageState extends State<KanjiTableDetailPage> {
                     return;
                   }
 
-                  ScaffoldMessenger.of(context).clearSnackBars();
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(state.message),
-                      backgroundColor: Colors.red,
-                      duration: const Duration(seconds: 3),
-                    ),
-                  );
+                  try {
+                    // Check if context is still valid
+                    final scaffoldMessenger = ScaffoldMessenger.of(context);
+                    scaffoldMessenger.clearSnackBars();
+                    scaffoldMessenger.showSnackBar(
+                      SnackBar(
+                        content: Text(state.message),
+                        backgroundColor: Colors.red,
+                        duration: const Duration(seconds: 3),
+                      ),
+                    );
+                  } catch (e) {
+                    print('⚠️ Error showing SnackBar: $e');
+                  }
                 });
               }
             },

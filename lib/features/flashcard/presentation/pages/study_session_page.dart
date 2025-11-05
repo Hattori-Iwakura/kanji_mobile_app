@@ -35,15 +35,23 @@ class _StudySessionPageState extends State<StudySessionPage> {
   }
 
   void _loadNextCard() {
-    setState(() {
-      _cardStartTime = DateTime.now();
-      _showRatingButtons = false; // Reset rating buttons
-      _isCardFlipped = false; // Reset flip state
-      _hasReviewedCurrentCard = false; // Reset review state
-      // Create new flip controller to ensure clean state
-      _flipController = FlipCardController();
+    // First flip back to front if currently showing back
+    if (_isCardFlipped) {
+      _flipController.toggleCard();
+    }
+
+    // Small delay to let flip animation complete
+    Future.delayed(const Duration(milliseconds: 300), () {
+      if (mounted) {
+        setState(() {
+          _cardStartTime = DateTime.now();
+          _showRatingButtons = false; // Reset rating buttons
+          _isCardFlipped = false; // Reset flip state
+          _hasReviewedCurrentCard = false; // Reset review state
+        });
+        context.read<FlashcardBloc>().add(LoadNextCardEvent(widget.sessionId));
+      }
     });
-    context.read<FlashcardBloc>().add(LoadNextCardEvent(widget.sessionId));
   }
 
   double _getTimeSpent() {
@@ -664,7 +672,13 @@ class _StudySessionPageState extends State<StudySessionPage> {
     });
   }
 
-  void _completeSession() {
+  void _completeSession({bool showDialog = true}) {
+    if (!showDialog) {
+      // Exit immediately without waiting for completion
+      context.read<FlashcardBloc>().add(CompleteSessionEvent(widget.sessionId));
+      Navigator.of(context).pop();
+      return;
+    }
     context.read<FlashcardBloc>().add(CompleteSessionEvent(widget.sessionId));
   }
 
@@ -831,8 +845,10 @@ class _StudySessionPageState extends State<StudySessionPage> {
                       Expanded(
                         child: ElevatedButton(
                           onPressed: () {
-                            _completeSession();
-                            Navigator.pop(context, true);
+                            Navigator.pop(context, true); // Close dialog first
+                            _completeSession(
+                              showDialog: false,
+                            ); // Exit without completion dialog
                           },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.orange,

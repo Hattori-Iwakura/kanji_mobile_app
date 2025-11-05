@@ -148,7 +148,7 @@ class HomePage extends StatelessWidget {
                                       ),
                                     _fancyCard(
                                       context,
-                                      'Học Kanji',
+                                      'Kanji Dictionary',
                                       Icons.menu_book,
                                       onTap: () {
                                         Navigator.push(

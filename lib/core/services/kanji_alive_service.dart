@@ -2,8 +2,21 @@ import 'package:dio/dio.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'cache_service.dart';
 
-/// Service to interact with KanjiAlive API (RapidAPI)
-/// https://rapidapi.com/KanjiAlive/api/learn-to-read-and-write-japanese-kanji
+/// KanjiAliveService - Service để lấy thông tin chi tiết về Kanji từ KanjiAlive API
+///
+/// API Documentation: https://rapidapi.com/KanjiAlive/api/learn-to-read-and-write-japanese-kanji
+///
+/// Chức năng:
+/// - Lấy thông tin kanji: meaning, strokes, images
+/// - Lấy thông tin radical (bộ thủ)
+/// - Lấy example sentences với audio pronunciation
+/// - Cache responses để giảm API calls (save cost & bandwidth)
+///
+/// API này có giới hạn request (rate limit), nên cần cache
+///
+/// Sử dụng trong:
+/// - KanjiRepository khi cần enrich kanji data
+/// - Kanji detail page để hiển thị thông tin chi tiết
 class KanjiAliveService {
   static const String _baseUrl =
       'https://kanjialive-api.p.rapidapi.com/api/public';
@@ -13,6 +26,8 @@ class KanjiAliveService {
 
   KanjiAliveService(this._dio, this._cacheService);
 
+  /// Headers cho RapidAPI authentication
+  /// API key được lưu trong .env file (RAPIDAPI_KEY)
   Map<String, String> get _headers {
     final apiKey = dotenv.env['RAPIDAPI_KEY'] ?? '';
     return {
@@ -21,22 +36,49 @@ class KanjiAliveService {
     };
   }
 
-  /// Get detailed kanji information
-  /// Returns: {
-  ///   kanji: { character, meaning, strokes { count, images } },
-  ///   radical: { character, meaning, strokes },
-  ///   examples: [ { japanese, meaning, audio { opus, aac, ogg, mp3 } } ]
+  /// Lấy thông tin chi tiết về kanji
+  ///
+  /// Params:
+  /// - character: Ký tự kanji (vd: '日', '月', '火')
+  ///
+  /// Returns: Map chứa:
+  /// {
+  ///   kanji: {
+  ///     character: "日",
+  ///     meaning: { english: "sun, day" },
+  ///     strokes: {
+  ///       count: 4,
+  ///       images: [url_to_stroke_diagrams]
+  ///     }
+  ///   },
+  ///   radical: {
+  ///     character: "日",
+  ///     meaning: { english: "sun" },
+  ///     strokes: { count: 4 }
+  ///   },
+  ///   examples: [
+  ///     {
+  ///       japanese: "日本",
+  ///       meaning: { english: "Japan" },
+  ///       audio: {
+  ///         opus: "url_to_audio.opus",
+  ///         aac: "url_to_audio.aac",
+  ///         ogg: "url_to_audio.ogg",
+  ///         mp3: "url_to_audio.mp3"
+  ///       }
+  ///     }
+  ///   ]
   /// }
   Future<Map<String, dynamic>?> getKanjiInfo(String character) async {
     try {
-      // Check cache first
+      // Check cache trước để tránh gọi API không cần thiết
       final cacheKey = 'kanjialive_$character';
       final cached = await _cacheService.get(cacheKey);
       if (cached != null) {
         return cached;
       }
 
-      // Make API request
+      // Gọi API nếu không có cache
       final response = await _dio.get(
         '$_baseUrl/kanji/$character',
         options: Options(headers: _headers),
@@ -45,7 +87,7 @@ class KanjiAliveService {
       if (response.statusCode == 200) {
         final data = response.data as Map<String, dynamic>;
 
-        // Cache the response for 7 days
+        // Cache response trong 7 ngày (kanji data ít khi thay đổi)
         await _cacheService.save(
           key: cacheKey,
           data: data,
@@ -62,7 +104,9 @@ class KanjiAliveService {
     }
   }
 
-  /// Get example words/sentences for a kanji
+  /// Lấy danh sách example words/sentences cho kanji
+  ///
+  /// Returns: List các examples với Japanese text, English meaning, và audio URLs
   Future<List<Map<String, dynamic>>> getExamples(String character) async {
     try {
       final info = await getKanjiInfo(character);
@@ -76,7 +120,10 @@ class KanjiAliveService {
     }
   }
 
-  /// Get audio URL for pronunciation
+  /// Lấy audio URL cho pronunciation
+  ///
+  /// Returns: MP3 URL của example đầu tiên (most common word)
+  /// Dùng để play audio pronunciation khi user tap vào speaker icon
   Future<String?> getAudioUrl(String character) async {
     try {
       final examples = await getExamples(character);

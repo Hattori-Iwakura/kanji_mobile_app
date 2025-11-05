@@ -62,41 +62,76 @@ import 'features/quiz/domain/usecases/get_quiz_attempts.dart';
 import 'features/quiz/domain/usecases/get_quiz_attempt_details.dart';
 import 'features/quiz/presentation/bloc/quiz_bloc.dart';
 
+/// GetIt Service Locator instance - Global singleton
+/// Sử dụng: sl<Type>() để lấy instance từ container
+/// VD: sl<AuthRepository>(), sl<Login>(), sl<AuthBloc>()
 final sl = GetIt.instance;
 
+/// Hàm khởi tạo tất cả dependencies cho app
+///
+/// Dependency Injection Pattern:
+/// - Tách biệt việc tạo objects khỏi việc sử dụng objects
+/// - Dễ dàng thay thế implementations (vd: mock cho testing)
+/// - Tuân theo Dependency Inversion Principle (SOLID)
+///
+/// Các loại registration:
+/// 1. registerLazySingleton: Tạo 1 instance duy nhất khi được gọi lần đầu
+///    - Dùng cho: Services, Repositories, UseCases
+/// 2. registerFactory: Tạo instance mới mỗi lần được gọi
+///    - Dùng cho: BLoCs (mỗi page có BLoC riêng)
+///
+/// Thứ tự đăng ký:
+/// 1. Core dependencies (SharedPreferences, ApiClient, SecureStorage)
+/// 2. External services (KanjiAlive, Jisho, KanjiVG)
+/// 3. Data sources (Remote, Local)
+/// 4. Repositories
+/// 5. Use cases
+/// 6. BLoCs
+///
+/// Gọi trong main.dart: await initializeDependencies();
 Future<void> initializeDependencies({
   SharedPreferences? mockSharedPreferences,
 }) async {
-  // SharedPreferences (for caching)
-  // Use mock if provided (for testing), otherwise get real instance
+  // ============ CORE DEPENDENCIES ============
+
+  // SharedPreferences - Để lưu cache và settings
+  // Kiểm tra đã đăng ký chưa để tránh duplicate registration
   if (!sl.isRegistered<SharedPreferences>()) {
     final sharedPreferences =
         mockSharedPreferences ?? await SharedPreferences.getInstance();
     sl.registerLazySingleton(() => sharedPreferences);
   }
 
-  // Core
+  // ApiClient - HTTP client cho Backend API
   if (!sl.isRegistered<ApiClient>()) {
     sl.registerLazySingleton<ApiClient>(() => ApiClient());
   }
+
+  // SecureStorage - Lưu JWT token một cách an toàn
   if (!sl.isRegistered<SecureStorage>()) {
     sl.registerLazySingleton(() => SecureStorage());
   }
+
+  // CacheService - Cache responses từ external APIs
   if (!sl.isRegistered<CacheService>()) {
     sl.registerLazySingleton(() => CacheService(sl()));
   }
 
-  // Dio for external APIs
+  // Dio - HTTP client riêng cho external APIs (KanjiAlive, Jisho, KanjiVG)
   if (!sl.isRegistered<Dio>()) {
     sl.registerLazySingleton(() => Dio());
   }
 
-  // External services (with caching)
+  // ============ EXTERNAL API SERVICES ============
+  // Các services này kết hợp external API + caching
+
   sl.registerLazySingleton(() => KanjiAliveService(sl(), sl()));
   sl.registerLazySingleton(() => JishoService(sl(), sl()));
   sl.registerLazySingleton(() => KanjiVGService(sl(), sl()));
 
-  // Auth - Data sources
+  // ============ AUTH FEATURE ============
+
+  // Data sources - Giao tiếp với API và Local storage
   sl.registerLazySingleton<AuthRemoteDataSource>(
     () => AuthRemoteDataSourceImpl(sl()),
   );
@@ -104,7 +139,8 @@ Future<void> initializeDependencies({
     () => AuthLocalDataSourceImpl(sl()),
   );
 
-  // Auth - Repository
+  // Repository - Implement interface từ Domain layer
+  // Kết hợp Remote + Local data sources
   sl.registerLazySingleton<AuthRepository>(
     () => AuthRepositoryImpl(
       remoteDataSource: sl(),
@@ -113,7 +149,7 @@ Future<void> initializeDependencies({
     ),
   );
 
-  // Auth - Use cases
+  // Use cases - Business logic đơn giản, mỗi usecase làm 1 việc
   sl.registerLazySingleton(() => Login(sl()));
   sl.registerLazySingleton(() => Register(sl()));
   sl.registerLazySingleton(() => Logout(sl()));
@@ -128,7 +164,8 @@ Future<void> initializeDependencies({
   sl.registerLazySingleton(() => Disable2FA(sl()));
   sl.registerLazySingleton(() => SendEmailOTP(sl()));
 
-  // Auth - Bloc
+  // BLoC - State management cho Auth feature
+  // registerFactory để mỗi page có BLoC instance riêng
   sl.registerFactory(
     () => AuthBloc(
       login: sl(),
@@ -146,12 +183,15 @@ Future<void> initializeDependencies({
     ),
   );
 
-  // Kanji - Data sources
+  // ============ KANJI FEATURE ============
+
+  // Data source - Gọi Backend API
   sl.registerLazySingleton<KanjiRemoteDataSource>(
     () => KanjiRemoteDataSourceImpl(sl()),
   );
 
-  // Kanji - Repository
+  // Repository - Kết hợp Backend API + External APIs
+  // KanjiRepository gọi cả Backend và external services (KanjiAlive, Jisho, KanjiVG)
   sl.registerLazySingleton<KanjiRepository>(
     () => KanjiRepositoryImpl(
       remoteDataSource: sl(),
@@ -161,7 +201,7 @@ Future<void> initializeDependencies({
     ),
   );
 
-  // Kanji - Use cases
+  // Use cases
   sl.registerLazySingleton(() => GetKanjiList(sl()));
   sl.registerLazySingleton(() => GetKanjiDetail(sl()));
   sl.registerLazySingleton(() => SearchKanji(sl()));
@@ -169,7 +209,7 @@ Future<void> initializeDependencies({
   sl.registerLazySingleton(() => UpdateKanji(sl()));
   sl.registerLazySingleton(() => DeleteKanji(sl()));
 
-  // Kanji - Bloc
+  // BLoC
   sl.registerFactory(
     () => KanjiBloc(
       getKanjiList: sl(),
@@ -180,17 +220,18 @@ Future<void> initializeDependencies({
     ),
   );
 
-  // KanjiTable - Data sources
+  // ============ KANJI TABLE FEATURE ============
+  // Feature để quản lý tables (bộ từ vựng theo chủ đề/JLPT level)
+
   sl.registerLazySingleton<KanjiTableRemoteDataSource>(
     () => KanjiTableRemoteDataSourceImpl(dio: sl<ApiClient>().dio),
   );
 
-  // KanjiTable - Repository
   sl.registerLazySingleton<KanjiTableRepository>(
     () => KanjiTableRepositoryImpl(remoteDataSource: sl()),
   );
 
-  // KanjiTable - Use cases
+  // Use cases - CRUD operations cho tables
   sl.registerLazySingleton(() => GetTablesByJlptUseCase(sl()));
   sl.registerLazySingleton(() => GetAllTablesUseCase(sl()));
   sl.registerLazySingleton(() => GetTableByIdUseCase(sl()));
@@ -201,7 +242,6 @@ Future<void> initializeDependencies({
   sl.registerLazySingleton(() => RemoveKanjiFromTableUseCase(sl()));
   sl.registerLazySingleton(() => RequestPublishUseCase(sl()));
 
-  // KanjiTable - Bloc
   sl.registerFactory(
     () => KanjiTableBloc(
       getTablesByJlpt: sl(),
@@ -216,17 +256,18 @@ Future<void> initializeDependencies({
     ),
   );
 
-  // Flashcard - Data sources
+  // ============ FLASHCARD FEATURE ============
+  // Feature học flashcard với spaced repetition (SM-2 algorithm)
+
   sl.registerLazySingleton<FlashcardRemoteDataSource>(
     () => FlashcardRemoteDataSourceImpl(apiClient: sl(), secureStorage: sl()),
   );
 
-  // Flashcard - Repository
   sl.registerLazySingleton<FlashcardRepository>(
     () => FlashcardRepositoryImpl(remoteDataSource: sl()),
   );
 
-  // Flashcard - Use cases
+  // Use cases - Quản lý decks, cards, và session
   sl.registerLazySingleton(() => GetDecksUseCase(sl()));
   sl.registerLazySingleton(() => GetDeckByIdUseCase(sl()));
   sl.registerLazySingleton(() => CreateDeckUseCase(sl()));
@@ -235,6 +276,7 @@ Future<void> initializeDependencies({
   sl.registerLazySingleton(() => AddCardToDeckUseCase(sl()));
   sl.registerLazySingleton(() => RemoveCardFromDeckUseCase(sl()));
   sl.registerLazySingleton(() => StartSessionUseCase(sl()));
+  sl.registerLazySingleton(() => GetActiveSessionUseCase(sl()));
   sl.registerLazySingleton(() => GetSessionProgressUseCase(sl()));
   sl.registerLazySingleton(() => GetNextCardUseCase(sl()));
   sl.registerLazySingleton(() => ReviewCardUseCase(sl()));
@@ -242,7 +284,6 @@ Future<void> initializeDependencies({
   sl.registerLazySingleton(() => GetDueCardsUseCase(sl()));
   sl.registerLazySingleton(() => GetDeckStatisticsUseCase(sl()));
 
-  // Flashcard - Bloc
   sl.registerFactory(
     () => FlashcardBloc(
       getDecks: sl(),
@@ -253,6 +294,7 @@ Future<void> initializeDependencies({
       addCardToDeck: sl(),
       removeCardFromDeck: sl(),
       startSession: sl(),
+      getActiveSession: sl(),
       getSessionProgress: sl(),
       getNextCard: sl(),
       reviewCard: sl(),
@@ -262,17 +304,18 @@ Future<void> initializeDependencies({
     ),
   );
 
-  // Quiz - Data sources
+  // ============ QUIZ FEATURE ============
+  // Feature làm quiz với scoring system
+
   sl.registerLazySingleton<QuizRemoteDataSource>(
     () => QuizRemoteDataSourceImpl(apiClient: sl(), secureStorage: sl()),
   );
 
-  // Quiz - Repository
   sl.registerLazySingleton<QuizRepository>(
     () => QuizRepositoryImpl(remoteDataSource: sl()),
   );
 
-  // Quiz - Use cases
+  // Use cases - CRUD quiz, questions, và attempt management
   sl.registerLazySingleton(() => GetQuizzesUseCase(sl()));
   sl.registerLazySingleton(() => GetQuizDetailUseCase(sl()));
   sl.registerLazySingleton(() => CreateQuizUseCase(sl()));
@@ -286,7 +329,6 @@ Future<void> initializeDependencies({
   sl.registerLazySingleton(() => GetQuizAttemptsUseCase(sl()));
   sl.registerLazySingleton(() => GetQuizAttemptDetailsUseCase(sl()));
 
-  // Quiz - Bloc
   sl.registerFactory(
     () => QuizBloc(
       getQuizzesUseCase: sl(),

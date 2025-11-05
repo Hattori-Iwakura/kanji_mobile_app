@@ -5,6 +5,8 @@ import '../models/flashcard_deck_model.dart';
 import '../models/study_session_model.dart';
 import '../models/next_card_model.dart';
 import '../models/deck_statistics_model.dart';
+import '../models/active_session_model.dart';
+import '../../domain/entities/review_type.dart';
 
 abstract class FlashcardRemoteDataSource {
   Future<List<FlashcardDeckModel>> getDecks({String? search});
@@ -33,7 +35,9 @@ abstract class FlashcardRemoteDataSource {
     required int deckId,
     int? maxNewCards,
     int? maxReviewCards,
+    ReviewType? reviewType,
   });
+  Future<ActiveSessionModel?> getActiveSession(int deckId);
   Future<StudySessionModel> getSessionProgress(int sessionId);
   Future<NextCardModel?> getNextCard(int sessionId);
   Future<void> reviewCard({
@@ -68,6 +72,18 @@ class FlashcardRemoteDataSourceImpl implements FlashcardRemoteDataSource {
       return responseData['data'] as Map<String, dynamic>;
     }
     return responseData as Map<String, dynamic>;
+  }
+
+  Map<String, dynamic>? _extractDataNullable(dynamic responseData) {
+    if (responseData == null) {
+      return null;
+    }
+    if (responseData is Map<String, dynamic> &&
+        responseData.containsKey('data')) {
+      final data = responseData['data'];
+      return data as Map<String, dynamic>?;
+    }
+    return responseData as Map<String, dynamic>?;
   }
 
   @override
@@ -197,6 +213,7 @@ class FlashcardRemoteDataSourceImpl implements FlashcardRemoteDataSource {
     required int deckId,
     int? maxNewCards,
     int? maxReviewCards,
+    ReviewType? reviewType,
   }) async {
     final options = await _getAuthHeaders();
     final response = await apiClient.dio.post(
@@ -205,10 +222,32 @@ class FlashcardRemoteDataSourceImpl implements FlashcardRemoteDataSource {
         'deckId': deckId,
         if (maxNewCards != null) 'maxNewCards': maxNewCards,
         if (maxReviewCards != null) 'maxReviewCards': maxReviewCards,
+        if (reviewType != null) 'reviewType': reviewType.value,
       },
       options: options,
     );
     return StudySessionModel.fromJson(_extractData(response.data));
+  }
+
+  @override
+  Future<ActiveSessionModel?> getActiveSession(int deckId) async {
+    try {
+      final options = await _getAuthHeaders();
+      final response = await apiClient.dio.get(
+        '/flashcard-sessions/active/$deckId',
+        options: options,
+      );
+      final data = _extractDataNullable(response.data);
+      if (data == null) {
+        return null;
+      }
+      return ActiveSessionModel.fromJson(data);
+    } on DioException catch (e) {
+      if (e.response?.statusCode == 404) {
+        return null;
+      }
+      rethrow;
+    }
   }
 
   @override

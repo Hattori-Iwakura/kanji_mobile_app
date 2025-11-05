@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import '../../domain/entities/review_type.dart';
 
 abstract class FlashcardEvent extends Equatable {
   @override
@@ -88,15 +89,26 @@ class StartSessionEvent extends FlashcardEvent {
   final int deckId;
   final int? maxNewCards;
   final int? maxReviewCards;
+  final ReviewType? reviewType;
 
   StartSessionEvent({
     required this.deckId,
     this.maxNewCards,
     this.maxReviewCards,
+    this.reviewType,
   });
 
   @override
-  List<Object?> get props => [deckId, maxNewCards, maxReviewCards];
+  List<Object?> get props => [deckId, maxNewCards, maxReviewCards, reviewType];
+}
+
+class CheckActiveSessionEvent extends FlashcardEvent {
+  final int deckId;
+
+  CheckActiveSessionEvent(this.deckId);
+
+  @override
+  List<Object?> get props => [deckId];
 }
 
 class LoadSessionProgressEvent extends FlashcardEvent {

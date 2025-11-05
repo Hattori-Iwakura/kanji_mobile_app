@@ -4,7 +4,6 @@ import 'package:kanji_mobile_app/core/network/api_client.dart';
 import 'package:kanji_mobile_app/features/admin/services/admin_api_service.dart';
 import 'package:kanji_mobile_app/features/admin/models/admin_models.dart';
 import 'package:kanji_mobile_app/features/admin/presentation/pages/admin_publish_requests_page.dart';
-import 'package:kanji_mobile_app/features/admin/presentation/pages/admin_kanji_management_page.dart';
 import 'package:kanji_mobile_app/features/admin/presentation/pages/admin_user_management_page.dart';
 
 class AdminDashboardPage extends StatefulWidget {
@@ -230,9 +229,9 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
           const SizedBox(height: 16),
           _buildRecentActivitiesCard(),
           const SizedBox(height: 16),
-          _buildQuickActionsCard(),
-          const SizedBox(height: 16),
           _buildPublishRequestsCard(),
+          const SizedBox(height: 16),
+          _buildUserManagementCard(),
         ],
       ),
     );
@@ -614,161 +613,6 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
     );
   }
 
-  Widget _buildQuickActionsCard() {
-    return Container(
-      decoration: BoxDecoration(
-        color: const Color(0xFF1A1F2E),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white.withOpacity(0.1), width: 1),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Padding(
-            padding: EdgeInsets.all(16),
-            child: Row(
-              children: [
-                Icon(Icons.flash_on, color: Colors.tealAccent, size: 24),
-                SizedBox(width: 12),
-                Text(
-                  'Quick Actions',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const Divider(color: Color(0xFF2A2F3E), height: 1),
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              children: [
-                _buildActionButton(
-                  icon: Icons.people,
-                  title: 'Manage Users',
-                  subtitle:
-                      'View and manage users (${_overview?.users.total ?? 0} total)',
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFF00BFA5), Color(0xFF1DE9B6)],
-                  ),
-                  onTap: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (_) => AdminUserManagementPage(
-                          apiClient: widget.apiClient,
-                        ),
-                      ),
-                    );
-                  },
-                ),
-                const SizedBox(height: 12),
-                _buildActionButton(
-                  icon: Icons.text_fields,
-                  title: 'Manage Kanji',
-                  subtitle:
-                      'Add, edit or delete kanji (${_overview?.content.kanji ?? 0} total)',
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFF667EEA), Color(0xFF764BA2)],
-                  ),
-                  onTap: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (_) => AdminKanjiManagementPage(
-                          apiClient: widget.apiClient,
-                        ),
-                      ),
-                    );
-                  },
-                ),
-                const SizedBox(height: 12),
-                _buildActionButton(
-                  icon: Icons.publish,
-                  title: 'Review Requests',
-                  subtitle:
-                      '${_overview?.activity.pendingPublishRequests ?? 0} pending approval',
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFFFFBE0B), Color(0xFFFB5607)],
-                  ),
-                  onTap: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (_) => AdminPublishRequestsPage(
-                          apiClient: widget.apiClient,
-                        ),
-                      ),
-                    );
-                  },
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildActionButton({
-    required IconData icon,
-    required String title,
-    required String subtitle,
-    required Gradient gradient,
-    required VoidCallback onTap,
-  }) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(12),
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: const Color(0xFF0F1419),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Colors.white.withOpacity(0.05)),
-        ),
-        child: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                gradient: gradient,
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Icon(icon, color: Colors.white, size: 24),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    subtitle,
-                    style: const TextStyle(color: Colors.white60, fontSize: 12),
-                  ),
-                ],
-              ),
-            ),
-            const Icon(
-              Icons.arrow_forward_ios,
-              color: Colors.white38,
-              size: 16,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
   Widget _buildPublishStat(String label, int count, Color color) {
     return Column(
       children: [
@@ -814,6 +658,123 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildUserManagementCard() {
+    final totalUsers = _userStats?.totalUsers ?? 0;
+    final activeUsers = _userStats?.activeUsers ?? 0;
+    final newUsers = _userStats?.newUsers ?? 0;
+
+    return Container(
+      decoration: BoxDecoration(
+        color: const Color(0xFF1A1F2E),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.white.withOpacity(0.1), width: 1),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              children: [
+                const Icon(Icons.people, color: Colors.tealAccent, size: 24),
+                const SizedBox(width: 12),
+                const Text(
+                  'User Management',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const Spacer(),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 6,
+                  ),
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [Color(0xFF667EEA), Color(0xFF764BA2)],
+                    ),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    '$totalUsers users',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const Divider(color: Color(0xFF2A2F3E), height: 1),
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: [
+                    _buildUserStat('Total', totalUsers, Colors.blueAccent),
+                    _buildUserStat('Active', activeUsers, Colors.tealAccent),
+                    _buildUserStat('New', newUsers, Colors.purpleAccent),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton.icon(
+                    onPressed: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => AdminUserManagementPage(
+                            apiClient: widget.apiClient,
+                          ),
+                        ),
+                      );
+                    },
+                    icon: const Icon(Icons.manage_accounts),
+                    label: const Text('Manage Users'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF667EEA),
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildUserStat(String label, int count, Color color) {
+    return Column(
+      children: [
+        Text(
+          count.toString(),
+          style: TextStyle(
+            color: color,
+            fontSize: 28,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        Text(
+          label,
+          style: const TextStyle(color: Colors.white60, fontSize: 12),
+        ),
+      ],
     );
   }
 
@@ -1058,7 +1019,6 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
             _buildStatRow(
               'Total Quizzes',
               _contentStats!.totalQuizzes.toString(),
-              growth: _contentStats!.growth,
             ),
             const SizedBox(height: 8),
             _buildStatRow('Total Lists', _contentStats!.totalLists.toString()),
@@ -1070,7 +1030,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
     );
   }
 
-  Widget _buildStatRow(String label, String value, {GrowthData? growth}) {
+  Widget _buildStatRow(String label, String value, {double? growth}) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -1093,7 +1053,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
-                  color: growth.percentage >= 0
+                  color: growth >= 0
                       ? Colors.green.withOpacity(0.2)
                       : Colors.red.withOpacity(0.2),
                   borderRadius: BorderRadius.circular(6),
@@ -1101,19 +1061,15 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                 child: Row(
                   children: [
                     Icon(
-                      growth.percentage >= 0
-                          ? Icons.arrow_upward
-                          : Icons.arrow_downward,
+                      growth >= 0 ? Icons.arrow_upward : Icons.arrow_downward,
                       size: 12,
-                      color: growth.percentage >= 0 ? Colors.green : Colors.red,
+                      color: growth >= 0 ? Colors.green : Colors.red,
                     ),
                     const SizedBox(width: 4),
                     Text(
-                      '${growth.percentage.abs().toStringAsFixed(1)}%',
+                      '${growth.abs().toStringAsFixed(1)}%',
                       style: TextStyle(
-                        color: growth.percentage >= 0
-                            ? Colors.green
-                            : Colors.red,
+                        color: growth >= 0 ? Colors.green : Colors.red,
                         fontSize: 12,
                         fontWeight: FontWeight.bold,
                       ),
@@ -1234,17 +1190,31 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                     value.toInt() >= chartData.data.length) {
                   return const SizedBox.shrink();
                 }
+
+                // Show fewer labels if too many data points
+                final totalPoints = chartData.data.length;
+                final showEvery = totalPoints > 15
+                    ? (totalPoints / 6).ceil()
+                    : totalPoints > 7
+                    ? 2
+                    : 1;
+
+                if (value.toInt() % showEvery != 0 &&
+                    value.toInt() != totalPoints - 1) {
+                  return const SizedBox.shrink();
+                }
+
                 return Padding(
                   padding: const EdgeInsets.only(top: 8),
                   child: Text(
                     chartData.data[value.toInt()].label,
-                    style: const TextStyle(color: Colors.white60, fontSize: 10),
+                    style: const TextStyle(color: Colors.white60, fontSize: 9),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
                 );
               },
-              reservedSize: 30,
+              reservedSize: 32,
             ),
           ),
           leftTitles: AxisTitles(
